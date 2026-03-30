@@ -35,7 +35,7 @@ jobs:
       - name: Build with Maven
         env:
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-        run: mvn -B package --file pom.xml
+        run: mvn clean install
 
       - name: Add Coverage PR Comment
         uses: Madrapps/jacoco-report@v1.6.1
