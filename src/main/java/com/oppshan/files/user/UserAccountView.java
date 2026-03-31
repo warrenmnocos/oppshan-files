@@ -1,20 +1,17 @@
 package com.oppshan.files.user;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
 public record UserAccountView(
         UUID id,
         String name,
-        Long maxStorageBytes,
+        long maxStorageBytes,
         Instant createdAt
-) {
-    public static UserAccountView from(UserAccount user) {
-        return new UserAccountView(
-                user.getId(),
-                user.getName(),
-                user.getMaxStorageBytes(),
-                user.getCreatedAt()
-        );
-    }
+) implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 }

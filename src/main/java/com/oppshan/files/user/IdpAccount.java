@@ -17,13 +17,13 @@ import jakarta.persistence.UniqueConstraint;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 @Entity
 @Table(name = "idp_account",
         indexes = {
                 @Index(name = "idx_idp_account_created_at", columnList = "created_at"),
-                @Index(name = "uc_idp_account", columnList = "id, provider_id, provider_name"),
         },
         uniqueConstraints = {
                 @UniqueConstraint(name = "uc_idp_account_id", columnNames = "id"),
@@ -101,5 +101,11 @@ public abstract class IdpAccount implements Serializable {
 
     public void setUserAccount(UserAccount user) {
         this.userAccount = user;
+    }
+
+    public Optional<GoogleAccount> asGoogleAccount() {
+        return Optional.of(this)
+                .filter(GoogleAccount.class::isInstance)
+                .map(GoogleAccount.class::cast);
     }
 }

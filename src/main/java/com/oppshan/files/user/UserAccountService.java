@@ -1,9 +1,9 @@
 package com.oppshan.files.user;
 
+import com.oppshan.files.config.ApplicationStorage;
 import com.oppshan.files.exception.BusinessException;
 import com.oppshan.files.exception.ResourceNotFoundException;
 import io.quarkus.security.identity.SecurityIdentity;
-import jakarta.annotation.Nonnull;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -29,27 +29,27 @@ public class UserAccountService {
     SecurityIdentity identity;
 
     @Inject
-    @ConfigProperty(name = "app.storage.max-bytes")
-    long maxStorageBytes;
+    ApplicationStorage applicationStorage;
 
-    public Optional<UserAccountView> findByIdp(String providerName,
+    public Optional<UserAccountView> findByIdp(@NotBlank String providerName,
                                                @NotBlank String providerId) {
         return idpAccountRepository.findByProviderNameAndProviderId(providerName, providerId)
                 .map(IdpAccount::getUserAccount)
                 .map(UserAccount::toUserAccountView);
     }
 
+    @NotNull
     public UserAccountView processLogin(@NotNull JsonWebToken idToken) {
         return getOrCreateFromGoogle(idToken).orElseThrow(() -> new BusinessException("Google authentication required"));
     }
 
+    @NotNull
     public UserAccountView getAuthenticatedUser(@NotNull JsonWebToken idToken) {
         return findByIdp(getProviderName(), idToken.getSubject())
                 .orElseThrow(() -> new ResourceNotFoundException("UserAccount not found"));
     }
 
-    @Nonnull
-    private Optional<UserAccountView> getOrCreateFromGoogle(@Nonnull JsonWebToken idToken) {
+    private Optional<UserAccountView> getOrCreateFromGoogle(JsonWebToken idToken) {
         final String providerName = getProviderName();
         if (!"google".equals(providerName)) {
             return Optional.empty();
@@ -70,7 +70,7 @@ public class UserAccountService {
         final var now = Instant.now();
         final var newUser = new UserAccount();
         newUser.setName(idToken.getClaim("name"));
-        newUser.setMaxStorageBytes(maxStorageBytes);
+        newUser.setMaxStorageBytes(applicationStorage.maxBytes());
         newUser.setCreatedAt(now);
         userRepository.save(newUser);
 
@@ -86,7 +86,6 @@ public class UserAccountService {
         return Optional.of(newUser.toUserAccountView());
     }
 
-    @Nonnull
     private String getProviderName() {
         final String providerName = identity.getAttribute("tenant-id");
         if (providerName == null || "default".equals(providerName)) {
