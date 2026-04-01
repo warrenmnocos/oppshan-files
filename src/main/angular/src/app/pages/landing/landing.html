@@ -1,0 +1,9 @@
+<div class="landing">
+  <h1>Oppshan Files</h1>
+
+  @if (errorMessage()) {
+    <p class="error">{{ errorMessage() }}</p>
+  }
+
+  <button (click)="signIn()">Sign in with Google</button>
+</div>
