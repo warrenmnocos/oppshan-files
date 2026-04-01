@@ -58,9 +58,11 @@ public abstract class IdpAccount implements Serializable {
     private Instant createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_account_id",
+    @JoinColumn(
+            name = "user_account_id",
             nullable = false,
-            updatable = false)
+            updatable = false
+    )
     private UserAccount userAccount;
 
     public UUID getId() {

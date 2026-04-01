@@ -29,7 +29,7 @@ import java.util.UUID;
         uniqueConstraints = {
                 @UniqueConstraint(name = "uc_user_account_id", columnNames = "id"),
         })
-public class UserAccount implements Serializable {
+public class UserAccount implements Comparable<UserAccount>, Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -93,6 +93,11 @@ public class UserAccount implements Serializable {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    @Override
+    public int compareTo(UserAccount otherUserAccount) {
+        return id.compareTo(otherUserAccount.id);
     }
 
     public UserAccountView toUserAccountView() {
