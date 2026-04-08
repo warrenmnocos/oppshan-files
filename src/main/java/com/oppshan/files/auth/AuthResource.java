@@ -30,14 +30,14 @@ public class AuthResource {
     UserAccountService userService;
 
     @GET
-    @Path("api/auth/login")
+    @Path("api/auth/login/{idpProviderName}")
     @Authenticated
     public Response login() {
         return Response.seeOther(URI.create("/")).build();
     }
 
     @GET
-    @Path("api/auth/callback")
+    @Path("api/auth/callback/{idpProviderName}")
     @Authenticated
     public Response callback() {
         userService.processLogin(idToken);

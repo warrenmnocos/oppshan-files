@@ -3,16 +3,16 @@ package com.oppshan.files.user;
 import com.oppshan.files.config.ApplicationStorage;
 import com.oppshan.files.exception.BusinessException;
 import com.oppshan.files.exception.ResourceNotFoundException;
+import com.oppshan.files.file.FileNode;
+import com.oppshan.files.file.UserStorage;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
-import java.time.Instant;
 import java.util.Optional;
 
 @Transactional
@@ -64,25 +64,28 @@ public class UserAccountService {
                 user.setName(idToken.getClaim("name"));
                 userRepository.save(user);
             }
+
             return Optional.of(user.toUserAccountView());
         }
 
-        final var now = Instant.now();
         final var newUser = new UserAccount();
-        newUser.setName(idToken.getClaim("name"));
-        newUser.setMaxStorageBytes(applicationStorage.maxBytes());
-        newUser.setCreatedAt(now);
-        userRepository.save(newUser);
-
-        final var idpAccount = new GoogleAccount();
-        idpAccount.setProviderName(providerName);
-        idpAccount.setProviderId(providerId);
-        idpAccount.setUserAccount(newUser);
-        idpAccount.setEmail(idToken.getClaim("email"));
-        idpAccount.setName(idToken.getClaim("name"));
-        idpAccount.setPhotoUrl(idToken.getClaim("picture"));
-        idpAccount.setCreatedAt(now);
-        idpAccountRepository.save(idpAccount);
+        newUser.setName(idToken.getClaim("name"))
+                .setUserStorage(
+                        new UserStorage()
+                                .setUserAccount(newUser)
+                                .setMaxStorageBytes(applicationStorage.maxBytes())
+                                .setRootFileNode(FileNode.createRoot(newUser))
+                )
+                .getIdpAccounts().add(
+                        new GoogleAccount()
+                                .setProviderName(providerName)
+                                .setProviderId(providerId)
+                                .setUserAccount(newUser)
+                                .setEmail(idToken.getClaim("email"))
+                                .setName(idToken.getClaim("name"))
+                                .setPhotoUrl(idToken.getClaim("picture"))
+                );
+        userRepository.insertWithSession(newUser);
         return Optional.of(newUser.toUserAccountView());
     }
 

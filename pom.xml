@@ -15,13 +15,13 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.34.1</quarkus.platform.version>
+        <quarkus.platform.version>3.34.2</quarkus.platform.version>
         <node.version>v22.22.2</node.version>
-        <yarn.version>v1.22.22</yarn.version>
         <angular.cli.version>21.2.5</angular.cli.version>
-        <jakarta.data-api.version>1.0.1</jakarta.data-api.version>
-        <hibernate.version>7.2.6.Final</hibernate.version>
         <frontend-maven-plugin.version>1.15.1</frontend-maven-plugin.version>
+        <guava.version>33.5.0-jre</guava.version>
+        <jakarta.data-api.version>1.0.1</jakarta.data-api.version>
+        <yarn.version>v1.22.22</yarn.version>
         <skipITs>true</skipITs>
     </properties>
 
@@ -68,12 +68,21 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-flyway</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
         </dependency>
         <dependency>
             <groupId>jakarta.data</groupId>
             <artifactId>jakarta.data-api</artifactId>
             <version>${jakarta.data-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>${guava.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -108,7 +117,6 @@
                         <annotationProcessorPath>
                             <groupId>org.hibernate.orm</groupId>
                             <artifactId>hibernate-processor</artifactId>
-                            <version>${hibernate.version}</version>
                         </annotationProcessorPath>
                     </annotationProcessorPaths>
                     <compilerArgs>

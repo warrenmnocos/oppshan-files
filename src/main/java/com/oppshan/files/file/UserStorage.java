@@ -1,7 +1,9 @@
-package com.oppshan.files.user;
+package com.oppshan.files.file;
 
 import com.oppshan.files.common.AuditableEntity;
 import com.oppshan.files.common.AuditableEntityEntityListener;
+import com.oppshan.files.user.UserAccount;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -9,40 +11,33 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Inheritance;
-import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 @Entity
 @EntityListeners({
         AuditableEntityEntityListener.class
 })
-@Table(name = "idp_account",
+@Table(name = "user_storage",
         indexes = {
-                @Index(name = "idx_idp_account_created_at", columnList = "created_at"),
         },
         uniqueConstraints = {
-                @UniqueConstraint(name = "uc_idp_account_id", columnNames = "id"),
-                @UniqueConstraint(name = "uc_idp_account_uuid", columnNames = "uuid"),
-                @UniqueConstraint(name = "uc_idp_account_provider", columnNames = "provider_id, provider_name, user_account_id"),
-        })
-@Inheritance(strategy = InheritanceType.JOINED)
-public abstract class IdpAccount
-        implements AuditableEntity<IdpAccount>, Comparable<IdpAccount>, Serializable {
+                @UniqueConstraint(name = "uc_user_storage_id", columnNames = "id"),
+                @UniqueConstraint(name = "uc_user_storage_uuid", columnNames = "uuid "),
+        }
+)
+public class UserStorage
+        implements AuditableEntity<UserStorage>, Comparable<UserStorage>, Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -53,12 +48,11 @@ public abstract class IdpAccount
             updatable = false)
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,
-            generator = "idp_account_sequence_generator")
+            generator = "user_storage_sequence_generator")
     @SequenceGenerator(
-            name = "idp_account_sequence_generator",
-            sequenceName = "idp_account_sequence",
+            name = "user_storage_sequence_generator",
+            sequenceName = "user_storage_sequence",
             allocationSize = 100)
-    @NotNull
     private Long id;
 
     @Column(name = "uuid",
@@ -67,19 +61,7 @@ public abstract class IdpAccount
     @NotNull
     private UUID uuid;
 
-    @Column(name = "provider_id",
-            nullable = false,
-            updatable = false)
-    @NotEmpty
-    private String providerId;
-
-    @Column(name = "provider_name",
-            nullable = false,
-            updatable = false)
-    @NotEmpty
-    private String providerName;
-
-    @ManyToOne(
+    @OneToOne(
             fetch = FetchType.LAZY,
             optional = false,
             targetEntity = UserAccount.class
@@ -89,25 +71,40 @@ public abstract class IdpAccount
             nullable = false,
             updatable = false
     )
-    @NotNull
     private UserAccount userAccount;
+
+    @Column(name = "max_storage_bytes",
+            nullable = false)
+    private long maxStorageBytes;
+
+    @OneToOne(
+            cascade = CascadeType.ALL,
+            orphanRemoval = true,
+            fetch = FetchType.LAZY,
+            optional = false,
+            targetEntity = FileNode.class
+    )
+    @JoinColumn(
+            name = "root_file_node_id",
+            nullable = false,
+            updatable = false
+    )
+    private FileNode rootFileNode;
 
     @Column(name = "created_at",
             nullable = false,
             updatable = false)
-    @NotNull
     private Instant createdAt;
 
     @Column(name = "last_modified_at",
             nullable = false)
-    @NotNull
     private Instant lastModifiedAt;
 
     public Long getId() {
         return id;
     }
 
-    public IdpAccount setId(Long id) {
+    public UserStorage setId(Long id) {
         this.id = id;
         return this;
     }
@@ -118,26 +115,8 @@ public abstract class IdpAccount
     }
 
     @Override
-    public IdpAccount setUuid(UUID uuid) {
+    public UserStorage setUuid(UUID uuid) {
         this.uuid = uuid;
-        return this;
-    }
-
-    public String getProviderId() {
-        return providerId;
-    }
-
-    public IdpAccount setProviderId(String providerId) {
-        this.providerId = providerId;
-        return this;
-    }
-
-    public String getProviderName() {
-        return providerName;
-    }
-
-    public IdpAccount setProviderName(String providerName) {
-        this.providerName = providerName;
         return this;
     }
 
@@ -145,8 +124,26 @@ public abstract class IdpAccount
         return userAccount;
     }
 
-    public IdpAccount setUserAccount(UserAccount userAccount) {
+    public UserStorage setUserAccount(UserAccount userAccount) {
         this.userAccount = userAccount;
+        return this;
+    }
+
+    public long getMaxStorageBytes() {
+        return maxStorageBytes;
+    }
+
+    public UserStorage setMaxStorageBytes(long maxStorageBytes) {
+        this.maxStorageBytes = maxStorageBytes;
+        return this;
+    }
+
+    public FileNode getRootFileNode() {
+        return rootFileNode;
+    }
+
+    public UserStorage setRootFileNode(FileNode rootFileNode) {
+        this.rootFileNode = rootFileNode;
         return this;
     }
 
@@ -156,7 +153,7 @@ public abstract class IdpAccount
     }
 
     @Override
-    public IdpAccount setCreatedAt(Instant createdAt) {
+    public UserStorage setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
         return this;
     }
@@ -167,14 +164,14 @@ public abstract class IdpAccount
     }
 
     @Override
-    public IdpAccount setLastModifiedAt(Instant lastModifiedAt) {
+    public UserStorage setLastModifiedAt(Instant lastModifiedAt) {
         this.lastModifiedAt = lastModifiedAt;
         return this;
     }
 
     @Override
-    public int compareTo(IdpAccount otherIdpAccount) {
-        return id.compareTo(otherIdpAccount.getId());
+    public int compareTo(UserStorage otherUserStorage) {
+        return userAccount.compareTo(otherUserStorage.getUserAccount());
     }
 
     @Override
@@ -183,27 +180,23 @@ public abstract class IdpAccount
             return true;
         }
 
-        if (!(other instanceof final IdpAccount that)) {
+        if (!(other instanceof final UserStorage that)) {
             return false;
         }
 
-        return Objects.equals(providerId, that.providerId) &&
-                Objects.equals(providerName, that.providerName) &&
-                Objects.equals(userAccount, that.userAccount);
+        return Objects.equals(id, that.id) &&
+                Objects.equals(uuid, that.uuid) &&
+                Objects.equals(createdAt, that.createdAt) &&
+                Objects.equals(lastModifiedAt, that.lastModifiedAt);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-                providerId,
-                providerName,
-                userAccount
+                id,
+                uuid,
+                createdAt,
+                lastModifiedAt
         );
-    }
-
-    public Optional<GoogleAccount> asGoogleAccount() {
-        return Optional.of(this)
-                .filter(GoogleAccount.class::isInstance)
-                .map(GoogleAccount.class::cast);
     }
 }
