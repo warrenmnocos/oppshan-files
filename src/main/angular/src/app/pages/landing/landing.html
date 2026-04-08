@@ -1,0 +1,30 @@
+<div class="landing">
+  <div class="card">
+    <div class="card-header">
+      <div class="icon">
+        <img alt="" height="32" src="/icons/folder.svg" width="32">
+      </div>
+      <h1>{{ 'landing.title' | translate }}</h1>
+      <p>{{ 'landing.subtitle' | translate }}</p>
+    </div>
+
+    <div class="card-body">
+      @if (hasError()) {
+        <p class="error">{{ 'landing.error' | translate }}</p>
+      }
+
+      <p class="prompt">{{ 'landing.prompt' | translate }}</p>
+
+      <button (click)="signIn()" class="google-btn">
+        <img alt="" class="google-logo" height="20" src="/icons/google-logo.svg" width="20">
+        {{ 'landing.signInWithGoogle' | translate }}
+      </button>
+
+      <p class="oauth-note">{{ 'landing.oauthNote' | translate }}</p>
+    </div>
+
+    <div class="card-footer">
+      <p>{{ 'landing.footer' | translate }}</p>
+    </div>
+  </div>
+</div>

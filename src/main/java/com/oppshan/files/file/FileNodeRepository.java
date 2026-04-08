@@ -1,0 +1,10 @@
+package com.oppshan.files.file;
+
+import com.oppshan.files.common.StatefulWriteRepository;
+import jakarta.data.repository.CrudRepository;
+import jakarta.data.repository.Repository;
+
+@Repository
+public interface FileNodeRepository
+        extends CrudRepository<FileNode, Long>, StatefulWriteRepository<FileNode> {
+}
