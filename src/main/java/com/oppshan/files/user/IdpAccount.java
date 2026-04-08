@@ -38,7 +38,14 @@ import java.util.UUID;
         uniqueConstraints = {
                 @UniqueConstraint(name = "uc_idp_account_id", columnNames = "id"),
                 @UniqueConstraint(name = "uc_idp_account_uuid", columnNames = "uuid"),
-                @UniqueConstraint(name = "uc_idp_account_provider", columnNames = "provider_id, provider_name, user_account_id"),
+                @UniqueConstraint(
+                        name = "uc_idp_account_provider",
+                        columnNames = {
+                                "provider_id",
+                                "provider_name",
+                                "user_account_id"
+                        }
+                ),
         })
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class IdpAccount

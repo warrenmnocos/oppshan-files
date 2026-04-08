@@ -75,6 +75,10 @@
             <artifactId>quarkus-arc</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-reactive-routes</artifactId>
+        </dependency>
+        <dependency>
             <groupId>jakarta.data</groupId>
             <artifactId>jakarta.data-api</artifactId>
             <version>${jakarta.data-api.version}</version>
@@ -92,6 +96,11 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-jacoco</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-test-oidc-server</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

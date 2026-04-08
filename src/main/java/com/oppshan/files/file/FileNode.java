@@ -46,8 +46,15 @@ import java.util.UUID;
         },
         uniqueConstraints = {
                 @UniqueConstraint(name = "uc_file_node_id", columnNames = "id"),
-                @UniqueConstraint(name = "uc_file_node_uuid", columnNames = "uuid "),
-                @UniqueConstraint(name = "uc_file_node_name", columnNames = "parent_file_node_id,name,mime_type"),
+                @UniqueConstraint(name = "uc_file_node_uuid", columnNames = "uuid"),
+                @UniqueConstraint(
+                        name = "uc_file_node_name",
+                        columnNames = {
+                                "parent_file_node_id",
+                                "name",
+                                "mime_type"
+                        }
+                ),
         }
 )
 public class FileNode

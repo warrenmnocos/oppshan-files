@@ -1,0 +1,11 @@
+{
+  "landing": {
+    "title": "Files",
+    "subtitle": "Your personal file manager",
+    "prompt": "Sign in to access your files securely from anywhere.",
+    "signInWithGoogle": "Sign in with Google",
+    "oauthNote": "Secured with Single Sign-on \u2014 we never see your credentials",
+    "error": "Sign in failed. Please try again.",
+    "footer": "ITMD 504 \u2014 Illinois Institute of Technology"
+  }
+}

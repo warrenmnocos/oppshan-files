@@ -1,18 +1,20 @@
 import {Component, inject, OnInit, signal} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
+import {TranslatePipe} from '@ngx-translate/core';
 
 @Component({
   selector: 'app-landing',
   templateUrl: './landing.html',
+  styleUrl: './landing.scss',
+  imports: [TranslatePipe],
 })
 export class Landing implements OnInit {
-  protected errorMessage = signal<string | null>(null);
+  protected hasError = signal(false);
   private route = inject(ActivatedRoute);
 
   ngOnInit(): void {
-    const error = this.route.snapshot.queryParamMap.get('error');
-    if (error) {
-      this.errorMessage.set('Sign in failed. Please try again.');
+    if (this.route.snapshot.queryParamMap.get('error')) {
+      this.hasError.set(true);
     }
   }
 

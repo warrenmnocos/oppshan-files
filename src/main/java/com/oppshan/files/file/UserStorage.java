@@ -29,11 +29,9 @@ import java.util.UUID;
         AuditableEntityEntityListener.class
 })
 @Table(name = "user_storage",
-        indexes = {
-        },
         uniqueConstraints = {
                 @UniqueConstraint(name = "uc_user_storage_id", columnNames = "id"),
-                @UniqueConstraint(name = "uc_user_storage_uuid", columnNames = "uuid "),
+                @UniqueConstraint(name = "uc_user_storage_uuid", columnNames = "uuid"),
         }
 )
 public class UserStorage
