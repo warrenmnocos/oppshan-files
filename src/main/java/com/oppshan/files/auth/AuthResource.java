@@ -2,10 +2,12 @@ package com.oppshan.files.auth;
 
 import com.oppshan.files.user.UserAccountService;
 import io.quarkus.oidc.IdToken;
+import io.quarkus.oidc.OidcSession;
 import io.quarkus.security.Authenticated;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
@@ -24,6 +26,9 @@ public class AuthResource {
 
     @Inject
     UserAccountService userService;
+
+    @Inject
+    OidcSession oidcSession;
 
     @GET
     @Path("login/{idpProviderName}")
@@ -46,5 +51,13 @@ public class AuthResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response me() {
         return Response.ok(userService.getAuthenticatedUser(idToken)).build();
+    }
+
+    @POST
+    @Path("logout")
+    @Authenticated
+    public Response logout() {
+        oidcSession.logout().await().indefinitely();
+        return Response.seeOther(URI.create("/sign-in")).build();
     }
 }

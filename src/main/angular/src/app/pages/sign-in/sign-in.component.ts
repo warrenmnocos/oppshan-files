@@ -3,12 +3,12 @@ import {ActivatedRoute} from '@angular/router';
 import {TranslatePipe} from '@ngx-translate/core';
 
 @Component({
-  selector: 'app-landing',
-  templateUrl: './landing.html',
-  styleUrl: './landing.scss',
+  selector: 'app-sign-in',
+  templateUrl: './sign-in.component.html',
+  styleUrl: './sign-in.component.scss',
   imports: [TranslatePipe],
 })
-export class Landing implements OnInit {
+export class SignIn implements OnInit {
   protected hasError = signal(false);
   private route = inject(ActivatedRoute);
 

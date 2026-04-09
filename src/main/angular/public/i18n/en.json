@@ -7,5 +7,15 @@
     "oauthNote": "Secured with Single Sign-on \u2014 we never see your credentials",
     "error": "Sign in failed. Please try again.",
     "footer": "ITMD 504 \u2014 Illinois Institute of Technology"
+  },
+  "toolbar": {
+    "title": "Files",
+    "profile": "Profile",
+    "storage": "Storage",
+    "signOut": "Sign out"
+  },
+  "rootDirectory": {
+    "title": "My Files",
+    "welcome": "Welcome, {{firstName}} {{lastName}}"
   }
 }

@@ -4,12 +4,12 @@ import com.oppshan.files.config.ApplicationStorage;
 import com.oppshan.files.exception.BusinessException;
 import com.oppshan.files.exception.ResourceNotFoundException;
 import com.oppshan.files.file.FileNode;
+import com.oppshan.files.file.FileNodeRepository;
 import com.oppshan.files.file.UserStorage;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
@@ -29,14 +29,10 @@ public class UserAccountService {
     SecurityIdentity identity;
 
     @Inject
-    ApplicationStorage applicationStorage;
+    FileNodeRepository fileNodeRepository;
 
-    public Optional<UserAccountView> findByIdp(@NotBlank String providerName,
-                                               @NotBlank String providerId) {
-        return idpAccountRepository.findByProviderNameAndProviderId(providerName, providerId)
-                .map(IdpAccount::getUserAccount)
-                .map(UserAccount::toUserAccountView);
-    }
+    @Inject
+    ApplicationStorage applicationStorage;
 
     @NotNull
     public UserAccountView processLogin(@NotNull JsonWebToken idToken) {
@@ -45,7 +41,8 @@ public class UserAccountService {
 
     @NotNull
     public UserAccountView getAuthenticatedUser(@NotNull JsonWebToken idToken) {
-        return findByIdp(getProviderName(), idToken.getSubject())
+        return idpAccountRepository.findByProviderNameAndProviderId(getProviderName(), idToken.getSubject())
+                .map(idp -> buildView(idp.getUserAccount(), idp))
                 .orElseThrow(() -> new ResourceNotFoundException("UserAccount not found"));
     }
 
@@ -74,8 +71,15 @@ public class UserAccountService {
                 userRepository.save(user);
             }
 
-            return Optional.of(user.toUserAccountView());
+            return Optional.of(buildView(user, idp));
         }
+
+        final var googleAccount = new GoogleAccount()
+                .setProviderName(providerName)
+                .setProviderId(providerId)
+                .setEmail(idToken.getClaim("email"))
+                .setName(idToken.getClaim("name"))
+                .setPhotoUrl(idToken.getClaim("picture"));
 
         final var newUser = new UserAccount();
         newUser.setFirstName(idToken.getClaim("given_name"))
@@ -87,16 +91,22 @@ public class UserAccountService {
                                 .setRootFileNode(FileNode.createRoot(newUser))
                 )
                 .getIdpAccounts().add(
-                        new GoogleAccount()
-                                .setProviderName(providerName)
-                                .setProviderId(providerId)
-                                .setUserAccount(newUser)
-                                .setEmail(idToken.getClaim("email"))
-                                .setName(idToken.getClaim("name"))
-                                .setPhotoUrl(idToken.getClaim("picture"))
+                        googleAccount.setUserAccount(newUser)
                 );
         userRepository.insertWithSession(newUser);
-        return Optional.of(newUser.toUserAccountView());
+        return Optional.of(buildView(newUser, googleAccount));
+    }
+
+    private UserAccountView buildView(UserAccount user, IdpAccount idp) {
+        String email = null;
+        String photoUrl = null;
+        final var google = idp.asGoogleAccount();
+        if (google.isPresent()) {
+            email = google.get().getEmail();
+            photoUrl = google.get().getPhotoUrl();
+        }
+        final long usedBytes = fileNodeRepository.sumSizeBytesByUserAccountUuid(user.getUuid());
+        return user.toUserAccountView(email, photoUrl, usedBytes);
     }
 
     private String getProviderName() {

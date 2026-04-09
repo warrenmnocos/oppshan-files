@@ -11,4 +11,11 @@ export class AuthService {
   getCurrentUser(): Observable<UserAccountView | null> {
     return this.http.get<UserAccountView>('/api/auth/me').pipe(catchError(() => of(null)));
   }
+
+  signOut(): void {
+    this.http.post('/api/auth/logout', null).subscribe({
+      next: () => window.location.href = '/sign-in',
+      error: () => window.location.href = '/sign-in',
+    });
+  }
 }

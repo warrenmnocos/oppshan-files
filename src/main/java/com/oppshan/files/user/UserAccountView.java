@@ -9,6 +9,9 @@ public record UserAccountView(
         UUID uuid,
         String firstName,
         String lastName,
+        String email,
+        String photoUrl,
+        long usedStorageBytes,
         long maxStorageBytes,
         Instant createdAt
 ) implements Serializable {

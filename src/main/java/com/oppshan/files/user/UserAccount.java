@@ -188,11 +188,14 @@ public class UserAccount
         );
     }
 
-    public UserAccountView toUserAccountView() {
+    public UserAccountView toUserAccountView(String email, String photoUrl, long usedStorageBytes) {
         return new UserAccountView(
                 uuid,
                 firstName,
                 lastName,
+                email,
+                photoUrl,
+                usedStorageBytes,
                 userStorage.getMaxStorageBytes(),
                 createdAt
         );

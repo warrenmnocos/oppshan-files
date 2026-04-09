@@ -1,0 +1,7 @@
+@if (user()) {
+  <app-toolbar (signOutClicked)="onSignOut()" [user]="user()!"/>
+  <div class="root-directory">
+    <h1>{{ 'rootDirectory.title' | translate }}</h1>
+    <p>{{ 'rootDirectory.welcome' | translate:{firstName: user()!.firstName, lastName: user()!.lastName} }}</p>
+  </div>
+}
