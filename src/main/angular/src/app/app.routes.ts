@@ -1,18 +1,23 @@
 import {Routes} from '@angular/router';
-import {authGuard, guestGuard} from './core/auth.guard';
-import {Landing} from './pages/landing/landing';
-import {RootDirectory} from './pages/root-directory/root-directory';
+import {authGuard, guestGuard} from './misc/auth.guard';
+import {SignIn} from './pages/sign-in/sign-in.component';
+import {Home} from './pages/home/home.component';
+import {SignOut} from './pages/sign-out/sign-out.component';
 
 export const routes: Routes = [
   {
     path: '',
-    component: RootDirectory,
+    component: Home,
     canActivate: [authGuard],
   },
   {
     path: 'sign-in',
-    component: Landing,
+    component: SignIn,
     canActivate: [guestGuard],
+  },
+  {
+    path: 'sign-out',
+    component: SignOut,
   },
   {
     path: '**',

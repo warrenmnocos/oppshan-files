@@ -1,5 +1,5 @@
 {
-  "landing": {
+  "signIn": {
     "title": "Files",
     "subtitle": "Your personal file manager",
     "prompt": "Sign in to access your files securely from anywhere.",
@@ -7,5 +7,24 @@
     "oauthNote": "Secured with Single Sign-on \u2014 we never see your credentials",
     "error": "Sign in failed. Please try again.",
     "footer": "ITMD 504 \u2014 Illinois Institute of Technology"
+  },
+  "toolbar": {
+    "title": "Files",
+    "profile": "Profile",
+    "storage": "Storage",
+    "signOut": "Sign out"
+  },
+  "home": {
+    "title": "My Files",
+    "welcome": "Welcome, {{firstName}} {{lastName}}"
+  },
+  "messages": {
+    "errors": {
+      "googleAuthRequired": "Google authentication is required to sign in.",
+      "storageCapacityExceeded": "The application has reached its storage capacity. New sign-ups are temporarily unavailable.",
+      "userNotFound": "User account not found. Please sign in again.",
+      "signInFailed": "Sign in failed. Please try again.",
+      "unknown": "An unexpected error occurred. Please try again."
+    }
   }
 }

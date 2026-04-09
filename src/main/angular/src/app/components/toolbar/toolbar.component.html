@@ -1,0 +1,72 @@
+<header class="toolbar">
+  <div class="toolbar-left">
+    <img alt="" class="toolbar-logo" height="36" src="/icons/folder.svg" width="36">
+    <span class="toolbar-title">{{ 'toolbar.title' | translate }}</span>
+  </div>
+
+  <div class="toolbar-right">
+    <div class="storage-compact">
+      <div class="storage-bar-compact">
+        <div [style.width.%]="storagePercent" class="storage-bar-fill"></div>
+      </div>
+      <span class="storage-label">{{ userAccountView() | storageBar }}</span>
+    </div>
+
+    <button (click)="toggleDropdown()" class="profile-trigger">
+      <span class="profile-name">{{ userAccountView().firstName }}</span>
+      <span class="avatar">
+        @if (userAccountView().photoUrl) {
+          <img [alt]="userAccountView().firstName" [src]="userAccountView().photoUrl" class="avatar-img">
+        } @else {
+          {{ initials }}
+        }
+      </span>
+    </button>
+
+    @if (dropdownOpen()) {
+      <div class="profile-dropdown">
+        <div class="dropdown-header">
+          <span class="avatar avatar-large">
+            @if (userAccountView().photoUrl) {
+              <img [alt]="userAccountView().firstName" [src]="userAccountView().photoUrl" class="avatar-img">
+            } @else {
+              {{ initials }}
+            }
+          </span>
+          <div class="dropdown-user-info">
+            <span class="dropdown-name">{{ userAccountView().firstName }} {{ userAccountView().lastName }}</span>
+            <span class="dropdown-email">{{ userAccountView().email }}</span>
+          </div>
+        </div>
+
+        <div class="dropdown-section">
+          <div class="dropdown-item">
+            <img alt="" class="dropdown-icon" height="18" src="/icons/person.svg" width="18">
+            <span>{{ 'toolbar.profile' | translate }}</span>
+          </div>
+
+          <div class="dropdown-item dropdown-storage">
+            <img alt="" class="dropdown-icon" height="18" src="/icons/storage.svg" width="18">
+            <div class="storage-detail">
+              <span>{{ 'toolbar.storage' | translate }}</span>
+              <div class="storage-bar-row">
+                <div class="storage-bar">
+                  <div [style.width.%]="storagePercent" class="storage-bar-fill"></div>
+                </div>
+                <span class="storage-percent">{{ storagePercent }}%</span>
+              </div>
+              <span class="storage-usage">{{ userAccountView() | storageBar }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="dropdown-footer">
+          <button (click)="signOut()" class="dropdown-item sign-out-btn">
+            <img alt="" class="dropdown-icon" height="18" src="/icons/sign-out.svg" width="18">
+            <span>{{ 'toolbar.signOut' | translate }}</span>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</header>

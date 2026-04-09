@@ -1,0 +1,30 @@
+<div class="sign-in">
+  <div class="card">
+    <div class="card-header">
+      <div class="icon">
+        <img alt="" height="32" src="/icons/folder.svg" width="32">
+      </div>
+      <h1>{{ 'signIn.title' | translate }}</h1>
+      <p>{{ 'signIn.subtitle' | translate }}</p>
+    </div>
+
+    <div class="card-body">
+      @if (errorKey()) {
+        <p class="error">{{ errorKey()! | translate }}</p>
+      }
+
+      <p class="prompt">{{ 'signIn.prompt' | translate }}</p>
+
+      <button (click)="signIn()" class="google-btn">
+        <img alt="" class="google-logo" height="20" src="/icons/google-logo.svg" width="20">
+        {{ 'signIn.signInWithGoogle' | translate }}
+      </button>
+
+      <p class="oauth-note">{{ 'signIn.oauthNote' | translate }}</p>
+    </div>
+
+    <div class="card-footer">
+      <p>{{ 'signIn.footer' | translate }}</p>
+    </div>
+  </div>
+</div>

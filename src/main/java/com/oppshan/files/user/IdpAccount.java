@@ -6,19 +6,18 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.annotations.UuidGenerator.Style;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -36,14 +35,12 @@ import java.util.UUID;
                 @Index(name = "idx_idp_account_created_at", columnList = "created_at"),
         },
         uniqueConstraints = {
-                @UniqueConstraint(name = "uc_idp_account_id", columnNames = "id"),
-                @UniqueConstraint(name = "uc_idp_account_uuid", columnNames = "uuid"),
                 @UniqueConstraint(
                         name = "uc_idp_account_provider",
                         columnNames = {
                                 "provider_id",
                                 "provider_name",
-                                "user_account_id"
+                                "user_account_uuid"
                         }
                 ),
         })
@@ -55,22 +52,10 @@ public abstract class IdpAccount
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column(name = "id",
-            nullable = false,
-            updatable = false)
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "idp_account_sequence_generator")
-    @SequenceGenerator(
-            name = "idp_account_sequence_generator",
-            sequenceName = "idp_account_sequence",
-            allocationSize = 100)
-    @NotNull
-    private Long id;
-
     @Column(name = "uuid",
             nullable = false,
             updatable = false)
+    @UuidGenerator(style = Style.VERSION_7)
     @NotNull
     private UUID uuid;
 
@@ -92,7 +77,7 @@ public abstract class IdpAccount
             targetEntity = UserAccount.class
     )
     @JoinColumn(
-            name = "user_account_id",
+            name = "user_account_uuid",
             nullable = false,
             updatable = false
     )
@@ -109,15 +94,6 @@ public abstract class IdpAccount
             nullable = false)
     @NotNull
     private Instant lastModifiedAt;
-
-    public Long getId() {
-        return id;
-    }
-
-    public IdpAccount setId(Long id) {
-        this.id = id;
-        return this;
-    }
 
     @Override
     public UUID getUuid() {
@@ -181,7 +157,7 @@ public abstract class IdpAccount
 
     @Override
     public int compareTo(IdpAccount otherIdpAccount) {
-        return id.compareTo(otherIdpAccount.getId());
+        return uuid.compareTo(otherIdpAccount.getUuid());
     }
 
     @Override

@@ -1,12 +1,14 @@
 package com.oppshan.files.auth;
 
+import com.oppshan.files.exception.BusinessException;
 import com.oppshan.files.user.UserAccountService;
 import io.quarkus.oidc.IdToken;
+import io.quarkus.oidc.OidcSession;
 import io.quarkus.security.Authenticated;
-import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
@@ -15,7 +17,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.net.URI;
 
-@Path("/")
+@Path("api/auth")
 @RunOnVirtualThread
 public class AuthResource {
 
@@ -24,31 +26,44 @@ public class AuthResource {
     JsonWebToken idToken;
 
     @Inject
-    SecurityIdentity identity;
-
-    @Inject
     UserAccountService userService;
 
+    @Inject
+    OidcSession oidcSession;
+
     @GET
-    @Path("api/auth/login/{idpProviderName}")
+    @Path("login/{idpProviderName}")
     @Authenticated
     public Response login() {
         return Response.seeOther(URI.create("/")).build();
     }
 
     @GET
-    @Path("api/auth/callback/{idpProviderName}")
+    @Path("callback/{idpProviderName}")
     @Authenticated
     public Response callback() {
-        userService.processLogin(idToken);
-        return Response.seeOther(URI.create("/")).build();
+        try {
+            userService.processLogin(idToken);
+            return Response.seeOther(URI.create("/")).build();
+        } catch (BusinessException ex) {
+            oidcSession.logout().await().indefinitely();
+            return Response.seeOther(URI.create("/sign-in?message=" + ex.getErrorCode().getValue())).build();
+        }
     }
 
     @GET
-    @Path("api/auth/me")
+    @Path("me")
     @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
     public Response me() {
         return Response.ok(userService.getAuthenticatedUser(idToken)).build();
+    }
+
+    @POST
+    @Path("logout")
+    @Authenticated
+    public Response logout() {
+        oidcSession.logout().await().indefinitely();
+        return Response.seeOther(URI.create("/sign-in")).build();
     }
 }

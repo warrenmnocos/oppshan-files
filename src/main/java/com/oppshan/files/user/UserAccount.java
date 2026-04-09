@@ -8,17 +8,16 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.annotations.UuidGenerator.Style;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -36,11 +35,8 @@ import java.util.UUID;
 @Table(name = "user_account",
         indexes = {
                 @Index(name = "idx_user_account_created_at", columnList = "created_at"),
-                @Index(name = "idx_user_account_name", columnList = "name"),
-        },
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uc_user_account_id", columnNames = "id"),
-                @UniqueConstraint(name = "uc_user_account_uuid", columnNames = "uuid"),
+                @Index(name = "idx_user_account_first_name", columnList = "first_name"),
+                @Index(name = "idx_user_account_last_name", columnList = "last_name"),
         })
 public class UserAccount
         implements AuditableEntity<UserAccount>, Comparable<UserAccount>, Serializable {
@@ -49,29 +45,22 @@ public class UserAccount
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column(name = "id",
-            nullable = false,
-            updatable = false)
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "user_account_sequence_generator")
-    @SequenceGenerator(
-            name = "user_account_sequence_generator",
-            sequenceName = "user_account_sequence",
-            allocationSize = 100)
-    @NotNull
-    private Long id;
-
     @Column(name = "uuid",
             nullable = false,
             updatable = false)
+    @UuidGenerator(style = Style.VERSION_7)
     @NotNull
     private UUID uuid;
 
-    @Column(name = "name",
+    @Column(name = "first_name",
             nullable = false)
     @NotEmpty
-    private String name;
+    private String firstName;
+
+    @Column(name = "last_name",
+            nullable = false)
+    @NotEmpty
+    private String lastName;
 
     @OneToMany(
             cascade = CascadeType.ALL,
@@ -104,10 +93,6 @@ public class UserAccount
     @NotNull
     private Instant lastModifiedAt;
 
-    public Long getId() {
-        return id;
-    }
-
     @Override
     public UUID getUuid() {
         return uuid;
@@ -119,12 +104,22 @@ public class UserAccount
         return this;
     }
 
-    public String getName() {
-        return name;
+
+    public String getFirstName() {
+        return firstName;
     }
 
-    public UserAccount setName(String name) {
-        this.name = name;
+    public UserAccount setFirstName(String firstName) {
+        this.firstName = firstName;
+        return this;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public UserAccount setLastName(String lastName) {
+        this.lastName = lastName;
         return this;
     }
 
@@ -166,7 +161,7 @@ public class UserAccount
 
     @Override
     public int compareTo(UserAccount otherUserAccount) {
-        return UserAccountComparator.NAME.compare(this, otherUserAccount);
+        return UserAccountComparator.FIRST_NAME.compare(this, otherUserAccount);
     }
 
     @Override
@@ -179,8 +174,7 @@ public class UserAccount
             return false;
         }
 
-        return Objects.equals(id, that.id) &&
-                Objects.equals(uuid, that.uuid) &&
+        return Objects.equals(uuid, that.uuid) &&
                 Objects.equals(createdAt, that.createdAt) &&
                 Objects.equals(lastModifiedAt, that.lastModifiedAt);
     }
@@ -188,28 +182,39 @@ public class UserAccount
     @Override
     public int hashCode() {
         return Objects.hash(
-                id,
                 uuid,
                 createdAt,
                 lastModifiedAt
         );
     }
 
-    public UserAccountView toUserAccountView() {
+    public UserAccountView toUserAccountView(String email,
+                                             String photoUrl,
+                                             long usedStorageBytes) {
         return new UserAccountView(
                 uuid,
-                name,
+                firstName,
+                lastName,
+                email,
+                photoUrl,
+                usedStorageBytes,
                 userStorage.getMaxStorageBytes(),
                 createdAt
         );
     }
 
     public enum UserAccountComparator implements Comparator<UserAccount> {
-        NAME(Comparator.comparing(UserAccount::getName)
+        FIRST_NAME(Comparator.comparing(UserAccount::getFirstName)
+                .thenComparing(UserAccount::getLastName)
+                .thenComparing(UserAccount::getCreatedAt)
+                .thenComparing(UserAccount::getLastModifiedAt)),
+        LAST_NAME(Comparator.comparing(UserAccount::getLastName)
+                .thenComparing(UserAccount::getFirstName)
                 .thenComparing(UserAccount::getCreatedAt)
                 .thenComparing(UserAccount::getLastModifiedAt)),
         CREATED_AT(Comparator.comparing(UserAccount::getCreatedAt)
-                .thenComparing(UserAccount::getName)
+                .thenComparing(UserAccount::getFirstName)
+                .thenComparing(UserAccount::getLastName)
                 .thenComparing(UserAccount::getLastModifiedAt)),
         ;
 
