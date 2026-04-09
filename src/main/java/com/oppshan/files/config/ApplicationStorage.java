@@ -4,18 +4,21 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ConfigMapping(prefix = "app.storage")
 public interface ApplicationStorage {
 
     @Min(100000)
-    @WithDefault("1000000")
-    int maxBytes();
+    @WithDefault("104857600")
+    long userMaxBytes();
+
+    @Min(100000)
+    @WithDefault("21474836480")
+    long totalMaxBytes();
 
     @NotEmpty
     @WithDefault("AES/CTR/NoPadding")
-    String encryptionCipher();
+    String encryptionCipherAlgorithm();
 
     @NotEmpty
     String encryptionPassphrase();

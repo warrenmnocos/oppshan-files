@@ -5,25 +5,28 @@ import {StorageBarPipe} from '../../misc/storage-bar.pipe';
 
 @Component({
   selector: 'app-toolbar',
-  templateUrl: './toolbar.html',
-  styleUrl: './toolbar.scss',
+  templateUrl: './toolbar.component.html',
+  styleUrl: './toolbar.component.scss',
   imports: [TranslatePipe, StorageBarPipe],
 })
 export class Toolbar {
-  user = input.required<UserAccountView>();
+  userAccountView = input.required<UserAccountView>();
   signOutClicked = output<void>();
 
   protected dropdownOpen = signal(false);
 
   protected get initials(): string {
-    const u = this.user();
-    return ((u.firstName?.charAt(0) ?? '') + (u.lastName?.charAt(0) ?? '')).toUpperCase();
+    const userAccountView = this.userAccountView();
+    return ((userAccountView.firstName?.charAt(0) ?? '') + (userAccountView.lastName?.charAt(0) ?? '')).toUpperCase();
   }
 
   protected get storagePercent(): number {
-    const u = this.user();
-    if (u.maxStorageBytes === 0) return 0;
-    return Math.round((u.usedStorageBytes / u.maxStorageBytes) * 100);
+    const userAccountView = this.userAccountView();
+    if (userAccountView.maxStorageBytes === 0) {
+      return 0;
+    }
+
+    return Math.round((userAccountView.usedStorageBytes / userAccountView.maxStorageBytes) * 100);
   }
 
   protected toggleDropdown(): void {

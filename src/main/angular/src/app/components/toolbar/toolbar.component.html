@@ -9,14 +9,14 @@
       <div class="storage-bar-compact">
         <div [style.width.%]="storagePercent" class="storage-bar-fill"></div>
       </div>
-      <span class="storage-label">{{ user() | storageBar }}</span>
+      <span class="storage-label">{{ userAccountView() | storageBar }}</span>
     </div>
 
     <button (click)="toggleDropdown()" class="profile-trigger">
-      <span class="profile-name">{{ user().firstName }}</span>
+      <span class="profile-name">{{ userAccountView().firstName }}</span>
       <span class="avatar">
-        @if (user().photoUrl) {
-          <img [alt]="user().firstName" [src]="user().photoUrl" class="avatar-img">
+        @if (userAccountView().photoUrl) {
+          <img [alt]="userAccountView().firstName" [src]="userAccountView().photoUrl" class="avatar-img">
         } @else {
           {{ initials }}
         }
@@ -27,15 +27,15 @@
       <div class="profile-dropdown">
         <div class="dropdown-header">
           <span class="avatar avatar-large">
-            @if (user().photoUrl) {
-              <img [alt]="user().firstName" [src]="user().photoUrl" class="avatar-img">
+            @if (userAccountView().photoUrl) {
+              <img [alt]="userAccountView().firstName" [src]="userAccountView().photoUrl" class="avatar-img">
             } @else {
               {{ initials }}
             }
           </span>
           <div class="dropdown-user-info">
-            <span class="dropdown-name">{{ user().firstName }} {{ user().lastName }}</span>
-            <span class="dropdown-email">{{ user().email }}</span>
+            <span class="dropdown-name">{{ userAccountView().firstName }} {{ userAccountView().lastName }}</span>
+            <span class="dropdown-email">{{ userAccountView().email }}</span>
           </div>
         </div>
 
@@ -55,7 +55,7 @@
                 </div>
                 <span class="storage-percent">{{ storagePercent }}%</span>
               </div>
-              <span class="storage-usage">{{ user() | storageBar }}</span>
+              <span class="storage-usage">{{ userAccountView() | storageBar }}</span>
             </div>
           </div>
         </div>

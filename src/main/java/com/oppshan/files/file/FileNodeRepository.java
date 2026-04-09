@@ -13,4 +13,7 @@ public interface FileNodeRepository
 
     @Query("SELECT COALESCE(SUM(f.sizeBytes), 0) FROM FileNode f WHERE f.userAccount.uuid = :userAccountUuid AND f.directory = false")
     long sumSizeBytesByUserAccountUuid(UUID userAccountUuid);
+
+    @Query("SELECT COALESCE(SUM(f.sizeBytes), 0) FROM FileNode f WHERE f.directory = false")
+    long sumAllSizeBytes();
 }

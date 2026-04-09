@@ -1,5 +1,6 @@
 package com.oppshan.files.auth;
 
+import com.oppshan.files.exception.BusinessException;
 import com.oppshan.files.user.UserAccountService;
 import io.quarkus.oidc.IdToken;
 import io.quarkus.oidc.OidcSession;
@@ -41,8 +42,13 @@ public class AuthResource {
     @Path("callback/{idpProviderName}")
     @Authenticated
     public Response callback() {
-        userService.processLogin(idToken);
-        return Response.seeOther(URI.create("/")).build();
+        try {
+            userService.processLogin(idToken);
+            return Response.seeOther(URI.create("/")).build();
+        } catch (BusinessException ex) {
+            oidcSession.logout().await().indefinitely();
+            return Response.seeOther(URI.create("/sign-in?message=" + ex.getErrorCode().getValue())).build();
+        }
     }
 
     @GET

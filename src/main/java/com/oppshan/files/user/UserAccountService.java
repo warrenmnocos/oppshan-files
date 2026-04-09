@@ -2,6 +2,7 @@ package com.oppshan.files.user;
 
 import com.oppshan.files.config.ApplicationStorage;
 import com.oppshan.files.exception.BusinessException;
+import com.oppshan.files.exception.MessageCode;
 import com.oppshan.files.exception.ResourceNotFoundException;
 import com.oppshan.files.file.FileNode;
 import com.oppshan.files.file.FileNodeRepository;
@@ -26,24 +27,25 @@ public class UserAccountService {
     IdpAccountRepository idpAccountRepository;
 
     @Inject
-    SecurityIdentity identity;
-
-    @Inject
     FileNodeRepository fileNodeRepository;
 
     @Inject
     ApplicationStorage applicationStorage;
 
+    @Inject
+    SecurityIdentity securityIdentity;
+
     @NotNull
     public UserAccountView processLogin(@NotNull JsonWebToken idToken) {
-        return getOrCreateFromGoogle(idToken).orElseThrow(() -> new BusinessException("Google authentication required"));
+        return getOrCreateFromGoogle(idToken)
+                .orElseThrow(() -> new BusinessException(MessageCode.AUTHENTICATION_REQUIRED));
     }
 
     @NotNull
     public UserAccountView getAuthenticatedUser(@NotNull JsonWebToken idToken) {
         return idpAccountRepository.findByProviderNameAndProviderId(getProviderName(), idToken.getSubject())
                 .map(idp -> buildView(idp.getUserAccount(), idp))
-                .orElseThrow(() -> new ResourceNotFoundException("UserAccount not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(MessageCode.USER_NOT_FOUND));
     }
 
     private Optional<UserAccountView> getOrCreateFromGoogle(JsonWebToken idToken) {
@@ -53,68 +55,82 @@ public class UserAccountService {
         }
 
         final var providerId = idToken.getSubject();
-        final var nullableIdp = idpAccountRepository.findByProviderNameAndProviderId(providerName, providerId);
-        if (nullableIdp.isPresent()) {
-            final var idp = nullableIdp.get();
-            final var user = idp.getUserAccount();
-            boolean changed = false;
-            if (idToken.getClaim("given_name") != null && !idToken.getClaim("given_name").equals(user.getFirstName())) {
-                user.setFirstName(idToken.getClaim("given_name"));
+        final var nullableIdpAccount = idpAccountRepository.findByProviderNameAndProviderId(providerName, providerId);
+        if (nullableIdpAccount.isPresent()) {
+            final var idpAccount = nullableIdpAccount.get();
+            final var userAccount = idpAccount.getUserAccount();
+            var changed = false;
+            if (idToken.getClaim("given_name") != null && !idToken.getClaim("given_name").equals(userAccount.getFirstName())) {
+                userAccount.setFirstName(idToken.getClaim("given_name"));
                 changed = true;
             }
-            if (idToken.getClaim("family_name") != null && !idToken.getClaim("family_name").equals(user.getLastName())) {
-                user.setLastName(idToken.getClaim("family_name"));
+
+            if (idToken.getClaim("family_name") != null && !idToken.getClaim("family_name").equals(userAccount.getLastName())) {
+                userAccount.setLastName(idToken.getClaim("family_name"));
                 changed = true;
             }
 
             if (changed) {
-                userRepository.save(user);
+                userRepository.save(userAccount);
             }
 
-            return Optional.of(buildView(user, idp));
+            return Optional.of(buildView(userAccount, idpAccount));
         }
 
+        ensureStorageCapacity();
+
+        final var newUser = new UserAccount()
+                .setFirstName(idToken.getClaim("given_name"))
+                .setLastName(idToken.getClaim("family_name"));
         final var googleAccount = new GoogleAccount()
+                .setUserAccount(newUser)
                 .setProviderName(providerName)
                 .setProviderId(providerId)
                 .setEmail(idToken.getClaim("email"))
                 .setName(idToken.getClaim("name"))
                 .setPhotoUrl(idToken.getClaim("picture"));
-
-        final var newUser = new UserAccount();
-        newUser.setFirstName(idToken.getClaim("given_name"))
-                .setLastName(idToken.getClaim("family_name"))
-                .setUserStorage(
+        newUser.setUserStorage(
                         new UserStorage()
                                 .setUserAccount(newUser)
-                                .setMaxStorageBytes(applicationStorage.maxBytes())
+                                .setMaxStorageBytes(applicationStorage.userMaxBytes())
                                 .setRootFileNode(FileNode.createRoot(newUser))
                 )
-                .getIdpAccounts().add(
-                        googleAccount.setUserAccount(newUser)
-                );
+                .getIdpAccounts().add(googleAccount);
         userRepository.insertWithSession(newUser);
         return Optional.of(buildView(newUser, googleAccount));
     }
 
-    private UserAccountView buildView(UserAccount user, IdpAccount idp) {
+    private UserAccountView buildView(UserAccount user,
+                                      IdpAccount idpAccount) {
         String email = null;
         String photoUrl = null;
-        final var google = idp.asGoogleAccount();
+        final var google = idpAccount.asGoogleAccount();
         if (google.isPresent()) {
             email = google.get().getEmail();
             photoUrl = google.get().getPhotoUrl();
         }
+
         final long usedBytes = fileNodeRepository.sumSizeBytesByUserAccountUuid(user.getUuid());
         return user.toUserAccountView(email, photoUrl, usedBytes);
     }
 
     private String getProviderName() {
-        final String providerName = identity.getAttribute("tenant-uuid");
+        final String providerName = securityIdentity.getAttribute("tenant-uuid");
         if (providerName == null || "default".equals(providerName)) {
             return "google";
         }
 
         return providerName;
+    }
+
+    private void ensureStorageCapacity() {
+        final var userMaxBytes = applicationStorage.userMaxBytes();
+        final var totalMaxBytes = applicationStorage.totalMaxBytes();
+        final var totalUsed = fileNodeRepository.sumAllSizeBytes();
+        if (totalUsed + userMaxBytes <= totalMaxBytes) {
+            return;
+        }
+
+        throw BusinessException.storageCapacityExceeded();
     }
 }

@@ -5,15 +5,23 @@
   background-color: #f5f2eb;
 }
 
-.root-directory {
+.home {
   flex: 1;
-  padding: 24px;
+  padding: 16px;
+
+  @media (min-width: 600px) {
+    padding: 24px;
+  }
 
   h1 {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 500;
     color: #202124;
     margin: 0 0 8px;
+
+    @media (min-width: 600px) {
+      font-size: 22px;
+    }
   }
 
   p {

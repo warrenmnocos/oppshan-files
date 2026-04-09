@@ -1,7 +1,12 @@
-@if (user()) {
-  <app-toolbar (signOutClicked)="onSignOut()" [user]="user()!"/>
-  <div class="root-directory">
-    <h1>{{ 'rootDirectory.title' | translate }}</h1>
-    <p>{{ 'rootDirectory.welcome' | translate:{firstName: user()!.firstName, lastName: user()!.lastName} }}</p>
+@if (userAccountView()) {
+  <app-toolbar (signOutClicked)="onSignOut()" [userAccountView]="userAccountView()!"/>
+  <div class="home">
+    <h1>{{ 'home.title' | translate }}</h1>
+    <p>{{
+        'home.welcome' | translate:{
+          firstName: userAccountView()!.firstName,
+          lastName: userAccountView()!.lastName
+        }
+      }}</p>
   </div>
 }

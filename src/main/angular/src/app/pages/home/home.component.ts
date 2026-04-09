@@ -2,7 +2,7 @@ import {Component, inject, OnDestroy, OnInit, signal} from '@angular/core';
 import {TranslatePipe} from '@ngx-translate/core';
 import {AuthService} from '../../services/auth.service';
 import {UserAccountView} from '../../models/user-account-view';
-import {Toolbar} from '../../components/toolbar/toolbar';
+import {Toolbar} from '../../components/toolbar/toolbar.component';
 import {Subscription} from 'rxjs';
 
 @Component({
@@ -12,12 +12,13 @@ import {Subscription} from 'rxjs';
   imports: [Toolbar, TranslatePipe],
 })
 export class Home implements OnInit, OnDestroy {
-  protected user = signal<UserAccountView | null>(null);
+  protected userAccountView = signal<UserAccountView | null>(null);
   private authService = inject(AuthService);
   private userSubscription!: Subscription;
 
   ngOnInit(): void {
-    this.userSubscription = this.authService.getCurrentUser().subscribe(user => this.user.set(user));
+    this.userSubscription = this.authService.getCurrentUser()
+      .subscribe(userAccountView => this.userAccountView.set(userAccountView));
   }
 
   ngOnDestroy(): void {

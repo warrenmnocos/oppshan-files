@@ -2,40 +2,72 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 24px;
+  padding: 8px 16px;
   background: #fff;
   border-bottom: 1px solid #e0e0e0;
+
+  @media (min-width: 600px) {
+    padding: 12px 24px;
+  }
 }
 
 .toolbar-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+
+  @media (min-width: 600px) {
+    gap: 12px;
+  }
 
   .toolbar-logo {
     background: #009688;
     border-radius: 8px;
-    padding: 6px;
+    padding: 4px;
+    height: 32px;
+    width: 32px;
+
+    @media (min-width: 600px) {
+      padding: 6px;
+      height: 36px;
+      width: 36px;
+    }
   }
 
   .toolbar-title {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 500;
     color: #202124;
+
+    @media (max-width: 400px) {
+      display: none;
+    }
+
+    @media (min-width: 600px) {
+      font-size: 20px;
+    }
   }
 }
 
 .toolbar-right {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
   position: relative;
+
+  @media (min-width: 600px) {
+    gap: 20px;
+  }
 }
 
 .storage-compact {
-  display: flex;
+  display: none;
   align-items: center;
   gap: 8px;
+
+  @media (min-width: 800px) {
+    display: flex;
+  }
 
   .storage-bar-compact {
     width: 120px;
@@ -63,22 +95,32 @@
 .profile-trigger {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 4px;
+  padding: 2px;
   border-radius: 24px;
   transition: background-color 0.15s ease;
+
+  @media (min-width: 600px) {
+    gap: 10px;
+    padding: 4px;
+  }
 
   &:hover {
     background-color: #f1f3f4;
   }
 
   .profile-name {
+    display: none;
     font-size: 14px;
     color: #202124;
     font-weight: 500;
+
+    @media (min-width: 600px) {
+      display: block;
+    }
   }
 }
 
@@ -113,12 +155,17 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  width: 320px;
+  width: calc(100vw - 32px);
+  max-width: 320px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.12);
   z-index: 100;
   overflow: hidden;
+
+  @media (min-width: 600px) {
+    width: 320px;
+  }
 }
 
 .dropdown-header {

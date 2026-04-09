@@ -31,7 +31,7 @@ public class FileContentCipherService {
 
     @PostConstruct
     void initialize() throws GeneralSecurityException {
-        this.cipherAlgorithm = applicationStorage.encryptionCipher();
+        this.cipherAlgorithm = applicationStorage.encryptionCipherAlgorithm();
 
         final var masterKey = applicationStorage.encryptionPassphrase().toCharArray();
         final var salt = applicationStorage.encryptionKdfSalt().getBytes(StandardCharsets.UTF_8);
