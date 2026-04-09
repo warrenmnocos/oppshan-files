@@ -9,20 +9,19 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.LazyGroup;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UuidGenerator;
+import org.hibernate.annotations.UuidGenerator.Style;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -39,18 +38,17 @@ import java.util.UUID;
 })
 @Table(name = "file_node",
         indexes = {
-                @Index(name = "idx_file_node_created_at", columnList = "user_account_id,created_at,name,mime_type,size_bytes"),
-                @Index(name = "idx_file_node_last_modified_at", columnList = "user_account_id,last_modified_at,name,mime_type,size_bytes"),
-                @Index(name = "idx_file_node_name", columnList = "user_account_id,parent_file_node_id,name,mime_type,last_modified_at"),
-                @Index(name = "idx_file_node_size_bytes", columnList = "user_account_id,parent_file_node_id,size_bytes,name,mime_type"),
+                @Index(name = "idx_file_node_created_at", columnList = "user_account_uuid,created_at,name,mime_type,size_bytes"),
+                @Index(name = "idx_file_node_last_modified_at", columnList = "user_account_uuid,last_modified_at,name,mime_type,size_bytes"),
+                @Index(name = "idx_file_node_name", columnList = "user_account_uuid,parent_file_node_uuid,name,mime_type,last_modified_at"),
+                @Index(name = "idx_file_node_size_bytes", columnList = "user_account_uuid,parent_file_node_uuid,size_bytes,name,mime_type"),
         },
         uniqueConstraints = {
-                @UniqueConstraint(name = "uc_file_node_id", columnNames = "id"),
-                @UniqueConstraint(name = "uc_file_node_uuid", columnNames = "uuid"),
                 @UniqueConstraint(
                         name = "uc_file_node_name",
                         columnNames = {
-                                "parent_file_node_id",
+                                "user_account_uuid",
+                                "parent_file_node_uuid",
                                 "name",
                                 "mime_type"
                         }
@@ -64,22 +62,10 @@ public class FileNode
     private static final long serialVersionUID = 1L;
 
     @Id
-    @Column(name = "id",
-            nullable = false,
-            updatable = false)
-    @GeneratedValue(
-            strategy = GenerationType.SEQUENCE,
-            generator = "file_node_sequence_generator")
-    @SequenceGenerator(
-            name = "file_node_sequence_generator",
-            sequenceName = "file_node_sequence",
-            allocationSize = 100)
-    @NotNull
-    private Long id;
-
     @Column(name = "uuid",
             nullable = false,
             updatable = false)
+    @UuidGenerator(style = Style.VERSION_7)
     @NotNull
     private UUID uuid;
 
@@ -116,7 +102,7 @@ public class FileNode
             targetEntity = FileNode.class
     )
     @JoinColumn(
-            name = "parent_file_node_id",
+            name = "parent_file_node_uuid",
             updatable = false
     )
     private FileNode parentFileNode;
@@ -127,7 +113,7 @@ public class FileNode
             targetEntity = UserAccount.class
     )
     @JoinColumn(
-            name = "user_account_id",
+            name = "user_account_uuid",
             nullable = false,
             updatable = false
     )
@@ -160,15 +146,6 @@ public class FileNode
                 .setMimeType("application/vnd.oppshan-files.folder")
                 .setDirectory(true)
                 .setUserAccount(userAccount);
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public FileNode setId(Long id) {
-        this.id = id;
-        return this;
     }
 
     @Override
@@ -291,8 +268,7 @@ public class FileNode
             return false;
         }
 
-        return Objects.equals(id, fileNode.id) &&
-                Objects.equals(uuid, fileNode.uuid) &&
+        return Objects.equals(uuid, fileNode.uuid) &&
                 Objects.equals(createdAt, fileNode.createdAt) &&
                 Objects.equals(lastModifiedAt, fileNode.lastModifiedAt);
     }
@@ -300,7 +276,6 @@ public class FileNode
     @Override
     public int hashCode() {
         return Objects.hash(
-                id,
                 uuid,
                 createdAt,
                 lastModifiedAt
@@ -309,13 +284,13 @@ public class FileNode
 
     public enum FileNodeComparator implements Comparator<FileNode> {
         NAME(Comparator.comparing(FileNode::getUserAccount)
-                .thenComparing(FileNode::getParentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getId)))
+                .thenComparing(FileNode::getParentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid)))
                 .thenComparing(FileNode::getName)
                 .thenComparing(FileNode::getMimeType)
                 .thenComparing(FileNode::getLastModifiedAt)
         ),
         SIZE_BYTES(Comparator.comparing(FileNode::getUserAccount)
-                .thenComparing(FileNode::getParentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getId)))
+                .thenComparing(FileNode::getParentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid)))
                 .thenComparingLong(FileNode::getSizeBytes)
                 .thenComparing(FileNode::getName)
                 .thenComparing(FileNode::getMimeType)

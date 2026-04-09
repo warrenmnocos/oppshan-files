@@ -30,11 +30,6 @@ public class GoogleAccount extends IdpAccount {
     private String photoUrl;
 
     @Override
-    public GoogleAccount setId(Long id) {
-        return (GoogleAccount) super.setId(id);
-    }
-
-    @Override
     public GoogleAccount setUuid(UUID uuid) {
         return (GoogleAccount) super.setUuid(uuid);
     }

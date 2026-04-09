@@ -3,7 +3,6 @@ package com.oppshan.files.auth;
 import com.oppshan.files.user.UserAccountService;
 import io.quarkus.oidc.IdToken;
 import io.quarkus.security.Authenticated;
-import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -15,7 +14,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.net.URI;
 
-@Path("/")
+@Path("api/auth")
 @RunOnVirtualThread
 public class AuthResource {
 
@@ -24,20 +23,17 @@ public class AuthResource {
     JsonWebToken idToken;
 
     @Inject
-    SecurityIdentity identity;
-
-    @Inject
     UserAccountService userService;
 
     @GET
-    @Path("api/auth/login/{idpProviderName}")
+    @Path("login/{idpProviderName}")
     @Authenticated
     public Response login() {
         return Response.seeOther(URI.create("/")).build();
     }
 
     @GET
-    @Path("api/auth/callback/{idpProviderName}")
+    @Path("callback/{idpProviderName}")
     @Authenticated
     public Response callback() {
         userService.processLogin(idToken);
@@ -45,7 +41,7 @@ public class AuthResource {
     }
 
     @GET
-    @Path("api/auth/me")
+    @Path("me")
     @Authenticated
     @Produces(MediaType.APPLICATION_JSON)
     public Response me() {

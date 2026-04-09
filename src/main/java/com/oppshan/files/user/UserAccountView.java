@@ -6,8 +6,9 @@ import java.time.Instant;
 import java.util.UUID;
 
 public record UserAccountView(
-        UUID id,
-        String name,
+        UUID uuid,
+        String firstName,
+        String lastName,
         long maxStorageBytes,
         Instant createdAt
 ) implements Serializable {

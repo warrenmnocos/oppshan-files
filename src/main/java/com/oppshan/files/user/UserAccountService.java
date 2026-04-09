@@ -60,8 +60,17 @@ public class UserAccountService {
         if (nullableIdp.isPresent()) {
             final var idp = nullableIdp.get();
             final var user = idp.getUserAccount();
-            if (idToken.getClaim("name") != null && !idToken.getClaim("name").equals(user.getName())) {
-                user.setName(idToken.getClaim("name"));
+            boolean changed = false;
+            if (idToken.getClaim("given_name") != null && !idToken.getClaim("given_name").equals(user.getFirstName())) {
+                user.setFirstName(idToken.getClaim("given_name"));
+                changed = true;
+            }
+            if (idToken.getClaim("family_name") != null && !idToken.getClaim("family_name").equals(user.getLastName())) {
+                user.setLastName(idToken.getClaim("family_name"));
+                changed = true;
+            }
+
+            if (changed) {
                 userRepository.save(user);
             }
 
@@ -69,7 +78,8 @@ public class UserAccountService {
         }
 
         final var newUser = new UserAccount();
-        newUser.setName(idToken.getClaim("name"))
+        newUser.setFirstName(idToken.getClaim("given_name"))
+                .setLastName(idToken.getClaim("family_name"))
                 .setUserStorage(
                         new UserStorage()
                                 .setUserAccount(newUser)
@@ -90,7 +100,7 @@ public class UserAccountService {
     }
 
     private String getProviderName() {
-        final String providerName = identity.getAttribute("tenant-id");
+        final String providerName = identity.getAttribute("tenant-uuid");
         if (providerName == null || "default".equals(providerName)) {
             return "google";
         }

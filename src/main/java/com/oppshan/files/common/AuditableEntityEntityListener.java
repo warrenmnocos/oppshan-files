@@ -5,7 +5,6 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 
 import java.time.Instant;
-import java.util.UUID;
 
 @ApplicationScoped
 public class AuditableEntityEntityListener {
@@ -15,8 +14,6 @@ public class AuditableEntityEntityListener {
         if (!(object instanceof AuditableEntity<?> auditableEntity)) {
             return;
         }
-
-        auditableEntity.setUuid(UUID.randomUUID());
 
         final var now = Instant.now();
         auditableEntity.setCreatedAt(now);

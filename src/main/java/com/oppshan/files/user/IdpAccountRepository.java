@@ -6,10 +6,11 @@ import jakarta.data.repository.Find;
 import jakarta.data.repository.Repository;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface IdpAccountRepository
-        extends CrudRepository<IdpAccount, Long>, StatefulWriteRepository<IdpAccount> {
+        extends CrudRepository<IdpAccount, UUID>, StatefulWriteRepository<IdpAccount> {
 
     @Find
     Optional<IdpAccount> findByProviderNameAndProviderId(String providerName, String providerId);
