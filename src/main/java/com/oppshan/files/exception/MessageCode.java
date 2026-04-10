@@ -8,6 +8,8 @@ public enum MessageCode {
     STORAGE_CAPACITY_EXCEEDED("messages.errors.storageCapacityExceeded"),
     USER_NOT_FOUND("messages.errors.userNotFound"),
     SIGN_IN_FAILED("messages.errors.signInFailed"),
+    DIRECTORY_NOT_FOUND("messages.errors.directoryNotFound"),
+    ACCESS_DENIED("messages.errors.accessDenied"),
     UNKNOWN("messages.errors.unknown"),
     ;
 

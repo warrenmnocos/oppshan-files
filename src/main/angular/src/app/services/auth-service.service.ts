@@ -1,15 +1,23 @@
-import {inject, Injectable} from '@angular/core';
+import {Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
-import {catchError} from 'rxjs/operators';
+import {catchError, map} from 'rxjs/operators';
 import {UserAccountView} from '../models/user-account-view';
+import {JsonMapper} from './json-mapper.service';
 
 @Injectable({providedIn: 'root'})
 export class AuthService {
-  private http = inject(HttpClient);
+
+  constructor(private readonly http: HttpClient,
+              private readonly jsonMapper: JsonMapper) {
+  }
 
   getCurrentUser(): Observable<UserAccountView | null> {
-    return this.http.get<UserAccountView>('/api/auth/me').pipe(catchError(() => of(null)));
+    return this.http.get<Record<string, unknown>>('/api/auth/me')
+      .pipe(
+        map(raw => this.jsonMapper.deserialize(UserAccountView, raw)),
+        catchError(() => of(null)),
+      );
   }
 
   signOut(): void {

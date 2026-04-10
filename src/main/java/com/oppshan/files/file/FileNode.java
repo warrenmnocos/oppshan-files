@@ -282,6 +282,19 @@ public class FileNode
         );
     }
 
+    public FileNodeView toFileNodeView() {
+        return new FileNodeView(
+                uuid,
+                name,
+                mimeType,
+                directory,
+                sizeBytes,
+                parentFileNode != null ? parentFileNode.uuid : null,
+                createdAt,
+                lastModifiedAt
+        );
+    }
+
     public enum FileNodeComparator implements Comparator<FileNode> {
         NAME(Comparator.comparing(FileNode::getUserAccount)
                 .thenComparing(FileNode::getParentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid)))

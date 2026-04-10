@@ -44,7 +44,7 @@ public class UserAccountService {
     @NotNull
     public UserAccountView getAuthenticatedUser(@NotNull JsonWebToken idToken) {
         return idpAccountRepository.findByProviderNameAndProviderId(getProviderName(), idToken.getSubject())
-                .map(idp -> buildView(idp.getUserAccount(), idp))
+                .map(this::buildView)
                 .orElseThrow(() -> new ResourceNotFoundException(MessageCode.USER_NOT_FOUND));
     }
 
@@ -98,6 +98,10 @@ public class UserAccountService {
                 .getIdpAccounts().add(googleAccount);
         userRepository.insertWithSession(newUser);
         return Optional.of(buildView(newUser, googleAccount));
+    }
+
+    private UserAccountView buildView(IdpAccount idpAccount) {
+        return buildView(idpAccount.getUserAccount(), idpAccount);
     }
 
     private UserAccountView buildView(UserAccount user,

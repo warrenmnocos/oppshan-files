@@ -1,7 +1,7 @@
 import {inject} from '@angular/core';
 import {ActivatedRouteSnapshot, CanActivateFn, Router, RouterStateSnapshot} from '@angular/router';
 import {map} from 'rxjs/operators';
-import {AuthService} from '../services/auth.service';
+import {AuthService} from '../services/auth-service.service';
 
 const REDIRECT_URL_KEY = 'oppshan_redirect_url';
 

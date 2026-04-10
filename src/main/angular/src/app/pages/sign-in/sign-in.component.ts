@@ -1,4 +1,4 @@
-import {Component, inject, OnInit, signal} from '@angular/core';
+import {Component, OnInit, signal} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {TranslatePipe} from '@ngx-translate/core';
 import {MessageCode} from '../../models/message-code';
@@ -10,8 +10,11 @@ import {MessageCode} from '../../models/message-code';
   imports: [TranslatePipe],
 })
 export class SignIn implements OnInit {
+
   protected errorKey = signal<MessageCode | null>(null);
-  private route = inject(ActivatedRoute);
+
+  constructor(private readonly route: ActivatedRoute) {
+  }
 
   ngOnInit(): void {
     const message = this.route.snapshot.queryParamMap.get('message');

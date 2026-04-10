@@ -1,23 +1,19 @@
 import {DateTime} from 'luxon';
 import {TransformDateTime} from '../misc/transform-date-time';
 
-export class UserAccountView {
+export class FileNodeView {
 
   uuid!: string;
 
-  firstName!: string;
+  name!: string;
 
-  lastName!: string;
+  mimeType!: string;
 
-  email!: string;
+  directory!: boolean;
 
-  photoUrl!: string | null;
+  sizeBytes!: number;
 
-  usedStorageBytes!: number;
-
-  maxStorageBytes!: number;
-
-  rootFileNodeUuid!: string;
+  parentUuid!: string | null;
 
   @TransformDateTime()
   createdAt!: DateTime;
