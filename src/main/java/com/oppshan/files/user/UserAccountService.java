@@ -2,8 +2,6 @@ package com.oppshan.files.user;
 
 import com.oppshan.files.config.ApplicationStorage;
 import com.oppshan.files.exception.BusinessException;
-import com.oppshan.files.exception.MessageCode;
-import com.oppshan.files.exception.ResourceNotFoundException;
 import com.oppshan.files.file.FileNode;
 import com.oppshan.files.file.FileNodeRepository;
 import com.oppshan.files.file.UserStorage;
@@ -38,14 +36,14 @@ public class UserAccountService {
     @NotNull
     public UserAccountView processLogin(@NotNull JsonWebToken idToken) {
         return getOrCreateFromGoogle(idToken)
-                .orElseThrow(() -> new BusinessException(MessageCode.AUTHENTICATION_REQUIRED));
+                .orElseThrow(BusinessException::authenticationRequired);
     }
 
     @NotNull
     public UserAccountView getAuthenticatedUser(@NotNull JsonWebToken idToken) {
         return idpAccountRepository.findByProviderNameAndProviderId(getProviderName(), idToken.getSubject())
                 .map(this::buildView)
-                .orElseThrow(() -> new ResourceNotFoundException(MessageCode.USER_NOT_FOUND));
+                .orElseThrow(BusinessException::userNotFound);
     }
 
     private Optional<UserAccountView> getOrCreateFromGoogle(JsonWebToken idToken) {

@@ -1,4 +1,4 @@
-import {Component, HostListener, input, output, signal} from '@angular/core';
+import {Component, HostListener, input, model, output, signal} from '@angular/core';
 import {TranslatePipe} from '@ngx-translate/core';
 import {UserAccountView} from '../../models/user-account-view';
 import {StorageBarPipe} from '../../misc/storage-bar.pipe';
@@ -11,22 +11,32 @@ import {StorageBarPipe} from '../../misc/storage-bar.pipe';
 })
 export class Toolbar {
 
-  userAccountView = input.required<UserAccountView>();
+  readonly userAccountView = input<UserAccountView | null>();
 
-  signOutClicked = output<void>();
+  readonly signOutClicked = output<void>();
 
-  protected dropdownOpen = signal(false);
+  readonly dropdownOpen = model<boolean>(false);
+
+  protected readonly photoFailed = signal(false);
+
+  protected get showPhoto(): boolean {
+    return !!this.userAccountView()?.photoUrl && !this.photoFailed();
+  }
 
   protected get initials(): string {
-    return ((this.userAccountView().firstName?.charAt(0) ?? '') + (this.userAccountView().lastName?.charAt(0) ?? '')).toUpperCase();
+    return ((this.userAccountView()?.firstName?.charAt(0) ?? '') + (this.userAccountView()?.lastName?.charAt(0) ?? '')).toUpperCase();
   }
 
   protected get storagePercent(): number {
-    if (this.userAccountView().maxStorageBytes === 0) {
+    if (!this.userAccountView() || this.userAccountView()!.maxStorageBytes === 0) {
       return 0;
     }
 
-    return Math.round((this.userAccountView().usedStorageBytes / this.userAccountView().maxStorageBytes) * 100);
+    return Math.round((this.userAccountView()!.usedStorageBytes / this.userAccountView()!.maxStorageBytes) * 100);
+  }
+
+  protected onPhotoError(): void {
+    this.photoFailed.set(true);
   }
 
   protected toggleDropdown(): void {

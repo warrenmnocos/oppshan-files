@@ -3,9 +3,14 @@ import {authGuard, guestGuard} from './misc/auth.guard';
 
 export const routes: Routes = [
   {
-    path: '',
-    loadComponent: () => import('./pages/home/home.component').then(m => m.Home),
-    canActivate: [authGuard],
+    path: 'drive',
+    children: [
+      {
+        path: '**',
+        loadComponent: () => import('./pages/home/home.component').then(m => m.Home),
+        canActivate: [authGuard],
+      },
+    ],
   },
   {
     path: 'sign-in',
@@ -18,6 +23,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: '',
+    redirectTo: 'drive',
   },
 ];

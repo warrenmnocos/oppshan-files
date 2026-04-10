@@ -1,9 +1,9 @@
-import {Component, input, output, signal} from '@angular/core';
+import {AfterViewInit, Component, input, output, signal} from '@angular/core';
 import {TranslatePipe} from '@ngx-translate/core';
 import {FileNodeView} from '../../models/file-node-view';
 import {FileSizePipe} from '../../misc/file-size.pipe';
 import {DateTimePipe} from '../../misc/date-time.pipe';
-import {ViewMode} from '../../models/view-mode';
+import {VIEW_MODE_KEY, ViewMode} from '../../models/view-mode';
 
 @Component({
   selector: 'app-file-browser',
@@ -11,9 +11,11 @@ import {ViewMode} from '../../models/view-mode';
   styleUrl: './file-browser.component.scss',
   imports: [TranslatePipe, FileSizePipe, DateTimePipe],
 })
-export class FileBrowser {
+export class FileBrowser implements AfterViewInit {
 
-  fileNodeViews = input.required<FileNodeView[]>();
+  loading = input.required<boolean>();
+
+  fileNodeViews = input<FileNodeView[]>();
 
   folderOpened = output<string>();
 
@@ -21,8 +23,16 @@ export class FileBrowser {
 
   protected readonly ViewMode = ViewMode;
 
+  ngAfterViewInit(): void {
+    const saved = localStorage.getItem(VIEW_MODE_KEY);
+    if (saved === ViewMode.Grid || saved === ViewMode.List) {
+      this.viewMode.set(saved);
+    }
+  }
+
   setViewMode(mode: ViewMode): void {
     this.viewMode.set(mode);
+    localStorage.setItem(VIEW_MODE_KEY, mode);
   }
 
   onItemClick(item: FileNodeView): void {

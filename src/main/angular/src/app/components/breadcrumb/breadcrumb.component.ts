@@ -10,9 +10,11 @@ import {BreadcrumbView} from '../../models/breadcrumb-view';
 })
 export class Breadcrumb {
 
-  breadcrumbViews = input.required<BreadcrumbView[]>();
+  readonly loading = input.required<boolean>();
 
-  navigated = output<string>();
+  readonly breadcrumbViews = input<BreadcrumbView[]>();
+
+  readonly navigated = output<string>();
 
   onNavigate(uuid: string): void {
     this.navigated.emit(uuid);

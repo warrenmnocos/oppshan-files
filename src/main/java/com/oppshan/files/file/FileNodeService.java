@@ -1,7 +1,6 @@
 package com.oppshan.files.file;
 
-import com.oppshan.files.exception.MessageCode;
-import com.oppshan.files.exception.ResourceNotFoundException;
+import com.oppshan.files.exception.BusinessException;
 import com.oppshan.files.user.UserAccountService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -9,8 +8,7 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,15 +32,35 @@ public class FileNodeService {
     }
 
     @NotNull
+    public DirectoryContentsView getDirectoryContentsByPath(@NotNull JsonWebToken idToken,
+                                                            @NotNull String path) {
+        final var userAccountView = userAccountService.getAuthenticatedUser(idToken);
+        final var userAccountUuid = userAccountView.uuid();
+        final var rootUuid = userAccountView.rootFileNodeUuid();
+        if (path.isBlank()) {
+            return getDirectoryContents(userAccountUuid, rootUuid);
+        }
+
+        final var segments = path.split("/");
+        var currentUuid = rootUuid;
+        for (final var segment : segments) {
+            final var child = fileNodeRepository.findDirectoryByParentUuidAndName(userAccountUuid, currentUuid, segment)
+                    .orElseThrow(BusinessException::directoryNotFound);
+            currentUuid = child.getUuid();
+        }
+
+        return getDirectoryContents(userAccountUuid, currentUuid);
+    }
+
+    @NotNull
     public DirectoryContentsView getDirectoryContents(@NotNull UUID userAccountUuid,
                                                       @NotNull UUID directoryUuid) {
         final var directory = fileNodeRepository.findById(directoryUuid)
                 .filter(FileNode::isDirectory)
                 .filter(node -> node.getUserAccount().getUuid().equals(userAccountUuid))
-                .orElseThrow(() -> new ResourceNotFoundException(MessageCode.DIRECTORY_NOT_FOUND));
+                .orElseThrow(BusinessException::directoryNotFound);
         final var breadcrumbs = buildBreadcrumbs(directory);
-        final var contents = fileNodeRepository.findByParentUuidAndUserAccountUuid(directoryUuid, userAccountUuid)
-                .stream()
+        final var contents = fileNodeRepository.streamByParentUuidAndUserAccountUuid(userAccountUuid, directoryUuid)
                 .map(FileNode::toFileNodeView)
                 .toList();
         return new DirectoryContentsView(
@@ -55,14 +73,13 @@ public class FileNodeService {
     }
 
     private List<BreadcrumbView> buildBreadcrumbs(FileNode directory) {
-        final var breadcrumbs = new ArrayList<BreadcrumbView>();
+        final var breadcrumbs = new LinkedList<BreadcrumbView>();
         var current = directory;
         while (current != null) {
-            breadcrumbs.add(new BreadcrumbView(current.getUuid(), current.getName()));
+            breadcrumbs.push(new BreadcrumbView(current.getUuid(), current.getName()));
             current = current.getParentFileNode();
         }
 
-        Collections.reverse(breadcrumbs);
         return breadcrumbs;
     }
 }

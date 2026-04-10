@@ -1,22 +1,34 @@
 <nav class="breadcrumb">
-  @for (breadcrumbView of breadcrumbViews(); track breadcrumbView.uuid; let isLast = $last; let isFirst = $first) {
-    @if (!isFirst) {
-      <img alt="" aria-hidden="true" class="breadcrumb-separator" src="/icons/chevron-right.svg"/>
-    }
-    @if (isLast) {
-      <span class="breadcrumb-current">
+  @if (!breadcrumbViews() || breadcrumbViews()?.length === 0) {
+    <button class="breadcrumb-link" disabled>
+      <img alt="" class="breadcrumb-home" src="/icons/home.svg"/>
+      {{ 'fileBrowser.myFiles' | translate }}
+    </button>
+  } @else {
+    @for (breadcrumbView of breadcrumbViews();
+      track breadcrumbView.uuid; let isLast = $last; let isFirst = $first) {
+      @if (!isFirst) {
+        <img alt="" aria-hidden="true"
+             class="breadcrumb-separator"
+             src="/icons/chevron-right.svg"/>
+      }
+      @if (isLast) {
+        <span class="breadcrumb-current">
         @if (isFirst) {
           <img alt="" class="breadcrumb-home" src="/icons/home.svg"/>
         }
-        {{ isFirst ? ('fileBrowser.myFiles' | translate) : breadcrumbView.name }}
+          {{ isFirst ? ('fileBrowser.myFiles' | translate) : breadcrumbView.name }}
       </span>
-    } @else {
-      <button (click)="onNavigate(breadcrumbView.uuid)" class="breadcrumb-link">
-        @if (isFirst) {
-          <img alt="" class="breadcrumb-home" src="/icons/home.svg"/>
-        }
-        {{ isFirst ? ('fileBrowser.myFiles' | translate) : breadcrumbView.name }}
-      </button>
+      } @else {
+        <button (click)="onNavigate(breadcrumbView.uuid)"
+                [disabled]="loading()"
+                class="breadcrumb-link">
+          @if (isFirst) {
+            <img alt="" class="breadcrumb-home" src="/icons/home.svg"/>
+          }
+          {{ isFirst ? ('fileBrowser.myFiles' | translate) : breadcrumbView.name }}
+        </button>
+      }
     }
   }
 </nav>

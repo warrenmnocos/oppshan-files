@@ -8,6 +8,6 @@ export class FileSizePipe implements PipeTransform {
   }
 
   transform(bytes: number | null | undefined): string {
-    return this.fileService.getFileSizeDisplay(bytes)
+    return this.fileService.getFileSizeDisplay(bytes);
   }
 }

@@ -26,7 +26,34 @@
 </div>
 
 <div class="browser-content">
-  @if (fileNodeViews().length === 0) {
+  @if (loading() && viewMode() === ViewMode.List) {
+    <div class="list-view">
+      <div class="list-header">
+        <span class="list-col-name">{{ 'fileBrowser.columnName' | translate }}</span>
+        <span class="list-col-modified">{{ 'fileBrowser.columnModified' | translate }}</span>
+        <span class="list-col-size">{{ 'fileBrowser.columnSize' | translate }}</span>
+      </div>
+      <div class="skeleton-list">
+        @for (_ of [1, 2, 3, 4, 5]; track $index) {
+          <div class="skeleton-row">
+            <div class="skeleton-line skeleton-icon"></div>
+            <div class="skeleton-line skeleton-name"></div>
+            <div class="skeleton-line skeleton-date"></div>
+            <div class="skeleton-line skeleton-size"></div>
+          </div>
+        }
+      </div>
+    </div>
+  } @else if (loading() && viewMode() === ViewMode.Grid) {
+    <div class="grid-view">
+      @for (_ of [1, 2, 3, 4, 5, 6, 7, 8]; track $index) {
+        <div class="skeleton-grid-item">
+          <div class="skeleton-line skeleton-grid-icon"></div>
+          <div class="skeleton-line skeleton-grid-name"></div>
+        </div>
+      }
+    </div>
+  } @else if (!fileNodeViews() || fileNodeViews()?.length === 0) {
     <div class="empty-state">
       <div class="empty-state-box">
         <img alt="" class="empty-state-icon" src="/icons/upload.svg"/>

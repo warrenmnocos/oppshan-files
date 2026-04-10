@@ -37,7 +37,7 @@
   },
   "messages": {
     "errors": {
-      "authenticationRequired": "Google authentication is required to sign in.",
+      "authenticationRequired": "Authentication is required to sign in.",
       "storageCapacityExceeded": "The application has reached its storage capacity. New sign-ups are temporarily unavailable.",
       "userNotFound": "User account not found. Please sign in again.",
       "signInFailed": "Sign in failed. Please try again.",
