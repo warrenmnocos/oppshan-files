@@ -13,7 +13,6 @@ import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.UuidGenerator;
@@ -199,7 +198,9 @@ public class UserAccount
                 photoUrl,
                 usedStorageBytes,
                 userStorage.getMaxStorageBytes(),
-                createdAt
+                userStorage.getRootFileNode().getUuid(),
+                createdAt,
+                lastModifiedAt
         );
     }
 

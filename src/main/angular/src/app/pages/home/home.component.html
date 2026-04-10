@@ -1,12 +1,11 @@
-@if (userAccountView()) {
-  <app-toolbar (signOutClicked)="onSignOut()" [userAccountView]="userAccountView()!"/>
-  <div class="home">
-    <h1>{{ 'home.title' | translate }}</h1>
-    <p>{{
-        'home.welcome' | translate:{
-          firstName: userAccountView()!.firstName,
-          lastName: userAccountView()!.lastName
-        }
-      }}</p>
-  </div>
-}
+<app-toolbar
+  (signOutClicked)="onSignOut()"
+  [userAccountView]="userAccountView()"/>
+<app-breadcrumb
+  (navigated)="onNavigateToDirectory($event)"
+  [breadcrumbViews]="directoryContentsView()?.breadcrumbViews"
+  [loading]="loading()"/>
+<app-file-browser
+  (folderOpened)="onNavigateToDirectory($event)"
+  [fileNodeViews]="directoryContentsView()?.childrenFileNodeViews"
+  [loading]="loading()"/>

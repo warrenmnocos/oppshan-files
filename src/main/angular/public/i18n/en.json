@@ -14,16 +14,35 @@
     "storage": "Storage",
     "signOut": "Sign out"
   },
-  "home": {
-    "title": "My Files",
-    "welcome": "Welcome, {{firstName}} {{lastName}}"
+  "fileBrowser": {
+    "myFiles": "My files",
+    "newFolder": "New folder",
+    "upload": "Upload",
+    "listView": "List view",
+    "gridView": "Grid view",
+    "columnName": "Name",
+    "columnModified": "Modified",
+    "columnSize": "Size",
+    "emptyTitle": "Drag files here to upload",
+    "emptySubtitle": "or click to browse your device"
+  },
+  "misc": {
+    "dataUnit": {
+      "bytes": "B",
+      "kilobytes": "KB",
+      "megabytes": "MB",
+      "gigabytes": "GB",
+      "terabytes": "TB"
+    }
   },
   "messages": {
     "errors": {
-      "googleAuthRequired": "Google authentication is required to sign in.",
+      "authenticationRequired": "Authentication is required to sign in.",
       "storageCapacityExceeded": "The application has reached its storage capacity. New sign-ups are temporarily unavailable.",
       "userNotFound": "User account not found. Please sign in again.",
       "signInFailed": "Sign in failed. Please try again.",
+      "directoryNotFound": "Directory not found.",
+      "accessDenied": "You do not have permission to access this resource.",
       "unknown": "An unexpected error occurred. Please try again."
     }
   }

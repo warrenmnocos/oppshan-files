@@ -1,7 +1,7 @@
 import {inject} from '@angular/core';
 import {ActivatedRouteSnapshot, CanActivateFn, Router, RouterStateSnapshot} from '@angular/router';
 import {map} from 'rxjs/operators';
-import {AuthService} from '../services/auth.service';
+import {AuthService} from '../services/auth-service.service';
 
 const REDIRECT_URL_KEY = 'oppshan_redirect_url';
 
@@ -34,5 +34,5 @@ export const guestGuard: CanActivateFn = () => {
   const router = inject(Router);
   return authService
     .getCurrentUser()
-    .pipe(map(user => (user === null ? true : router.createUrlTree(['/']))));
+    .pipe(map(user => (user === null ? true : router.createUrlTree(['/drive']))));
 };

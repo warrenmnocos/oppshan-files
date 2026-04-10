@@ -2,8 +2,6 @@ package com.oppshan.files.user;
 
 import com.oppshan.files.config.ApplicationStorage;
 import com.oppshan.files.exception.BusinessException;
-import com.oppshan.files.exception.MessageCode;
-import com.oppshan.files.exception.ResourceNotFoundException;
 import com.oppshan.files.file.FileNode;
 import com.oppshan.files.file.FileNodeRepository;
 import com.oppshan.files.file.UserStorage;
@@ -38,14 +36,14 @@ public class UserAccountService {
     @NotNull
     public UserAccountView processLogin(@NotNull JsonWebToken idToken) {
         return getOrCreateFromGoogle(idToken)
-                .orElseThrow(() -> new BusinessException(MessageCode.AUTHENTICATION_REQUIRED));
+                .orElseThrow(BusinessException::authenticationRequired);
     }
 
     @NotNull
     public UserAccountView getAuthenticatedUser(@NotNull JsonWebToken idToken) {
         return idpAccountRepository.findByProviderNameAndProviderId(getProviderName(), idToken.getSubject())
-                .map(idp -> buildView(idp.getUserAccount(), idp))
-                .orElseThrow(() -> new ResourceNotFoundException(MessageCode.USER_NOT_FOUND));
+                .map(this::buildView)
+                .orElseThrow(BusinessException::userNotFound);
     }
 
     private Optional<UserAccountView> getOrCreateFromGoogle(JsonWebToken idToken) {
@@ -98,6 +96,10 @@ public class UserAccountService {
                 .getIdpAccounts().add(googleAccount);
         userRepository.insertWithSession(newUser);
         return Optional.of(buildView(newUser, googleAccount));
+    }
+
+    private UserAccountView buildView(IdpAccount idpAccount) {
+        return buildView(idpAccount.getUserAccount(), idpAccount);
     }
 
     private UserAccountView buildView(UserAccount user,
