@@ -25,6 +25,6 @@ export class SignIn implements OnInit {
 
   signIn(): void {
     const tenant = this.route.snapshot.queryParamMap.get('tenant') ?? 'google';
-    window.location.href = `/api/auth/login/${tenant}`;
+    window.location.href = `/sso/sign-in/oidc/${tenant}`;
   }
 }

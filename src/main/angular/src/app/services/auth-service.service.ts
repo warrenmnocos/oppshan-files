@@ -21,9 +21,9 @@ export class AuthService {
   }
 
   signOut(): void {
-    this.http.post('/api/auth/logout', null).subscribe({
-      next: () => window.location.href = '/sign-in',
-      error: () => window.location.href = '/sign-in',
+    this.http.post('/sso/sign-out', null).subscribe({
+      next: () => window.location.href = '/sso/sign-in',
+      error: () => window.location.href = '/sso/sign-in',
     });
   }
 }

@@ -13,66 +13,92 @@ import jakarta.validation.constraints.NotNull;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Transactional
 @ApplicationScoped
 public class UserAccountService {
 
-    @Inject
-    UserAccountRepository userRepository;
+    private final UserAccountRepository userAccountRepository;
+
+    private final IdpAccountRepository idpAccountRepository;
+
+    private final FileNodeRepository fileNodeRepository;
+
+    private final ApplicationStorage applicationStorage;
+
+    private final SecurityIdentity securityIdentity;
 
     @Inject
-    IdpAccountRepository idpAccountRepository;
-
-    @Inject
-    FileNodeRepository fileNodeRepository;
-
-    @Inject
-    ApplicationStorage applicationStorage;
-
-    @Inject
-    SecurityIdentity securityIdentity;
+    public UserAccountService(UserAccountRepository userAccountRepository,
+                              IdpAccountRepository idpAccountRepository,
+                              FileNodeRepository fileNodeRepository,
+                              ApplicationStorage applicationStorage,
+                              SecurityIdentity securityIdentity) {
+        this.userAccountRepository = userAccountRepository;
+        this.idpAccountRepository = idpAccountRepository;
+        this.fileNodeRepository = fileNodeRepository;
+        this.applicationStorage = applicationStorage;
+        this.securityIdentity = securityIdentity;
+    }
 
     @NotNull
-    public UserAccountView processLogin(@NotNull JsonWebToken idToken) {
+    public UserAccountView createOrGetUserAccount(@NotNull JsonWebToken idToken) {
         return getOrCreateFromGoogle(idToken)
                 .orElseThrow(BusinessException::authenticationRequired);
     }
 
     @NotNull
-    public UserAccountView getAuthenticatedUser(@NotNull JsonWebToken idToken) {
+    public UserAccountView getUserAccount(@NotNull JsonWebToken idToken) {
         return idpAccountRepository.findByProviderNameAndProviderId(getProviderName(), idToken.getSubject())
-                .map(this::buildView)
+                .map(this::toUserAccountView)
+                .orElseThrow(BusinessException::userNotFound);
+    }
+
+    @NotNull
+    public UserAccountView getUserAccount(@NotNull UUID uuid) {
+        return userAccountRepository.findById(uuid)
+                .map(this::toUserAccountView)
                 .orElseThrow(BusinessException::userNotFound);
     }
 
     private Optional<UserAccountView> getOrCreateFromGoogle(JsonWebToken idToken) {
-        final String providerName = getProviderName();
+        final var providerName = getProviderName();
         if (!"google".equals(providerName)) {
             return Optional.empty();
         }
 
         final var providerId = idToken.getSubject();
-        final var nullableIdpAccount = idpAccountRepository.findByProviderNameAndProviderId(providerName, providerId);
-        if (nullableIdpAccount.isPresent()) {
-            final var idpAccount = nullableIdpAccount.get();
-            final var userAccount = idpAccount.getUserAccount();
+        final var nullableGoogleIdpAccount = idpAccountRepository.findByProviderNameAndProviderId(providerName, providerId)
+                .flatMap(IdpAccount::asGoogleAccount);
+        if (nullableGoogleIdpAccount.isPresent()) {
+            final var googleAccount = nullableGoogleIdpAccount.get();
+            final var userAccount = googleAccount.getUserAccount();
             var changed = false;
-            if (idToken.getClaim("given_name") != null && !idToken.getClaim("given_name").equals(userAccount.getFirstName())) {
-                userAccount.setFirstName(idToken.getClaim("given_name"));
+            final String givenName = idToken.getClaim("given_name");
+            if (givenName != null && !givenName.equals(userAccount.getFirstName())) {
+                userAccount.setFirstName(givenName);
                 changed = true;
             }
 
-            if (idToken.getClaim("family_name") != null && !idToken.getClaim("family_name").equals(userAccount.getLastName())) {
-                userAccount.setLastName(idToken.getClaim("family_name"));
+            final String familyName = idToken.getClaim("family_name");
+            if (familyName != null && !familyName.equals(userAccount.getLastName())) {
+                userAccount.setLastName(familyName);
+                changed = true;
+            }
+
+            final String name = idToken.getClaim("name");
+            if (name != null && !name.equals(googleAccount.getName())) {
+                googleAccount.setName(name);
                 changed = true;
             }
 
             if (changed) {
-                userRepository.save(userAccount);
+                userAccountRepository.save(userAccount);
+                idpAccountRepository.save(googleAccount);
             }
 
-            return Optional.of(buildView(userAccount, idpAccount));
+            return Optional.of(toUserAccountView(userAccount, googleAccount));
         }
 
         ensureStorageCapacity();
@@ -94,16 +120,25 @@ public class UserAccountService {
                                 .setRootFileNode(FileNode.createRoot(newUser))
                 )
                 .getIdpAccounts().add(googleAccount);
-        userRepository.insertWithSession(newUser);
-        return Optional.of(buildView(newUser, googleAccount));
+        userAccountRepository.insertWithSession(newUser);
+        return Optional.of(toUserAccountView(newUser, googleAccount));
     }
 
-    private UserAccountView buildView(IdpAccount idpAccount) {
-        return buildView(idpAccount.getUserAccount(), idpAccount);
+    private UserAccountView toUserAccountView(UserAccount userAccount) {
+        return toUserAccountView(
+                userAccount,
+                idpAccountRepository.stream(userAccount.getUuid())
+                        .findFirst()
+                        .orElseThrow(BusinessException::userNotFound)
+        );
     }
 
-    private UserAccountView buildView(UserAccount user,
-                                      IdpAccount idpAccount) {
+    private UserAccountView toUserAccountView(IdpAccount idpAccount) {
+        return toUserAccountView(idpAccount.getUserAccount(), idpAccount);
+    }
+
+    private UserAccountView toUserAccountView(UserAccount user,
+                                              IdpAccount idpAccount) {
         String email = null;
         String photoUrl = null;
         final var google = idpAccount.asGoogleAccount();
@@ -112,7 +147,7 @@ public class UserAccountService {
             photoUrl = google.get().getPhotoUrl();
         }
 
-        final long usedBytes = fileNodeRepository.sumSizeBytesByUserAccountUuid(user.getUuid());
+        final var usedBytes = fileNodeRepository.getTotalSizeBytes(user.getUuid());
         return user.toUserAccountView(email, photoUrl, usedBytes);
     }
 
@@ -128,7 +163,7 @@ public class UserAccountService {
     private void ensureStorageCapacity() {
         final var userMaxBytes = applicationStorage.userMaxBytes();
         final var totalMaxBytes = applicationStorage.totalMaxBytes();
-        final var totalUsed = fileNodeRepository.sumAllSizeBytes();
+        final var totalUsed = fileNodeRepository.getTotalSizeBytes();
         if (totalUsed + userMaxBytes <= totalMaxBytes) {
             return;
         }

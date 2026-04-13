@@ -12,8 +12,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.annotations.UuidGenerator.Style;
 
@@ -52,10 +52,12 @@ public class UserStorage
             nullable = false,
             updatable = false
     )
+    @NotNull
     private UserAccount userAccount;
 
     @Column(name = "max_storage_bytes",
             nullable = false)
+    @PositiveOrZero
     private long maxStorageBytes;
 
     @OneToOne(
@@ -70,15 +72,18 @@ public class UserStorage
             nullable = false,
             updatable = false
     )
+    @NotNull
     private FileNode rootFileNode;
 
     @Column(name = "created_at",
             nullable = false,
             updatable = false)
+    @NotNull
     private Instant createdAt;
 
     @Column(name = "last_modified_at",
             nullable = false)
+    @NotNull
     private Instant lastModifiedAt;
 
     @Override

@@ -1,9 +1,11 @@
 package com.oppshan.files.user;
 
+import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotEmpty;
 
 import java.io.Serial;
 import java.time.Instant;
@@ -20,13 +22,22 @@ public class GoogleAccount extends IdpAccount {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Column(nullable = false)
+    @Basic(optional = false)
+    @Column(name = "name",
+            nullable = false)
+    @NotEmpty
     private String name;
 
-    @Column(nullable = false)
+    @Basic(optional = false)
+    @Column(name = "email",
+            nullable = false)
+    @NotEmpty
     private String email;
 
-    @Column(name = "photo_url")
+    @Basic(optional = false)
+    @Column(name = "photo_url",
+            nullable = false)
+    @NotEmpty
     private String photoUrl;
 
     @Override

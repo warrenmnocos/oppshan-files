@@ -13,13 +13,18 @@ export const routes: Routes = [
     ],
   },
   {
-    path: 'sign-in',
-    loadComponent: () => import('./pages/sign-in/sign-in.component').then(m => m.SignIn),
-    canActivate: [guestGuard],
-  },
-  {
-    path: 'sign-out',
-    loadComponent: () => import('./pages/sign-out/sign-out.component').then(m => m.SignOut),
+    path: 'sso',
+    children: [
+      {
+        path: 'sign-in',
+        loadComponent: () => import('./pages/sign-in/sign-in.component').then(m => m.SignIn),
+        canActivate: [guestGuard],
+      },
+      {
+        path: 'sign-out',
+        loadComponent: () => import('./pages/sign-out/sign-out.component').then(m => m.SignOut),
+      },
+    ],
   },
   {
     path: '**',

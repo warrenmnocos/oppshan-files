@@ -1,5 +1,6 @@
 package com.oppshan.files.file;
 
+import com.google.common.base.MoreObjects;
 import com.oppshan.files.common.AuditableEntity;
 import com.oppshan.files.common.AuditableEntityEntityListener;
 import com.oppshan.files.user.UserAccount;
@@ -14,10 +15,13 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import org.hibernate.annotations.LazyGroup;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UuidGenerator;
@@ -27,10 +31,17 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.sql.Blob;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Entity
 @EntityListeners({
@@ -62,6 +73,7 @@ public class FileNode
     private static final long serialVersionUID = 1L;
 
     @Id
+    @Basic(optional = false)
     @Column(name = "uuid",
             nullable = false,
             updatable = false)
@@ -69,24 +81,29 @@ public class FileNode
     @NotNull
     private UUID uuid;
 
+    @Basic(optional = false)
     @Column(name = "name",
             nullable = false)
     @NotEmpty
     private String name;
 
+    @Basic(optional = false)
     @Column(name = "mime_type",
             nullable = false)
     @NotEmpty
     private String mimeType;
 
+    @Basic(optional = false)
     @Column(name = "directory",
             nullable = false,
             updatable = false)
     private boolean directory;
 
+    @Basic(optional = false)
     @Column(name = "size_bytes",
             nullable = false,
             updatable = false)
+    @PositiveOrZero
     private long sizeBytes;
 
     @Basic(fetch = FetchType.LAZY)
@@ -98,7 +115,6 @@ public class FileNode
 
     @ManyToOne(
             fetch = FetchType.LAZY,
-            optional = false,
             targetEntity = FileNode.class
     )
     @JoinColumn(
@@ -127,14 +143,17 @@ public class FileNode
             fetch = FetchType.LAZY,
             targetEntity = FileNode.class
     )
+    @NotNull
     private SortedSet<@NotNull FileNode> childFileNodes;
 
+    @Basic(optional = false)
     @Column(name = "created_at",
             nullable = false,
             updatable = false)
     @NotNull
     private Instant createdAt;
 
+    @Basic(optional = false)
     @Column(name = "last_modified_at",
             nullable = false)
     @NotNull
@@ -195,8 +214,8 @@ public class FileNode
         return this;
     }
 
-    public Blob getContent() {
-        return content;
+    public Optional<Blob> getContent() {
+        return Optional.ofNullable(content);
     }
 
     public FileNode setContent(Blob content) {
@@ -204,8 +223,8 @@ public class FileNode
         return this;
     }
 
-    public FileNode getParentFileNode() {
-        return parentFileNode;
+    public Optional<FileNode> getParentFileNode() {
+        return Optional.ofNullable(parentFileNode);
     }
 
     public FileNode setParentFileNode(FileNode parentFileNode) {
@@ -223,6 +242,7 @@ public class FileNode
     }
 
     public SortedSet<FileNode> getChildFileNodes() {
+        childFileNodes = Objects.requireNonNullElseGet(childFileNodes, TreeSet::new);
         return childFileNodes;
     }
 
@@ -269,8 +289,8 @@ public class FileNode
         }
 
         return Objects.equals(uuid, fileNode.uuid) &&
-                Objects.equals(createdAt, fileNode.createdAt) &&
-                Objects.equals(lastModifiedAt, fileNode.lastModifiedAt);
+               Objects.equals(createdAt, fileNode.createdAt) &&
+               Objects.equals(lastModifiedAt, fileNode.lastModifiedAt);
     }
 
     @Override
@@ -280,6 +300,25 @@ public class FileNode
                 createdAt,
                 lastModifiedAt
         );
+    }
+
+    public BreadcrumbView toBreadcrumbView() {
+        return new BreadcrumbView(
+                uuid,
+                name
+        );
+    }
+
+    public List<BreadcrumbView> toBreadcrumbViews() {
+        return Stream.iterate(this, Objects::nonNull, parentFileNode -> parentFileNode.parentFileNode)
+                .map(FileNode::toBreadcrumbView)
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toCollection(LinkedList::new),
+                        breadcrumbs -> {
+                            Collections.reverse(breadcrumbs);
+                            return breadcrumbs;
+                        }
+                ));
     }
 
     public FileNodeView toFileNodeView() {
@@ -295,15 +334,61 @@ public class FileNode
         );
     }
 
+    public List<FileNodeView> toFileNodeViews() {
+        return childFileNodes.stream()
+                .map(FileNode::toFileNodeView)
+                .collect(Collectors.toList());
+    }
+
+    public DirectoryContentsView toDirectoryContentsView() {
+        return new DirectoryContentsView(
+                uuid,
+                name,
+                parentFileNode != null ? parentFileNode.uuid : null,
+                toBreadcrumbViews(),
+                toFileNodeViews()
+        );
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(this)
+                .add("uuid", uuid)
+                .add("name", name)
+                .add("mimeType", mimeType)
+                .add("directory", directory)
+                .add("parentFileNode", parentFileNode)
+                .add("userAccount", userAccount)
+                .add("childFileNodes", childFileNodes)
+                .add("createdAt", createdAt)
+                .add("lastModifiedAt", lastModifiedAt)
+                .add("sizeBytes", sizeBytes)
+                .toString();
+    }
+
+    @PrePersist
+    private void onPrePersist() {
+        initialize();
+    }
+
+    @PostLoad
+    private void onPostLoad() {
+        initialize();
+    }
+
+    private void initialize() {
+        childFileNodes = Objects.requireNonNullElseGet(childFileNodes, TreeSet::new);
+    }
+
     public enum FileNodeComparator implements Comparator<FileNode> {
         NAME(Comparator.comparing(FileNode::getUserAccount)
-                .thenComparing(FileNode::getParentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid)))
+                .thenComparing(fileNode -> fileNode.parentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid)))
                 .thenComparing(FileNode::getName)
                 .thenComparing(FileNode::getMimeType)
                 .thenComparing(FileNode::getLastModifiedAt)
         ),
         SIZE_BYTES(Comparator.comparing(FileNode::getUserAccount)
-                .thenComparing(FileNode::getParentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid)))
+                .thenComparing(fileNode -> fileNode.parentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid)))
                 .thenComparingLong(FileNode::getSizeBytes)
                 .thenComparing(FileNode::getName)
                 .thenComparing(FileNode::getMimeType)

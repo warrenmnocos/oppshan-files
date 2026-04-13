@@ -18,34 +18,68 @@ public interface FileNodeRepository
     @Query("""
             SELECT COALESCE(SUM(fileNode.sizeBytes), 0)
             FROM FileNode fileNode
-            WHERE fileNode.userAccount.uuid = :userAccountUuid
-                AND fileNode.directory = false""")
-    long sumSizeBytesByUserAccountUuid(@NotNull UUID userAccountUuid);
+            WHERE fileNode.directory = false""")
+    long getTotalSizeBytes();
 
     @Query("""
             SELECT COALESCE(SUM(fileNode.sizeBytes), 0)
             FROM FileNode fileNode
-            WHERE fileNode.directory = false""")
-    long sumAllSizeBytes();
+            WHERE fileNode.userAccount.uuid = :userAccountUuid
+                AND fileNode.directory = false""")
+    long getTotalSizeBytes(@NotNull
+                           UUID userAccountUuid);
 
     @Query("""
             SELECT fileNode
             FROM FileNode fileNode
-            WHERE fileNode.parentFileNode.uuid = :parentUuid
-                AND fileNode.name = :name
-                AND fileNode.userAccount.uuid = :userAccountUuid
+            WHERE fileNode.userAccount.uuid = :userAccountUuid
+                AND fileNode.uuid = :uuid
                 AND fileNode.directory = true""")
-    Optional<FileNode> findDirectoryByParentUuidAndName(@NotNull UUID userAccountUuid,
-                                                        @NotNull UUID parentUuid,
-                                                        @NotEmpty String name);
+    Optional<FileNode> findParentFileNode(@NotNull
+                                          UUID userAccountUuid,
 
-    @NotNull
+                                          @NotNull
+                                          UUID uuid);
+
     @Query("""
             SELECT fileNode
             FROM FileNode fileNode
-            WHERE fileNode.parentFileNode.uuid = :parentUuid
+            WHERE fileNode.userAccount.uuid = :userAccountUuid
+                AND fileNode.parentFileNode.uuid = :parentFileNodeUuid
+                AND fileNode.name = :name
+                AND fileNode.directory = true""")
+    Optional<FileNode> findParentFileNode(@NotNull
+                                          UUID userAccountUuid,
+
+                                          @NotNull
+                                          UUID parentFileNodeUuid,
+
+                                          @NotEmpty
+                                          String name);
+
+    @Query("""
+            SELECT fileNode
+            FROM FileNode fileNode
+            LEFT JOIN FETCH fileNode.childFileNodes
+            WHERE fileNode.userAccount.uuid = :userAccountUuid
+                AND fileNode.uuid = :uuid
+                AND fileNode.directory = true""")
+    Optional<FileNode> findParentFileNodeWithContents(@NotNull
+                                                      UUID userAccountUuid,
+
+                                                      @NotNull
+                                                      UUID uuid);
+
+    @Query("""
+            SELECT fileNode
+            FROM FileNode fileNode
+            WHERE fileNode.parentFileNode.uuid = :parentFileNodeUuid
                 AND fileNode.userAccount.uuid = :userAccountUuid
             ORDER BY fileNode.directory DESC, fileNode.name ASC""")
-    Stream<FileNode> streamByParentUuidAndUserAccountUuid(@NotNull UUID userAccountUuid,
-                                                          @NotNull UUID parentUuid);
+    @NotNull
+    Stream<FileNode> stream(@NotNull
+                            UUID userAccountUuid,
+
+                            @NotNull
+                            UUID parentFileNodeUuid);
 }

@@ -55,7 +55,7 @@ export class Home implements AfterViewInit, OnDestroy {
   }
 
   onSignOut(): void {
-    window.location.href = '/sign-out';
+    this.authService.signOut();
   }
 
   onNavigateToDirectory(uuid: string): void {

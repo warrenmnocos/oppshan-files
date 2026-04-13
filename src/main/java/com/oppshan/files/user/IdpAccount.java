@@ -2,6 +2,7 @@ package com.oppshan.files.user;
 
 import com.oppshan.files.common.AuditableEntity;
 import com.oppshan.files.common.AuditableEntityEntityListener;
+import jakarta.persistence.Basic;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -52,6 +53,7 @@ public abstract class IdpAccount
     private static final long serialVersionUID = 1L;
 
     @Id
+    @Basic(optional = false)
     @Column(name = "uuid",
             nullable = false,
             updatable = false)
@@ -59,12 +61,14 @@ public abstract class IdpAccount
     @NotNull
     private UUID uuid;
 
+    @Basic(optional = false)
     @Column(name = "provider_id",
             nullable = false,
             updatable = false)
     @NotEmpty
     private String providerId;
 
+    @Basic(optional = false)
     @Column(name = "provider_name",
             nullable = false,
             updatable = false)
@@ -84,12 +88,14 @@ public abstract class IdpAccount
     @NotNull
     private UserAccount userAccount;
 
+    @Basic(optional = false)
     @Column(name = "created_at",
             nullable = false,
             updatable = false)
     @NotNull
     private Instant createdAt;
 
+    @Basic(optional = false)
     @Column(name = "last_modified_at",
             nullable = false)
     @NotNull
