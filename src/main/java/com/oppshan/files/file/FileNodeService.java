@@ -14,11 +14,16 @@ import java.util.UUID;
 @ApplicationScoped
 public class FileNodeService {
 
-    @Inject
-    UserAccountService userAccountService;
+    private final UserAccountService userAccountService;
+
+    private final FileNodeRepository fileNodeRepository;
 
     @Inject
-    FileNodeRepository fileNodeRepository;
+    public FileNodeService(UserAccountService userAccountService,
+                           FileNodeRepository fileNodeRepository) {
+        this.userAccountService = userAccountService;
+        this.fileNodeRepository = fileNodeRepository;
+    }
 
     @Valid
     @NotNull
