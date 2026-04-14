@@ -7,7 +7,7 @@ export const routes: Routes = [
     children: [
       {
         path: '**',
-        loadComponent: () => import('./pages/home/home.component').then(m => m.Home),
+        loadComponent: () => import('./pages/drive/drive.component').then(m => m.Drive),
         canActivate: [authGuard],
       },
     ],

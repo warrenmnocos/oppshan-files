@@ -7,6 +7,8 @@ import com.oppshan.files.user.UserAccount;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.ColumnResult;
+import jakarta.persistence.ConstructorResult;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
@@ -14,9 +16,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedNativeQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.SqlResultSetMapping;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotEmpty;
@@ -66,8 +70,45 @@ import java.util.stream.Stream;
                 ),
         }
 )
+@NamedNativeQuery(
+        name = FileNode.GET_DIRECTORY_STATISTICS,
+        query = """
+                WITH RECURSIVE descendants AS (
+                    SELECT uuid, directory, size_bytes
+                    FROM file_node
+                    WHERE user_account_uuid = :userAccountUuid
+                        AND parent_file_node_uuid = :fileNodeDirectoryUuid
+                    UNION ALL
+                    SELECT fn.uuid, fn.directory, fn.size_bytes
+                    FROM file_node fn
+                    INNER JOIN descendants d ON fn.parent_file_node_uuid = d.uuid
+                )
+                SELECT
+                    COUNT(*) FILTER (WHERE directory = true) AS folder_count,
+                    COUNT(*) FILTER (WHERE directory = false) AS file_count,
+                    COALESCE(SUM(size_bytes) FILTER (WHERE directory = false), 0) AS total_size_bytes
+                FROM descendants
+                """,
+        resultSetMapping = FileNode.DIRECTORY_STATISTICS_MAPPING,
+        resultClass = DirectoryStatistics.class
+)
+@SqlResultSetMapping(
+        name = FileNode.DIRECTORY_STATISTICS_MAPPING,
+        classes = @ConstructorResult(
+                targetClass = DirectoryStatistics.class,
+                columns = {
+                        @ColumnResult(name = "folder_count", type = Long.class),
+                        @ColumnResult(name = "file_count", type = Long.class),
+                        @ColumnResult(name = "total_size_bytes", type = Long.class),
+                }
+        )
+)
 public class FileNode
         implements AuditableEntity<FileNode>, Comparable<FileNode>, Serializable {
+
+    static final String GET_DIRECTORY_STATISTICS = "FileNode.getDirectoryStatistics";
+
+    static final String DIRECTORY_STATISTICS_MAPPING = "DirectoryStatisticsMapping";
 
     @Serial
     private static final long serialVersionUID = 1L;

@@ -2,6 +2,7 @@ import {Component, OnInit, signal} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {TranslatePipe} from '@ngx-translate/core';
 import {MessageCode} from '../../models/message-code';
+import {AuthService} from '../../services/auth-service.service';
 
 @Component({
   selector: 'app-sign-in',
@@ -13,7 +14,8 @@ export class SignIn implements OnInit {
 
   protected errorKey = signal<MessageCode | null>(null);
 
-  constructor(private readonly route: ActivatedRoute) {
+  constructor(private readonly authService: AuthService,
+              private readonly route: ActivatedRoute) {
   }
 
   ngOnInit(): void {
@@ -24,7 +26,6 @@ export class SignIn implements OnInit {
   }
 
   signIn(): void {
-    const tenant = this.route.snapshot.queryParamMap.get('tenant') ?? 'google';
-    window.location.href = `/sso/sign-in/oidc/${tenant}`;
+    this.authService.signIn(this.route.snapshot.queryParamMap.get('tenant') ?? 'google');
   }
 }

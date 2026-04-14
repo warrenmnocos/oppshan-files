@@ -163,3 +163,138 @@ html, body {
   width: 70%;
   height: 14px;
 }
+
+// Dialog styles
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.dialog {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+}
+
+.dialog-title {
+  margin: 0 0 20px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #202124;
+}
+
+.dialog-body {
+  margin-bottom: 24px;
+}
+
+.dialog-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: #5f6368;
+  margin-bottom: 6px;
+}
+
+.dialog-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #202124;
+  outline: none;
+  transition: border-color 0.15s ease;
+
+  &:focus {
+    border-color: #009688;
+    box-shadow: 0 0 0 2px rgba(0, 150, 136, 0.15);
+  }
+}
+
+.dialog-error {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #d93025;
+}
+
+.dialog-text {
+  font-size: 14px;
+  color: #5f6368;
+  margin: 0 0 8px;
+  line-height: 1.5;
+}
+
+.dialog-warning {
+  font-size: 14px;
+  color: #d93025;
+  margin: 0 0 8px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.dialog-btn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.dialog-btn-primary {
+  background: #009688;
+  color: #fff;
+}
+
+.dialog-btn-secondary {
+  background: #f1f3f4;
+  color: #5f6368;
+}
+
+.dialog-btn-danger {
+  background: #d93025;
+  color: #fff;
+}
+
+.dialog-properties-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0eeea;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.dialog-properties-label {
+  font-size: 13px;
+  color: #5f6368;
+  font-weight: 500;
+}
+
+.dialog-properties-value {
+  font-size: 13px;
+  color: #202124;
+}

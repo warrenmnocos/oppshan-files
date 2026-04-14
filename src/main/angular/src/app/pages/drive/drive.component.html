@@ -1,0 +1,42 @@
+<app-toolbar
+  (signOutClicked)="onSignOut()"
+  [userAccountView]="userAccountView()"/>
+<app-breadcrumb
+  (navigated)="onDirectoryNavigation($event)"
+  [breadcrumbViews]="directoryContentsView()?.breadcrumbViews"
+  [loading]="loading()"/>
+@if (errorMessageCode()) {
+  <app-error-state [messageCode]="errorMessageCode()!"/>
+} @else {
+  <app-file-browser
+    (directoryCreationRequested)="onDirectoryCreationInitiated()"
+    (directoryDeleteRequested)="onDirectoryDeletionInitiated($event)"
+    (directoryOpened)="onDirectoryNavigation($event)"
+    (directoryPropertiesRequested)="onDirectoryPropertiesInitiated($event)"
+    (directoryRenameRequested)="onDirectoryRenameInitiated($event)"
+    [fileNodeViews]="directoryContentsView()?.childrenFileNodeViews"
+    [loading]="loading()"/>
+}
+@if (messageBusService.applicationEvenTypeSignal() === ApplicationEventType.DirectoryCreateInitiated) {
+  <app-directory-creation-dialog
+    (cancelled)="onDirectoryCreationCanceled()"
+    (confirmed)="onDirectoryCreationConfirmed($event)"/>
+}
+@if (messageBusService.applicationEvenTypeSignal() === ApplicationEventType.DirectoryRenameInitiated) {
+  <app-directory-rename-dialog
+    (cancelled)="onDirectoryRenameCanceled()"
+    (confirmed)="onDirectoryRenameConfirmed($event)"
+    [currentDirectoryName]="selectedDirectoryFileNodeView()!.name"/>
+}
+@if (messageBusService.applicationEvenTypeSignal() === ApplicationEventType.DirectoryDeletionInitiated) {
+  <app-directory-deletion-dialog
+    (cancelled)="onDirectoryDeletionCanceled()"
+    (confirmed)="onDirectoryDeletionConfirmed()"
+    [directoryName]="selectedDirectoryFileNodeView()!.name"
+    [itemCount]="deletingDirectoryItemCount()"/>
+}
+@if (directoryProperties()) {
+  <app-directory-properties-dialog
+    (closed)="onDirectoryPropertiesCanceled()"
+    [properties]="directoryProperties()!"/>
+}

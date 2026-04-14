@@ -1,0 +1,26 @@
+<div (click)="onCancel()" class="dialog-overlay">
+  <div (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)" class="dialog">
+    <h2 class="dialog-title">{{ 'dialog.createDirectory.title' | translate }}</h2>
+    <div class="dialog-body">
+      <label class="dialog-label" for="directoryName">{{ 'dialog.createDirectory.label' | translate }}</label>
+      <input (keydown.enter)="onConfirm()"
+             [(ngModel)]="directoryName"
+             [placeholder]="'dialog.createDirectory.placeholder' | translate"
+             class="dialog-input"
+             id="directoryName"
+             maxlength="255"
+             type="text"/>
+      @if (errorMessage()) {
+        <p class="dialog-error">{{ errorMessage() }}</p>
+      }
+    </div>
+    <div class="dialog-actions">
+      <button (click)="onCancel()" class="dialog-btn dialog-btn-secondary">
+        {{ 'dialog.createDirectory.cancel' | translate }}
+      </button>
+      <button (click)="onConfirm()" class="dialog-btn dialog-btn-primary">
+        {{ 'dialog.createDirectory.create' | translate }}
+      </button>
+    </div>
+  </div>
+</div>

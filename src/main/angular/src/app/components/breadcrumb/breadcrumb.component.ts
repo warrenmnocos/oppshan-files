@@ -14,9 +14,9 @@ export class Breadcrumb {
 
   readonly breadcrumbViews = input<BreadcrumbView[]>();
 
-  readonly navigated = output<string>();
+  readonly navigated = output<string | null>();
 
-  onNavigate(uuid: string): void {
+  onNavigate(uuid: string | null): void {
     this.navigated.emit(uuid);
   }
 }

@@ -17,7 +17,15 @@ export class FileBrowser implements AfterViewInit {
 
   fileNodeViews = input<FileNodeView[]>();
 
-  folderOpened = output<string>();
+  directoryOpened = output<string>();
+
+  directoryCreationRequested = output<void>();
+
+  directoryRenameRequested = output<FileNodeView>();
+
+  directoryDeleteRequested = output<FileNodeView>();
+
+  directoryPropertiesRequested = output<FileNodeView>();
 
   viewMode = signal<ViewMode>(ViewMode.List);
 
@@ -37,11 +45,11 @@ export class FileBrowser implements AfterViewInit {
 
   onItemClick(item: FileNodeView): void {
     if (item.directory) {
-      this.folderOpened.emit(item.uuid);
+      this.directoryOpened.emit(item.uuid);
     }
   }
 
   getIcon(item: FileNodeView): string {
-    return item.directory ? '/icons/folder-teal.svg' : '/icons/file.svg';
+    return item.directory ? '/icons/directory-teal.svg' : '/icons/file.svg';
   }
 }

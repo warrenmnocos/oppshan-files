@@ -16,7 +16,7 @@
   },
   "fileBrowser": {
     "myFiles": "My files",
-    "newFolder": "New folder",
+    "newDirectory": "New folder",
     "upload": "Upload",
     "listView": "List view",
     "gridView": "Grid view",
@@ -25,6 +25,38 @@
     "columnSize": "Size",
     "emptyTitle": "Drag files here to upload",
     "emptySubtitle": "or click to browse your device"
+  },
+  "dialog": {
+    "createDirectory": {
+      "title": "New folder",
+      "label": "Folder name",
+      "placeholder": "Untitled folder",
+      "create": "Create",
+      "cancel": "Cancel"
+    },
+    "renameDirectory": {
+      "title": "Rename folder",
+      "label": "Folder name",
+      "rename": "Rename",
+      "cancel": "Cancel"
+    },
+    "deleteDirectory": {
+      "title": "Delete folder?",
+      "message": "\"{{name}}\" and all its contents will be permanently deleted.",
+      "itemCount": "This folder contains {{count}} item(s).",
+      "delete": "Delete",
+      "cancel": "Cancel"
+    },
+    "directoryProperties": {
+      "title": "Folder properties",
+      "name": "Name",
+      "created": "Created",
+      "modified": "Updated",
+      "directories": "Folders",
+      "files": "Files",
+      "totalSize": "Total size",
+      "close": "Close"
+    }
   },
   "misc": {
     "dataUnit": {
@@ -42,6 +74,9 @@
       "userNotFound": "User account not found. Please sign in again.",
       "signInFailed": "Sign in failed. Please try again.",
       "directoryNotFound": "Directory not found.",
+      "duplicateDirectoryName": "A folder with this name already exists.",
+      "directoryNameRequired": "Folder name is required.",
+      "cannotDeleteRoot": "The root directory cannot be deleted.",
       "accessDenied": "You do not have permission to access this resource.",
       "unknown": "An unexpected error occurred. Please try again."
     }

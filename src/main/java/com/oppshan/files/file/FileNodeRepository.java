@@ -4,6 +4,8 @@ import com.oppshan.files.common.StatefulWriteRepository;
 import jakarta.data.repository.CrudRepository;
 import jakarta.data.repository.Query;
 import jakarta.data.repository.Repository;
+import jakarta.enterprise.inject.spi.CDI;
+import jakarta.persistence.EntityManager;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
@@ -30,11 +32,48 @@ public interface FileNodeRepository
                            UUID userAccountUuid);
 
     @Query("""
+            SELECT COUNT(fileNode) > 0
+            FROM FileNode fileNode
+            WHERE fileNode.userAccount.uuid = :userAccountUuid
+                AND fileNode.parentFileNode.uuid = :parentFileNodeUuid
+                AND fileNode.name = :name
+                AND fileNode.directory = true""")
+    boolean isDirectoryPresent(@NotNull
+                               UUID userAccountUuid,
+
+                               @NotNull
+                               UUID parentFileNodeUuid,
+
+                               @NotEmpty
+                               String name);
+
+    @Query("""
+            SELECT COUNT(fileNode) > 0
+            FROM FileNode fileNode
+            WHERE fileNode.userAccount.uuid = :userAccountUuid
+                AND fileNode.parentFileNode.uuid = :parentFileNodeUuid
+                AND fileNode.name = :name
+                AND fileNode.directory = true
+                AND fileNode.uuid != :excludeUuid""")
+    boolean isDirectoryPresent(@NotNull
+                               UUID userAccountUuid,
+
+                               @NotNull
+                               UUID parentFileNodeUuid,
+
+                               @NotEmpty
+                               String name,
+
+                               @NotNull
+                               UUID excludeUuid);
+
+    @Query("""
             SELECT fileNode
             FROM FileNode fileNode
             WHERE fileNode.userAccount.uuid = :userAccountUuid
                 AND fileNode.uuid = :uuid
                 AND fileNode.directory = true""")
+    @NotNull
     Optional<FileNode> findParentFileNode(@NotNull
                                           UUID userAccountUuid,
 
@@ -48,6 +87,7 @@ public interface FileNodeRepository
                 AND fileNode.parentFileNode.uuid = :parentFileNodeUuid
                 AND fileNode.name = :name
                 AND fileNode.directory = true""")
+    @NotNull
     Optional<FileNode> findParentFileNode(@NotNull
                                           UUID userAccountUuid,
 
@@ -64,11 +104,24 @@ public interface FileNodeRepository
             WHERE fileNode.userAccount.uuid = :userAccountUuid
                 AND fileNode.uuid = :uuid
                 AND fileNode.directory = true""")
+    @NotNull
     Optional<FileNode> findParentFileNodeWithContents(@NotNull
                                                       UUID userAccountUuid,
 
                                                       @NotNull
                                                       UUID uuid);
+
+    @NotNull
+    default Optional<DirectoryStatistics> getDirectoryStatistics(@NotNull UUID userAccountUuid,
+                                                                 @NotNull UUID fileNodeDirectoryUuid) {
+        return Optional.ofNullable(
+                CDI.current().select(EntityManager.class).get()
+                        .createNamedQuery(FileNode.GET_DIRECTORY_STATISTICS, DirectoryStatistics.class)
+                        .setParameter("userAccountUuid", userAccountUuid)
+                        .setParameter("fileNodeDirectoryUuid", fileNodeDirectoryUuid)
+                        .getSingleResultOrNull()
+        );
+    }
 
     @Query("""
             SELECT fileNode

@@ -1,7 +1,9 @@
 import {Injectable} from '@angular/core';
 import {ClassConstructor, instanceToPlain, plainToInstance} from 'class-transformer';
 
-@Injectable({providedIn: 'root'})
+@Injectable({
+  providedIn: 'root',
+})
 export class JsonMapper {
 
   deserialize<T>(cls: ClassConstructor<T>, json: Record<string, unknown>): T {

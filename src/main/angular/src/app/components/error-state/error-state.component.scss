@@ -1,0 +1,43 @@
+.error-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  padding: 48px 16px;
+
+  @media (min-width: 600px) {
+    padding: 64px 24px;
+  }
+}
+
+.error-state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 32px;
+  max-width: 480px;
+  width: 100%;
+
+  @media (min-width: 600px) {
+    padding: 64px 48px;
+  }
+}
+
+.error-state-icon {
+  width: 48px;
+  height: 48px;
+  opacity: 0.4;
+}
+
+.error-state-title {
+  font-size: 16px;
+  font-weight: 500;
+  color: #5f6368;
+  margin: 0;
+  text-align: center;
+
+  @media (min-width: 600px) {
+    font-size: 18px;
+  }
+}

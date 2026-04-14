@@ -4,6 +4,9 @@ export enum MessageCode {
   UserNotFound = 'messages.errors.userNotFound',
   SignInFailed = 'messages.errors.signInFailed',
   DirectoryNotFound = 'messages.errors.directoryNotFound',
+  DirectoryNameNotUnique = 'messages.errors.directoryNameNotUnique',
+  DirectoryNameRequired = 'messages.errors.directoryNameRequired',
+  RootDirectoryDeletionNotAllowed = 'messages.errors.rootDirectoryDeletionNotAllowed',
   AccessDenied = 'messages.errors.accessDenied',
   Unknown = 'messages.errors.unknown',
 }

@@ -1,8 +1,8 @@
 <div class="action-bar">
   <div class="action-bar-left">
-    <button class="action-btn action-btn-primary" disabled>
+    <button (click)="directoryCreationRequested.emit()" [disabled]="loading()" class="action-btn action-btn-primary">
       <img alt="" class="action-btn-icon" src="/icons/plus.svg"/>
-      {{ 'fileBrowser.newFolder' | translate }}
+      {{ 'fileBrowser.newDirectory' | translate }}
     </button>
     <button class="action-btn action-btn-secondary" disabled>
       <img alt="" class="action-btn-icon" src="/icons/upload.svg"/>
@@ -76,6 +76,22 @@
           </span>
           <span class="list-col-modified">{{ fileNodeView.lastModifiedAt | dateTime:'MMM d, yyyy' }}</span>
           <span class="list-col-size">{{ fileNodeView.directory ? '—' : (fileNodeView.sizeBytes | fileSize) }}</span>
+          @if (fileNodeView.directory) {
+            <span class="list-col-actions">
+              <button (click)="directoryRenameRequested.emit(fileNodeView); $event.stopPropagation()"
+                      class="action-icon-btn" title="Rename">
+                <img alt="Rename" class="action-icon" src="/icons/edit.svg"/>
+              </button>
+              <button (click)="directoryDeleteRequested.emit(fileNodeView); $event.stopPropagation()"
+                      class="action-icon-btn" title="Delete">
+                <img alt="Delete" class="action-icon" src="/icons/delete.svg"/>
+              </button>
+              <button (click)="directoryPropertiesRequested.emit(fileNodeView); $event.stopPropagation()"
+                      class="action-icon-btn" title="Properties">
+                <img alt="Properties" class="action-icon" src="/icons/info.svg"/>
+              </button>
+            </span>
+          }
         </div>
       }
     </div>
@@ -85,6 +101,22 @@
         <div (click)="onItemClick(fileNodeView)" [class.clickable]="fileNodeView.directory" class="grid-item">
           <img [src]="getIcon(fileNodeView)" alt="" class="grid-item-icon"/>
           <span class="grid-item-name">{{ fileNodeView.name }}</span>
+          @if (fileNodeView.directory) {
+            <span class="grid-item-actions">
+              <button (click)="directoryRenameRequested.emit(fileNodeView); $event.stopPropagation()"
+                      class="action-icon-btn" title="Rename">
+                <img alt="Rename" class="action-icon" src="/icons/edit.svg"/>
+              </button>
+              <button (click)="directoryDeleteRequested.emit(fileNodeView); $event.stopPropagation()"
+                      class="action-icon-btn" title="Delete">
+                <img alt="Delete" class="action-icon" src="/icons/delete.svg"/>
+              </button>
+              <button (click)="directoryPropertiesRequested.emit(fileNodeView); $event.stopPropagation()"
+                      class="action-icon-btn" title="Properties">
+                <img alt="Properties" class="action-icon" src="/icons/info.svg"/>
+              </button>
+            </span>
+          }
         </div>
       }
     </div>

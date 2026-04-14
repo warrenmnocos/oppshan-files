@@ -1,6 +1,7 @@
 <nav class="breadcrumb">
   @if (!breadcrumbViews() || breadcrumbViews()?.length === 0) {
-    <button class="breadcrumb-link" disabled>
+    <button (click)="onNavigate(null)"
+            class="breadcrumb-link">
       <img alt="" class="breadcrumb-home" src="/icons/home.svg"/>
       {{ 'fileBrowser.myFiles' | translate }}
     </button>
