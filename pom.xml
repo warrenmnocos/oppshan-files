@@ -217,7 +217,7 @@
                         </goals>
                         <phase>generate-resources</phase>
                         <configuration>
-                            <arguments>build</arguments>
+                            <arguments>build --configuration development</arguments>
                         </configuration>
                     </execution>
                 </executions>

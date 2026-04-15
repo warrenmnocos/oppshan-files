@@ -68,15 +68,22 @@
     }
   },
   "messages": {
+    "info": {
+      "directoryCreated": "Folder created.",
+      "directoryRenamed": "Folder renamed.",
+      "directoryDeleted": "Folder deleted."
+    },
+    "warning": {
+    },
     "errors": {
       "authenticationRequired": "Authentication is required to sign in.",
       "storageCapacityExceeded": "The application has reached its storage capacity. New sign-ups are temporarily unavailable.",
       "userNotFound": "User account not found. Please sign in again.",
       "signInFailed": "Sign in failed. Please try again.",
       "directoryNotFound": "Directory not found.",
-      "duplicateDirectoryName": "A folder with this name already exists.",
+      "directoryNameNotUnique": "A folder with this name already exists.",
       "directoryNameRequired": "Folder name is required.",
-      "cannotDeleteRoot": "The root directory cannot be deleted.",
+      "rootDirectoryDeletionNotAllowed": "The root directory cannot be deleted.",
       "accessDenied": "You do not have permission to access this resource.",
       "unknown": "An unexpected error occurred. Please try again."
     }

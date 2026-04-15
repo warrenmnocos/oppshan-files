@@ -10,37 +10,36 @@ import {map} from 'rxjs/operators';
 })
 export class MessageBusService implements OnDestroy {
 
-  constructor(private readonly messageEmitter = new Subject<unknown>(),
-              readonly messages = this.messageEmitter.asObservable(),
-              readonly applicationEventStream = this.messageEmitter
-                .asObservable()
-                .pipe(
-                  filter((event): event is ApplicationEvent =>
-                    event instanceof ApplicationEvent
-                  ),
-                ),
-              readonly applicationEventTypeStream = this.applicationEventStream
-                .pipe(
-                  map(event => event.type),
-                ),
-              readonly applicationEventSignal = toSignal(
-                this.applicationEventStream,
-                {
-                  initialValue: new ApplicationEvent(ApplicationEventType.None)
-                },
-              ),
-              readonly applicationEvenTypeSignal = computed(() => this.applicationEventSignal().type),) {
-  }
+  readonly applicationEventTypeStream = this.applicationEventStream
+    .pipe(
+      map(event => event.type),
+    );
+  readonly applicationEventSignal = toSignal(
+    this.applicationEventStream,
+    {
+      initialValue: new ApplicationEvent(ApplicationEventType.None)
+    },
+  );
+  readonly applicationEvenTypeSignal = computed(() => this.applicationEventSignal().type);
+  private readonly messageSubject = new Subject<unknown>();
+  readonly messages = this.messageSubject.asObservable();
+  readonly applicationEventStream = this.messageSubject
+    .asObservable()
+    .pipe(
+      filter((event): event is ApplicationEvent =>
+        event instanceof ApplicationEvent
+      ),
+    );
 
   ngOnDestroy(): void {
-    this.messageEmitter.complete();
+    this.messageSubject.complete();
   }
 
   fireApplicationEvent(event: ApplicationEvent): void {
-    this.messageEmitter.next(event);
+    this.messageSubject.next(event);
   }
 
   fireApplicationEventOfType(event: ApplicationEventType): void {
-    this.messageEmitter.next(new ApplicationEvent(event));
+    this.messageSubject.next(new ApplicationEvent(event));
   }
 }

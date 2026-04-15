@@ -25,7 +25,7 @@ public record DirectoryPropertiesView(
         Instant lastModifiedAt,
 
         @PositiveOrZero
-        long folderCount,
+        long directoryCount,
 
         @PositiveOrZero
         long fileCount,
