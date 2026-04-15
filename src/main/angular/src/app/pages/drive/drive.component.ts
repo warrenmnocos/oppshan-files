@@ -100,29 +100,28 @@ export class Drive implements AfterViewInit, OnDestroy {
   }
 
   private async loadDirectoryContents(directoryNavigationSucceeded: DirectoryNavigationSucceeded) {
-    this.urlSubscription?.unsubscribe();
     this.directoryContentsView.set(directoryNavigationSucceeded.directoryContentsView);
-    const currentDirectoryContentsView = this.directoryContentsView()!;
-    this.currentPath = currentDirectoryContentsView.breadcrumbViews
+    this.currentPath = directoryNavigationSucceeded.directoryContentsView.breadcrumbViews
       .slice(1)
       .map(breadcrumbView => breadcrumbView.name)
       .join("/");
-    await this.router.navigate(['/drive/', this.currentPath]);
-    this.subscribeToUrlChanges();
+    await this.router.navigate(['/drive', this.currentPath]);
     this.loading.set(false);
   }
 
   private handleDirectoryNavigationFailure(directoryNavigationFailed: DirectoryNavigationFailed): void {
     this.errorMessageCode.set(directoryNavigationFailed.messageCode);
     this.directoryContentsView.set(null);
+    this.currentPath = directoryNavigationFailed.path ?? null;
     this.loading.set(false);
   }
 
   private subscribeToUrlChanges(): void {
-    this.urlSubscription?.unsubscribe();
+    this.urlSubscription?.unsubscribe()
     this.urlSubscription = this.route.url
       .subscribe(segments => {
-        this.loadDirectoryByPath(segments.map(segment => decodeURIComponent(segment.path)).join('/'));
+        const path = segments.map(segment => decodeURIComponent(segment.path)).join('/');
+        this.loadDirectoryByPath(path);
       });
   }
 }
