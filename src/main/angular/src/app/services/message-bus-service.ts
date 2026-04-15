@@ -10,19 +10,10 @@ import {map} from 'rxjs/operators';
 })
 export class MessageBusService implements OnDestroy {
 
-  readonly applicationEventTypeStream = this.applicationEventStream
-    .pipe(
-      map(event => event.type),
-    );
-  readonly applicationEventSignal = toSignal(
-    this.applicationEventStream,
-    {
-      initialValue: new ApplicationEvent(ApplicationEventType.None)
-    },
-  );
-  readonly applicationEvenTypeSignal = computed(() => this.applicationEventSignal().type);
   private readonly messageSubject = new Subject<unknown>();
+
   readonly messages = this.messageSubject.asObservable();
+
   readonly applicationEventStream = this.messageSubject
     .asObservable()
     .pipe(
@@ -30,6 +21,20 @@ export class MessageBusService implements OnDestroy {
         event instanceof ApplicationEvent
       ),
     );
+
+  readonly applicationEventTypeStream = this.applicationEventStream
+    .pipe(
+      map(event => event.type),
+    );
+
+  readonly applicationEventSignal = toSignal(
+    this.applicationEventStream,
+    {
+      initialValue: new ApplicationEvent(ApplicationEventType.None)
+    },
+  );
+
+  readonly applicationEvenTypeSignal = computed(() => this.applicationEventSignal().type);
 
   ngOnDestroy(): void {
     this.messageSubject.complete();
