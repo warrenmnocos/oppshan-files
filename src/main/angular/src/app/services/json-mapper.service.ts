@@ -4,7 +4,7 @@ import {ClassConstructor, instanceToPlain, plainToInstance} from 'class-transfor
 @Injectable({
   providedIn: 'root',
 })
-export class JsonMapper {
+export class JsonMapperService {
 
   deserialize<T>(cls: ClassConstructor<T>, json: Record<string, unknown>): T {
     return plainToInstance(cls, json);

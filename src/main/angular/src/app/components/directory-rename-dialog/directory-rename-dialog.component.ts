@@ -1,6 +1,11 @@
-import {Component, input, model, OnInit, output} from '@angular/core';
+import {Component, computed, model, OnInit} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {TranslatePipe} from '@ngx-translate/core';
+import {MessageBusService} from '../../services/message-bus-service';
+import {ApplicationEvent} from '../../models/application-event';
+import {ApplicationEventType} from '../../models/application-event-type';
+import {DirectoryRenameCommand} from '../../models/operation-commands';
+import {FileNodeView} from '../../models/file-node-view';
 
 @Component({
   selector: 'app-directory-rename-dialog',
@@ -10,18 +15,19 @@ import {TranslatePipe} from '@ngx-translate/core';
 })
 export class DirectoryRenameDialog implements OnInit {
 
-  readonly currentDirectoryName = input.required<string>();
-
-  readonly confirmed = output<string>();
-
-  readonly cancelled = output<void>();
-
   protected readonly directoryName = model('');
 
   protected readonly errorMessage = model<string | null>(null);
 
+  private readonly selectedDirectory = computed(
+    () => this.messageBusService.applicationEventSignal().payload as FileNodeView | null
+  );
+
+  constructor(private readonly messageBusService: MessageBusService) {
+  }
+
   ngOnInit(): void {
-    this.directoryName.set(this.currentDirectoryName());
+    this.directoryName.set(this.selectedDirectory()?.name ?? '');
   }
 
   onConfirm(): void {
@@ -36,12 +42,20 @@ export class DirectoryRenameDialog implements OnInit {
       return;
     }
 
+    const directory = this.selectedDirectory();
+    if (!directory) {
+      return;
+    }
+
     this.errorMessage.set(null);
-    this.confirmed.emit(name);
+    const command: DirectoryRenameCommand = {uuid: directory.uuid, name};
+    this.messageBusService.fireApplicationEvent(
+      new ApplicationEvent(ApplicationEventType.DirectoryRenameConfirmed, command)
+    );
   }
 
   onCancel(): void {
-    this.cancelled.emit();
+    this.messageBusService.fireApplicationEventOfType(ApplicationEventType.DirectoryRenameCancelled);
   }
 
   onKeyDown(event: KeyboardEvent): void {

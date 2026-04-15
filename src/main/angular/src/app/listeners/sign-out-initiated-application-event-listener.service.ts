@@ -2,15 +2,16 @@ import {ApplicationEventType} from "../models/application-event-type";
 import {AbstractApplicationEventListener} from "./abstract-application-event-listener";
 import {Injectable} from '@angular/core';
 import {ApplicationEvent} from '../models/application-event';
+import {AuthService} from '../services/auth-service.service';
 
 @Injectable()
-export class SignOutApplicationEventListener extends AbstractApplicationEventListener {
+export class SignOutInitiatedApplicationEventListener extends AbstractApplicationEventListener {
 
-  constructor() {
-    super(ApplicationEventType.SignInSucceeded, ApplicationEventType.SignOutFailed);
+  constructor(private readonly authService: AuthService) {
+    super(ApplicationEventType.SignOutInitiated);
   }
 
   onApplicationEvent(applicationEvent: ApplicationEvent): void {
-    window.location.href = '/sso/sign-in';
+    this.authService.signOut();
   }
 }

@@ -1,32 +1,34 @@
 <div (click)="onClose()" class="dialog-overlay">
   <div (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)" class="dialog">
     <h2 class="dialog-title">{{ 'dialog.directoryProperties.title' | translate }}</h2>
-    <div class="dialog-body">
-      <div class="dialog-properties-row">
-        <span class="dialog-properties-label">{{ 'dialog.directoryProperties.name' | translate }}</span>
-        <span class="dialog-properties-value">{{ properties().name }}</span>
+    @if (properties(); as view) {
+      <div class="dialog-body">
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.directoryProperties.name' | translate }}</span>
+          <span class="dialog-properties-value">{{ view.name }}</span>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.directoryProperties.created' | translate }}</span>
+          <span class="dialog-properties-value">{{ view.createdAt | dateTime:'MMM d, yyyy' }}</span>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.directoryProperties.modified' | translate }}</span>
+          <span class="dialog-properties-value">{{ view.lastModifiedAt | dateTime:'MMM d, yyyy' }}</span>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.directoryProperties.directories' | translate }}</span>
+          <span class="dialog-properties-value">{{ view.directoryCount }}</span>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.directoryProperties.files' | translate }}</span>
+          <span class="dialog-properties-value">{{ view.fileCount }}</span>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.directoryProperties.totalSize' | translate }}</span>
+          <span class="dialog-properties-value">{{ view.totalSizeBytes | fileSize }}</span>
+        </div>
       </div>
-      <div class="dialog-properties-row">
-        <span class="dialog-properties-label">{{ 'dialog.directoryProperties.created' | translate }}</span>
-        <span class="dialog-properties-value">{{ properties().createdAt | dateTime:'MMM d, yyyy' }}</span>
-      </div>
-      <div class="dialog-properties-row">
-        <span class="dialog-properties-label">{{ 'dialog.directoryProperties.modified' | translate }}</span>
-        <span class="dialog-properties-value">{{ properties().lastModifiedAt | dateTime:'MMM d, yyyy' }}</span>
-      </div>
-      <div class="dialog-properties-row">
-        <span class="dialog-properties-label">{{ 'dialog.directoryProperties.directories' | translate }}</span>
-        <span class="dialog-properties-value">{{ properties().directoryCount }}</span>
-      </div>
-      <div class="dialog-properties-row">
-        <span class="dialog-properties-label">{{ 'dialog.directoryProperties.files' | translate }}</span>
-        <span class="dialog-properties-value">{{ properties().fileCount }}</span>
-      </div>
-      <div class="dialog-properties-row">
-        <span class="dialog-properties-label">{{ 'dialog.directoryProperties.totalSize' | translate }}</span>
-        <span class="dialog-properties-value">{{ properties().totalSizeBytes | fileSize }}</span>
-      </div>
-    </div>
+    }
     <div class="dialog-actions">
       <button (click)="onClose()" class="dialog-btn dialog-btn-secondary">
         {{ 'dialog.directoryProperties.close' | translate }}

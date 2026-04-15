@@ -15,7 +15,7 @@ export class MessageReactorService implements OnDestroy {
   }
 
   start(): void {
-    if (this.messagesSubscription) {
+    if (this.messagesSubscription && !this.messagesSubscription.closed) {
       return;
     }
 

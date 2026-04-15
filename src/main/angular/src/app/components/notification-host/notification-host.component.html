@@ -1,0 +1,10 @@
+<div aria-live="polite" class="notification-host" role="status">
+  @for (notification of notifications(); track notification.id) {
+    <div [class]="'notification--' + notification.severity" class="notification">
+      <span class="notification-message">{{ notification.messageCode | translate }}</span>
+      <button (click)="onDismiss(notification.id)" aria-label="Dismiss" class="notification-dismiss" type="button">
+        &times;
+      </button>
+    </div>
+  }
+</div>
