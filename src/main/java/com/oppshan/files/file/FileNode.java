@@ -205,7 +205,11 @@ public class FileNode
                 .setName("root")
                 .setMimeType("application/vnd.oppshan-files.folder")
                 .setDirectory(true)
-                .setUserAccount(userAccount);
+                .setUserAccount(userAccount)
+                .addDirectoryChildFileNode("Audio")
+                .addDirectoryChildFileNode("Documents")
+                .addDirectoryChildFileNode("Photos")
+                .addDirectoryChildFileNode("Videos");
     }
 
     @Override
@@ -311,6 +315,21 @@ public class FileNode
     @Override
     public FileNode setLastModifiedAt(Instant lastModifiedAt) {
         this.lastModifiedAt = lastModifiedAt;
+        return this;
+    }
+
+    public FileNode addDirectoryChildFileNode(String name) {
+        if (directory) {
+            getChildFileNodes().add(
+                    new FileNode()
+                            .setName(name)
+                            .setMimeType(mimeType)
+                            .setParentFileNode(this)
+                            .setDirectory(true)
+                            .setUserAccount(userAccount)
+            );
+        }
+
         return this;
     }
 
