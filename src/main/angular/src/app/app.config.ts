@@ -4,7 +4,7 @@ import {
   provideBrowserGlobalErrorListeners,
   provideEnvironmentInitializer
 } from '@angular/core';
-import {provideHttpClient} from '@angular/common/http';
+import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from '@angular/common/http';
 import {provideRouter} from '@angular/router';
 import {provideTranslateService} from '@ngx-translate/core';
 import {provideTranslateHttpLoader} from '@ngx-translate/http-loader';
@@ -34,11 +34,14 @@ import {
 import {
   DirectoryNavigationInitiatedApplicationEventListener
 } from './listeners/directory-navigation-initiated-application-event-listener.service';
+import {SessionHttpInterceptor} from './misc/session-http-interceptor.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideHttpClient(),
+    provideHttpClient(
+      withInterceptorsFromDi()
+    ),
     provideRouter(routes),
     provideTranslateService({
       lang: 'en',
@@ -47,6 +50,11 @@ export const appConfig: ApplicationConfig = {
     provideEnvironmentInitializer(() => {
       inject(MessageReactorService).start();
     }),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: SessionHttpInterceptor,
+      multi: true
+    },
     {
       provide: MESSAGE_LISTENERS,
       useClass: SignInInitiatedApplicationEventListener,

@@ -8,6 +8,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import java.io.Serial;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.security.Principal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -40,7 +41,7 @@ public record UserAccountView(
 
         @NotNull
         Instant lastModifiedAt
-) implements Serializable {
+) implements Principal, Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -64,5 +65,10 @@ public record UserAccountView(
 
     public boolean isAnonymous() {
         return this == anonymous;
+    }
+
+    @Override
+    public String getName() {
+        return uuid.toString();
     }
 }

@@ -2,7 +2,6 @@ package com.oppshan.files.file;
 
 import com.oppshan.files.auth.UserSessionManager;
 import io.quarkus.security.Authenticated;
-import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -24,7 +23,6 @@ import java.util.UUID;
 @Path("api/directories")
 @Authenticated
 @ApplicationScoped
-@RunOnVirtualThread
 public class DirectoryEndpoint {
 
     private final UserSessionManager userSessionManager;

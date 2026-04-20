@@ -1,6 +1,6 @@
 package com.oppshan.files.auth;
 
-import io.smallrye.common.annotation.RunOnVirtualThread;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -10,7 +10,7 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
 
 @Path("api/auth")
-@RunOnVirtualThread
+@ApplicationScoped
 public class AuthEndpoint {
 
     private final UserSessionManager userSessionManager;
@@ -25,7 +25,9 @@ public class AuthEndpoint {
     @Produces(MediaType.APPLICATION_JSON)
     public Response me() {
         if (userSessionManager.isSignedOut()) {
-            return Response.status(Status.UNAUTHORIZED).build();
+            return Response.status(Status.UNAUTHORIZED)
+                    .entity(userSessionManager.getSessionUserAccount())
+                    .build();
         }
 
         return Response.ok(userSessionManager.getSessionUserAccount()).build();

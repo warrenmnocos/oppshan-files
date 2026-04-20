@@ -21,10 +21,11 @@ export class DirectoryDeletionConfirmedApplicationEventListener extends Abstract
   onApplicationEvent(applicationEvent: ApplicationEvent): void {
     const command = applicationEvent.payload as DirectoryDeletionCommand;
     this.fileService.deleteDirectory(command.uuid).subscribe({
-      next: () => {
+      next: directoryContentsView => {
         const payload: DirectoryDeletionSucceeded = {
           messageCode: MessageCode.DirectoryDeleted,
           uuid: command.uuid,
+          directoryContentsView: directoryContentsView
         };
         this.messageBusService.fireApplicationEvent(
           new ApplicationEvent(ApplicationEventType.DirectoryDeletionSucceeded, payload)

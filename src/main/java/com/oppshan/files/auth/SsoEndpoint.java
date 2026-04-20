@@ -3,7 +3,6 @@ package com.oppshan.files.auth;
 import com.oppshan.files.common.ApplicationUriResolver;
 import com.oppshan.files.exception.BusinessException;
 import io.quarkus.security.Authenticated;
-import io.smallrye.common.annotation.RunOnVirtualThread;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -15,7 +14,6 @@ import jakarta.ws.rs.core.UriBuilder;
 @Path("sso")
 @Authenticated
 @ApplicationScoped
-@RunOnVirtualThread
 public class SsoEndpoint {
 
     private final UserSessionManager userSessionManager;

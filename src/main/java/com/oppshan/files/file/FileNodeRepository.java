@@ -9,6 +9,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -74,11 +75,11 @@ public interface FileNodeRepository
                 AND fileNode.uuid = :uuid
                 AND fileNode.directory = true""")
     @NotNull
-    Optional<FileNode> findParentFileNode(@NotNull
-                                          UUID userAccountUuid,
+    Optional<FileNode> findDirectoryFileNode(@NotNull
+                                             UUID userAccountUuid,
 
-                                          @NotNull
-                                          UUID uuid);
+                                             @NotNull
+                                             UUID uuid);
 
     @Query("""
             SELECT fileNode
@@ -88,14 +89,14 @@ public interface FileNodeRepository
                 AND fileNode.name = :name
                 AND fileNode.directory = true""")
     @NotNull
-    Optional<FileNode> findParentFileNode(@NotNull
-                                          UUID userAccountUuid,
+    Optional<FileNode> findDirectoryFileNode(@NotNull
+                                             UUID userAccountUuid,
 
-                                          @NotNull
-                                          UUID parentFileNodeUuid,
+                                             @NotNull
+                                             UUID parentFileNodeUuid,
 
-                                          @NotEmpty
-                                          String name);
+                                             @NotEmpty
+                                             String name);
 
     @Query("""
             SELECT fileNode
@@ -105,11 +106,22 @@ public interface FileNodeRepository
                 AND fileNode.uuid = :uuid
                 AND fileNode.directory = true""")
     @NotNull
-    Optional<FileNode> findParentFileNodeWithContents(@NotNull
-                                                      UUID userAccountUuid,
+    Optional<FileNode> findDirectoryFileNodeWithContents(@NotNull
+                                                         UUID userAccountUuid,
 
-                                                      @NotNull
-                                                      UUID uuid);
+                                                         @NotNull
+                                                         UUID uuid);
+
+    @Query("""
+            SELECT fileNode
+            FROM FileNode fileNode
+            LEFT JOIN FETCH fileNode.childFileNodes
+            WHERE fileNode.userAccount.uuid = :userAccountUuid
+                AND fileNode.parentFileNode IS NULL
+                AND fileNode.directory = true""")
+    @NotNull
+    Optional<FileNode> findRootDirectoryFileNodeWithContents(@NotNull
+                                                             UUID userAccountUuid);
 
     @NotNull
     default Optional<DirectoryStatistics> getDirectoryStatistics(@NotNull UUID userAccountUuid,
@@ -122,6 +134,36 @@ public interface FileNodeRepository
                         .getSingleResultOrNull()
         );
     }
+
+    @NotNull
+    default List<BreadcrumbView> getAncestors(@NotNull UUID userAccountUuid,
+                                              @NotNull UUID fileNodeUuid) {
+        return CDI.current().select(EntityManager.class).get()
+                .createNamedQuery(FileNode.GET_ANCESTORS, BreadcrumbView.class)
+                .setParameter("userAccountUuid", userAccountUuid)
+                .setParameter("fileNodeUuid", fileNodeUuid)
+                .getResultList();
+    }
+
+    @NotNull
+    default Optional<UUID> resolveDirectoryPath(@NotNull UUID userAccountUuid,
+                                                @NotNull String path) {
+        return Optional.ofNullable(
+                CDI.current().select(EntityManager.class).get()
+                        .createNamedQuery(FileNode.RESOLVE_DIRECTORY_PATH, UUID.class)
+                        .setParameter("userAccountUuid", userAccountUuid)
+                        .setParameter("path", path)
+                        .getSingleResultOrNull()
+        );
+    }
+
+    @Query("""
+            SELECT userStorage.rootFileNode.uuid
+            FROM UserStorage userStorage
+            WHERE userStorage.userAccount.uuid = :userAccountUuid""")
+    @NotNull
+    Optional<UUID> findRootFileNodeUuid(@NotNull
+                                        UUID userAccountUuid);
 
     @Query("""
             SELECT fileNode

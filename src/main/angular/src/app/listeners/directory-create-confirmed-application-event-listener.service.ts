@@ -21,11 +21,12 @@ export class DirectoryCreateConfirmedApplicationEventListener extends AbstractAp
   onApplicationEvent(applicationEvent: ApplicationEvent): void {
     const command = applicationEvent.payload as DirectoryCreateCommand;
     this.fileService.createDirectory(command.name, command.parentUuid).subscribe({
-      next: view => {
+      next: directoryContentsView => {
         const payload: DirectoryCreateSucceeded = {
           messageCode: MessageCode.DirectoryCreated,
-          uuid: view.uuid,
-          name: view.name,
+          uuid: directoryContentsView.uuid,
+          name: directoryContentsView.name,
+          directoryContentsView: directoryContentsView
         };
         this.messageBusService.fireApplicationEvent(
           new ApplicationEvent(ApplicationEventType.DirectoryCreateSucceeded, payload)

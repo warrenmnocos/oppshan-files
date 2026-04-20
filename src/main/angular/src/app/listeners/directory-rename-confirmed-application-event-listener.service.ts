@@ -21,11 +21,12 @@ export class DirectoryRenameConfirmedApplicationEventListener extends AbstractAp
   onApplicationEvent(applicationEvent: ApplicationEvent): void {
     const command = applicationEvent.payload as DirectoryRenameCommand;
     this.fileService.renameDirectory(command.uuid, command.name).subscribe({
-      next: view => {
+      next: directoryContentsView => {
         const payload: DirectoryRenameSucceeded = {
           messageCode: MessageCode.DirectoryRenamed,
-          uuid: view.uuid,
-          name: view.name,
+          uuid: directoryContentsView.uuid,
+          name: directoryContentsView.name,
+          directoryContentsView: directoryContentsView
         };
         this.messageBusService.fireApplicationEvent(
           new ApplicationEvent(ApplicationEventType.DirectoryRenameSucceeded, payload)

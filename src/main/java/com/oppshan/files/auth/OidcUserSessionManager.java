@@ -5,6 +5,7 @@ import com.oppshan.files.user.UserAccountView;
 import io.quarkus.oidc.IdToken;
 import io.quarkus.oidc.OidcSession;
 import io.quarkus.security.identity.SecurityIdentity;
+import io.smallrye.common.annotation.Identifier;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.spi.CDI;
 import jakarta.inject.Inject;
@@ -14,6 +15,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 import java.lang.annotation.Annotation;
 
 @ApplicationScoped
+@Identifier("oidcUserSessionManager")
 public class OidcUserSessionManager implements UserSessionManager {
 
     private final OidcSession oidcSession;

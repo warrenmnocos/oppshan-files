@@ -17,11 +17,14 @@ export interface SignInSucceeded {
   readonly tenant: string;
 }
 
-export interface DirectoryNavigationSucceeded {
+export interface DirectoryContentsViewAwareDirectoryOperationResult {
+  readonly directoryContentsView: DirectoryContentsView;
+}
+
+export interface DirectoryNavigationSucceeded extends DirectoryContentsViewAwareDirectoryOperationResult {
   readonly messageCode: MessageCode;
   readonly uuid?: string;
   readonly path?: string;
-  readonly directoryContentsView: DirectoryContentsView;
 }
 
 export interface DirectoryNavigationFailed {
@@ -30,17 +33,18 @@ export interface DirectoryNavigationFailed {
   readonly path?: string;
 }
 
-export interface DirectoryCreateSucceeded {
+export interface DirectoryCreateSucceeded extends DirectoryContentsViewAwareDirectoryOperationResult {
   readonly messageCode: MessageCode;
   readonly uuid: string;
   readonly name: string;
+  readonly directoryContentsView: DirectoryContentsView;
 }
 
 export interface DirectoryCreateFailed {
   readonly messageCode: MessageCode;
 }
 
-export interface DirectoryRenameSucceeded {
+export interface DirectoryRenameSucceeded extends DirectoryContentsViewAwareDirectoryOperationResult {
   readonly messageCode: MessageCode;
   readonly uuid: string;
   readonly name: string;
@@ -50,7 +54,7 @@ export interface DirectoryRenameFailed {
   readonly messageCode: MessageCode;
 }
 
-export interface DirectoryDeletionSucceeded {
+export interface DirectoryDeletionSucceeded extends DirectoryContentsViewAwareDirectoryOperationResult {
   readonly messageCode: MessageCode;
   readonly uuid: string;
 }
