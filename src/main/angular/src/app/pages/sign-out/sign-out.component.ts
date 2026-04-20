@@ -1,5 +1,6 @@
 import {Component, OnInit} from '@angular/core';
-import {AuthService} from '../../services/auth-service.service';
+import {MessageBusService} from '../../services/message-bus-service';
+import {ApplicationEventType} from '../../models/application-event-type';
 
 @Component({
   selector: 'app-sign-out',
@@ -7,10 +8,10 @@ import {AuthService} from '../../services/auth-service.service';
 })
 export class SignOut implements OnInit {
 
-  constructor(private readonly authService: AuthService) {
+  constructor(private readonly messageBusService: MessageBusService,) {
   }
 
   ngOnInit(): void {
-    this.authService.signOut();
+    this.messageBusService.fireApplicationEventOfType(ApplicationEventType.SignOutInitiated);
   }
 }

@@ -1,0 +1,26 @@
+<app-toolbar
+  [userAccountView]="userAccountView()"/>
+<app-breadcrumb
+  [breadcrumbViews]="directoryContentsView()?.breadcrumbViews"
+  [loading]="loading()"/>
+@if (errorMessageCode()) {
+  <app-error-state [messageCode]="errorMessageCode()!"/>
+} @else {
+  <app-file-browser
+    [fileNodeViews]="directoryContentsView()?.childrenFileNodeViews"
+    [loading]="loading()"
+    [parentDirectoryUuid]="directoryContentsView()?.uuid ?? null"/>
+}
+@if (messageBusService.applicationEvenTypeSignal() === ApplicationEventType.DirectoryCreateInitiated) {
+  <app-directory-creation-dialog/>
+}
+@if (messageBusService.applicationEvenTypeSignal() === ApplicationEventType.DirectoryRenameInitiated) {
+  <app-directory-rename-dialog/>
+}
+@if (messageBusService.applicationEvenTypeSignal() === ApplicationEventType.DirectoryDeletionInitiated) {
+  <app-directory-deletion-dialog/>
+}
+@if (messageBusService.applicationEvenTypeSignal() === ApplicationEventType.DirectoryPropertiesShown) {
+  <app-directory-properties-dialog/>
+}
+<app-notification-host/>

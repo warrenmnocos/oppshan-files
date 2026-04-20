@@ -1,6 +1,10 @@
-import {Component, input, output} from '@angular/core';
+import {Component, input} from '@angular/core';
 import {TranslatePipe} from '@ngx-translate/core';
 import {BreadcrumbView} from '../../models/breadcrumb-view';
+import {MessageBusService} from '../../services/message-bus-service';
+import {ApplicationEvent} from '../../models/application-event';
+import {ApplicationEventType} from '../../models/application-event-type';
+import {DirectoryNavigationCommand} from '../../models/operation-commands';
 
 @Component({
   selector: 'app-breadcrumb',
@@ -14,9 +18,17 @@ export class Breadcrumb {
 
   readonly breadcrumbViews = input<BreadcrumbView[]>();
 
-  readonly navigated = output<string>();
+  constructor(private readonly messageBusService: MessageBusService) {
+  }
 
-  onNavigate(uuid: string): void {
-    this.navigated.emit(uuid);
+  onNavigate(uuid: string | null): void {
+    this.messageBusService.fireApplicationEvent(
+      new ApplicationEvent(
+        ApplicationEventType.DirectoryNavigationInitiated,
+        {
+          uuid: uuid,
+        } as DirectoryNavigationCommand
+      )
+    );
   }
 }

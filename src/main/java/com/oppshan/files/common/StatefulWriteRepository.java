@@ -61,4 +61,10 @@ public interface StatefulWriteRepository<T> {
 
         return entity;
     }
+
+    default <S extends T> S attachWithSession(@Nonnull S entity) {
+        requireNonNull(entity, "Null entity");
+
+        return CDI.current().select(EntityManager.class).get().merge(entity);
+    }
 }

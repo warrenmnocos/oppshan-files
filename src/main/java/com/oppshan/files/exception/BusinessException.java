@@ -35,6 +35,18 @@ public class BusinessException extends RuntimeException {
         return new BusinessException(MessageCode.USER_NOT_FOUND);
     }
 
+    public static BusinessException folderNameNotUnique() {
+        return new BusinessException(MessageCode.FOLDER_NAME_NOT_UNIQUE);
+    }
+
+    public static BusinessException folderNameRequired() {
+        return new BusinessException(MessageCode.FOLDER_NAME_REQUIRED);
+    }
+
+    public static BusinessException rootFolderDeletionNotAllowed() {
+        return new BusinessException(MessageCode.ROOT_FOLDER_DELETION_NOT_ALLOWED);
+    }
+
     public MessageCode getErrorCode() {
         return messageCode;
     }

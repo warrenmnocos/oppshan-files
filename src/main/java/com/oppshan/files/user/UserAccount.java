@@ -3,6 +3,7 @@ package com.oppshan.files.user;
 import com.oppshan.files.common.AuditableEntity;
 import com.oppshan.files.common.AuditableEntityEntityListener;
 import com.oppshan.files.file.UserStorage;
+import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,6 +13,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -22,9 +25,10 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.UUID;
 
 @Entity
@@ -44,6 +48,7 @@ public class UserAccount
     private static final long serialVersionUID = 1L;
 
     @Id
+    @Basic(optional = false)
     @Column(name = "uuid",
             nullable = false,
             updatable = false)
@@ -51,11 +56,13 @@ public class UserAccount
     @NotNull
     private UUID uuid;
 
+    @Basic(optional = false)
     @Column(name = "first_name",
             nullable = false)
     @NotEmpty
     private String firstName;
 
+    @Basic(optional = false)
     @Column(name = "last_name",
             nullable = false)
     @NotEmpty
@@ -68,7 +75,8 @@ public class UserAccount
             fetch = FetchType.LAZY,
             targetEntity = IdpAccount.class
     )
-    private Set<@NotNull IdpAccount> idpAccounts;
+    @NotNull
+    private SortedSet<@NotNull IdpAccount> idpAccounts;
 
     @OneToOne(
             cascade = CascadeType.ALL,
@@ -81,12 +89,14 @@ public class UserAccount
     @NotNull
     private UserStorage userStorage;
 
+    @Basic(optional = false)
     @Column(name = "created_at",
             nullable = false,
             updatable = false)
     @NotNull
     private Instant createdAt;
 
+    @Basic(optional = false)
     @Column(name = "last_modified_at",
             nullable = false)
     @NotNull
@@ -102,7 +112,6 @@ public class UserAccount
         this.uuid = uuid;
         return this;
     }
-
 
     public String getFirstName() {
         return firstName;
@@ -123,7 +132,7 @@ public class UserAccount
     }
 
     public Set<IdpAccount> getIdpAccounts() {
-        idpAccounts = Objects.requireNonNullElseGet(idpAccounts, HashSet::new);
+        idpAccounts = Objects.requireNonNullElseGet(idpAccounts, TreeSet::new);
         return idpAccounts;
     }
 
@@ -174,8 +183,8 @@ public class UserAccount
         }
 
         return Objects.equals(uuid, that.uuid) &&
-                Objects.equals(createdAt, that.createdAt) &&
-                Objects.equals(lastModifiedAt, that.lastModifiedAt);
+               Objects.equals(createdAt, that.createdAt) &&
+               Objects.equals(lastModifiedAt, that.lastModifiedAt);
     }
 
     @Override
@@ -202,6 +211,20 @@ public class UserAccount
                 createdAt,
                 lastModifiedAt
         );
+    }
+
+    @PrePersist
+    private void onPrePersist() {
+        initialize();
+    }
+
+    @PostLoad
+    private void onPostLoad() {
+        initialize();
+    }
+
+    private void initialize() {
+        idpAccounts = Objects.requireNonNullElseGet(idpAccounts, TreeSet::new);
     }
 
     public enum UserAccountComparator implements Comparator<UserAccount> {

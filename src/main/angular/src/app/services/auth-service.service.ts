@@ -3,27 +3,45 @@ import {HttpClient} from '@angular/common/http';
 import {Observable, of} from 'rxjs';
 import {catchError, map} from 'rxjs/operators';
 import {UserAccountView} from '../models/user-account-view';
-import {JsonMapper} from './json-mapper.service';
+import {JsonMapperService} from './json-mapper.service';
+import {MessageBusService} from './message-bus-service';
+import {ApplicationEventType} from '../models/application-event-type';
+import {ApplicationEvent} from '../models/application-event';
+import {SignInSucceeded} from '../models/operation-outcomes';
+import {MessageCode} from '../models/message-code';
 
-@Injectable({providedIn: 'root'})
+@Injectable({
+  providedIn: 'root',
+})
 export class AuthService {
 
   constructor(private readonly http: HttpClient,
-              private readonly jsonMapper: JsonMapper) {
+              private readonly jsonMapperService: JsonMapperService,
+              private readonly messageBusService: MessageBusService,) {
   }
 
   getCurrentUser(): Observable<UserAccountView | null> {
     return this.http.get<Record<string, unknown>>('/api/auth/me')
       .pipe(
-        map(raw => this.jsonMapper.deserialize(UserAccountView, raw)),
+        map(raw => this.jsonMapperService.deserialize(UserAccountView, raw)),
         catchError(() => of(null)),
       );
   }
 
+  signIn(tenant: string): void {
+    window.location.href = `/sso/sign-in/oidc/${tenant}`;
+    const signInSucceeded: SignInSucceeded = {
+      messageCode: MessageCode.SignInSucceeded,
+      tenant: tenant
+    };
+    this.messageBusService.fireApplicationEvent(new ApplicationEvent(ApplicationEventType.SignInSucceeded, signInSucceeded));
+  }
+
   signOut(): void {
-    this.http.post('/api/auth/logout', null).subscribe({
-      next: () => window.location.href = '/sign-in',
-      error: () => window.location.href = '/sign-in',
-    });
+    this.http.post('/sso/sign-out', null)
+      .subscribe({
+        next: () => this.messageBusService.fireApplicationEventOfType(ApplicationEventType.SignOutSucceeded),
+        error: () => this.messageBusService.fireApplicationEventOfType(ApplicationEventType.SignOutFailed),
+      });
   }
 }

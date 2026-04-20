@@ -10,10 +10,10 @@ public class MultiTenantResolver implements TenantResolver {
     @Override
     public String resolve(RoutingContext context) {
         final var path = context.request().path();
-        if (path.startsWith("/api/auth/login/")) {
-            return path.substring("/api/auth/login/".length());
-        } else if (path.startsWith("/api/auth/callback/")) {
-            return path.substring("/api/auth/callback/".length());
+        if (path.startsWith("/sso/sign-in/oidc/callback/")) {
+            return path.substring("/sso/sign-in/oidc/callback/".length());
+        } else if (path.startsWith("/sso/sign-in/oidc/")) {
+            return path.substring("/sso/sign-in/oidc/".length());
         } else {
             return "google";
         }

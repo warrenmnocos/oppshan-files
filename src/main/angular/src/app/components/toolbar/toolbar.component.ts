@@ -1,7 +1,9 @@
-import {Component, HostListener, input, model, output, signal} from '@angular/core';
+import {Component, HostListener, input, model, signal} from '@angular/core';
 import {TranslatePipe} from '@ngx-translate/core';
 import {UserAccountView} from '../../models/user-account-view';
 import {StorageBarPipe} from '../../misc/storage-bar.pipe';
+import {ApplicationEventType} from '../../models/application-event-type';
+import {MessageBusService} from '../../services/message-bus-service';
 
 @Component({
   selector: 'app-toolbar',
@@ -13,11 +15,12 @@ export class Toolbar {
 
   readonly userAccountView = input<UserAccountView | null>();
 
-  readonly signOutClicked = output<void>();
-
   readonly dropdownOpen = model<boolean>(false);
 
   protected readonly photoFailed = signal(false);
+
+  constructor(private readonly messageBusService: MessageBusService) {
+  }
 
   protected get showPhoto(): boolean {
     return !!this.userAccountView()?.photoUrl && !this.photoFailed();
@@ -45,7 +48,7 @@ export class Toolbar {
 
   protected signOut(): void {
     this.dropdownOpen.set(false);
-    this.signOutClicked.emit();
+    this.messageBusService.fireApplicationEventOfType(ApplicationEventType.SignOutInitiated);
   }
 
   @HostListener('document:click', ['$event'])

@@ -2,15 +2,18 @@ import {Injectable} from '@angular/core';
 import {HttpClient, HttpParams} from '@angular/common/http';
 import {map, Observable} from 'rxjs';
 import {DirectoryContentsView} from '../models/directory-contents-view';
-import {JsonMapper} from './json-mapper.service';
+import {DirectoryPropertiesView} from '../models/directory-properties-view';
+import {JsonMapperService} from './json-mapper.service';
 import {TranslateService} from '@ngx-translate/core';
 
-@Injectable({providedIn: 'root'})
+@Injectable({
+  providedIn: 'root',
+})
 export class FileService {
 
   constructor(private readonly http: HttpClient,
               private readonly translateService: TranslateService,
-              private readonly jsonMapper: JsonMapper) {
+              private readonly jsonMapperService: JsonMapperService) {
   }
 
   getFileSizeDisplay(bytes: number | null | undefined): string {
@@ -31,14 +34,38 @@ export class FileService {
 
   getDirectoryContents(directoryUuid: string): Observable<DirectoryContentsView> {
     return this.http.get<Record<string, unknown>>(`/api/directories/${directoryUuid}/contents`).pipe(
-      map(raw => this.jsonMapper.deserialize(DirectoryContentsView, raw)),
+      map(raw => this.jsonMapperService.deserialize(DirectoryContentsView, raw)),
     );
   }
 
   getDirectoryContentsByPath(path: string): Observable<DirectoryContentsView> {
     const params = new HttpParams().set('path', path);
     return this.http.get<Record<string, unknown>>('/api/directories/contents', {params}).pipe(
-      map(raw => this.jsonMapper.deserialize(DirectoryContentsView, raw)),
+      map(raw => this.jsonMapperService.deserialize(DirectoryContentsView, raw)),
+    );
+  }
+
+  createDirectory(name: string, parentUuid: string): Observable<DirectoryContentsView> {
+    return this.http.post<Record<string, unknown>>('/api/directories', {name, parentUuid}).pipe(
+      map(raw => this.jsonMapperService.deserialize(DirectoryContentsView, raw)),
+    );
+  }
+
+  renameDirectory(uuid: string, name: string): Observable<DirectoryContentsView> {
+    return this.http.patch<Record<string, unknown>>(`/api/directories/${uuid}`, {name}).pipe(
+      map(raw => this.jsonMapperService.deserialize(DirectoryContentsView, raw)),
+    );
+  }
+
+  deleteDirectory(uuid: string): Observable<DirectoryContentsView> {
+    return this.http.delete<Record<string, unknown>>(`/api/directories/${uuid}`).pipe(
+      map(raw => this.jsonMapperService.deserialize(DirectoryContentsView, raw)),
+    );
+  }
+
+  getDirectoryProperties(uuid: string): Observable<DirectoryPropertiesView> {
+    return this.http.get<Record<string, unknown>>(`/api/directories/${uuid}/properties`).pipe(
+      map(raw => this.jsonMapperService.deserialize(DirectoryPropertiesView, raw)),
     );
   }
 }

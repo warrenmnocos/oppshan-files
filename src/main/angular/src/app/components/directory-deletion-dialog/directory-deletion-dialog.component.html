@@ -1,0 +1,19 @@
+<div (click)="onCancel()" class="dialog-overlay">
+  <div (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)" class="dialog">
+    <h2 class="dialog-title">{{ 'dialog.deleteDirectory.title' | translate }}</h2>
+    <div class="dialog-body">
+      <p class="dialog-warning">{{ 'dialog.deleteDirectory.message' | translate:{name: directoryName()} }}</p>
+      @if (itemCount() > 0) {
+        <p class="dialog-text">{{ 'dialog.deleteDirectory.itemCount' | translate:{count: itemCount()} }}</p>
+      }
+    </div>
+    <div class="dialog-actions">
+      <button (click)="onCancel()" class="dialog-btn dialog-btn-secondary">
+        {{ 'dialog.deleteDirectory.cancel' | translate }}
+      </button>
+      <button (click)="onConfirm()" class="dialog-btn dialog-btn-danger">
+        {{ 'dialog.deleteDirectory.delete' | translate }}
+      </button>
+    </div>
+  </div>
+</div>

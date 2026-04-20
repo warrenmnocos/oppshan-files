@@ -24,7 +24,7 @@ export const authGuard: CanActivateFn = (_route: ActivatedRouteSnapshot, state: 
         sessionStorage.setItem(REDIRECT_URL_KEY, state.url);
       }
 
-      return router.createUrlTree(['/sign-in']);
+      return router.createUrlTree(['/sso/sign-in']);
     }),
   );
 };

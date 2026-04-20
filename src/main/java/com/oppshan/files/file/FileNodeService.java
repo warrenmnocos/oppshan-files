@@ -1,85 +1,150 @@
 package com.oppshan.files.file;
 
 import com.oppshan.files.exception.BusinessException;
-import com.oppshan.files.user.UserAccountService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.jspecify.annotations.NonNull;
 
-import java.util.LinkedList;
-import java.util.List;
 import java.util.UUID;
 
 @Transactional
 @ApplicationScoped
 public class FileNodeService {
 
-    @Inject
-    UserAccountService userAccountService;
+    private final FileNodeRepository fileNodeRepository;
 
     @Inject
-    FileNodeRepository fileNodeRepository;
-
-    @NotNull
-    public DirectoryContentsView getDirectoryContents(@NotNull JsonWebToken idToken,
-                                                      @NotNull UUID directoryUuid) {
-        return getDirectoryContents(
-                userAccountService.getAuthenticatedUser(idToken).uuid(),
-                directoryUuid
-        );
+    public FileNodeService(FileNodeRepository fileNodeRepository) {
+        this.fileNodeRepository = fileNodeRepository;
     }
 
-    @NotNull
-    public DirectoryContentsView getDirectoryContentsByPath(@NotNull JsonWebToken idToken,
-                                                            @NotNull String path) {
-        final var userAccountView = userAccountService.getAuthenticatedUser(idToken);
-        final var userAccountUuid = userAccountView.uuid();
-        final var rootUuid = userAccountView.rootFileNodeUuid();
-        if (path.isBlank()) {
-            return getDirectoryContents(userAccountUuid, rootUuid);
-        }
-
-        final var segments = path.split("/");
-        var currentUuid = rootUuid;
-        for (final var segment : segments) {
-            final var child = fileNodeRepository.findDirectoryByParentUuidAndName(userAccountUuid, currentUuid, segment)
-                    .orElseThrow(BusinessException::directoryNotFound);
-            currentUuid = child.getUuid();
-        }
-
-        return getDirectoryContents(userAccountUuid, currentUuid);
-    }
-
+    @Valid
     @NotNull
     public DirectoryContentsView getDirectoryContents(@NotNull UUID userAccountUuid,
-                                                      @NotNull UUID directoryUuid) {
-        final var directory = fileNodeRepository.findById(directoryUuid)
-                .filter(FileNode::isDirectory)
-                .filter(node -> node.getUserAccount().getUuid().equals(userAccountUuid))
+                                                      @NotNull UUID directoryFileNodeUuid) {
+        return fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, directoryFileNodeUuid)
+                .map(directoryFileNode -> toDirectoryContentsView(userAccountUuid, directoryFileNode))
                 .orElseThrow(BusinessException::directoryNotFound);
-        final var breadcrumbs = buildBreadcrumbs(directory);
-        final var contents = fileNodeRepository.streamByParentUuidAndUserAccountUuid(userAccountUuid, directoryUuid)
-                .map(FileNode::toFileNodeView)
-                .toList();
-        return new DirectoryContentsView(
-                directory.getUuid(),
-                directory.getName(),
-                directory.getParentFileNode() != null ? directory.getParentFileNode().getUuid() : null,
-                breadcrumbs,
-                contents
+    }
+
+    @Valid
+    @NotNull
+    public DirectoryContentsView getDirectoryContents(@NotNull UUID userAccountUuid,
+                                                      @NotNull String path) {
+        if (path.isBlank()) {
+            return getRootDirectoryContents(userAccountUuid);
+        }
+
+        final var targetUuid = fileNodeRepository.resolveDirectoryPath(userAccountUuid, path)
+                .orElseThrow(BusinessException::directoryNotFound);
+        return getDirectoryContents(userAccountUuid, targetUuid);
+    }
+
+    @Valid
+    @NotNull
+    public DirectoryPropertiesView getDirectoryProperties(@NotNull UUID userAccountUuid,
+                                                          @NotNull UUID directoryFileNodeUuid) {
+        final var directoryFileNode = fileNodeRepository.findDirectoryFileNode(userAccountUuid, directoryFileNodeUuid)
+                .orElseThrow(BusinessException::directoryNotFound);
+        final var directoryStatistics = fileNodeRepository.getDirectoryStatistics(userAccountUuid, directoryFileNodeUuid)
+                .orElse(DirectoryStatistics.empty());
+        return new DirectoryPropertiesView(
+                directoryFileNode.getUuid(),
+                directoryFileNode.getName(),
+                directoryFileNode.getCreatedAt(),
+                directoryFileNode.getLastModifiedAt(),
+                directoryStatistics.folderCount(),
+                directoryStatistics.fileCount(),
+                directoryStatistics.totalSizeBytes()
         );
     }
 
-    private List<BreadcrumbView> buildBreadcrumbs(FileNode directory) {
-        final var breadcrumbs = new LinkedList<BreadcrumbView>();
-        var current = directory;
-        while (current != null) {
-            breadcrumbs.push(new BreadcrumbView(current.getUuid(), current.getName()));
-            current = current.getParentFileNode();
+    @Valid
+    @NotNull
+    public DirectoryContentsView getRootDirectoryContents(@NotNull UUID userAccountUuid) {
+        return fileNodeRepository.findRootDirectoryFileNodeWithContents(userAccountUuid)
+                .map(rootDirectoryFileNode -> toDirectoryContentsView(userAccountUuid, rootDirectoryFileNode))
+                .orElseThrow(BusinessException::directoryNotFound);
+    }
+
+    @Valid
+    @NotNull
+    public DirectoryContentsView createDirectory(@NotNull UUID userAccountUuid,
+                                                 @NotNull CreateDirectoryRequest request) {
+        final var name = request.name().trim();
+        if (name.isEmpty()) {
+            throw BusinessException.folderNameRequired();
         }
 
-        return breadcrumbs;
+        final var parentFileNode = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, request.parentUuid())
+                .orElseThrow(BusinessException::directoryNotFound);
+        if (fileNodeRepository.isDirectoryPresent(userAccountUuid, request.parentUuid(), name)) {
+            throw BusinessException.folderNameNotUnique();
+        }
+
+        final var directoryFileNode = new FileNode()
+                .setName(name)
+                .setMimeType("application/vnd.oppshan-files.folder")
+                .setDirectory(true)
+                .setParentFileNode(parentFileNode)
+                .setUserAccount(parentFileNode.getUserAccount());
+        fileNodeRepository.insertWithSession(directoryFileNode);
+        parentFileNode.getChildFileNodes().add(directoryFileNode);
+        return toDirectoryContentsView(userAccountUuid, parentFileNode);
+    }
+
+    @Valid
+    @NotNull
+    public DirectoryContentsView renameDirectory(@NotNull UUID userAccountUuid,
+                                                 @NotNull UUID directoryFileNodeUuid,
+                                                 @NotNull RenameDirectoryRequest request) {
+        final var name = request.name().trim();
+        if (name.isEmpty()) {
+            throw BusinessException.folderNameRequired();
+        }
+
+        final var directoryFileNode = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, directoryFileNodeUuid)
+                .map(fileNodeRepository::attachWithSession)
+                .orElseThrow(BusinessException::directoryNotFound);
+        final var parentDirectoryFileNode = directoryFileNode.getParentFileNode()
+                .orElseThrow(BusinessException::rootFolderDeletionNotAllowed);
+        if (fileNodeRepository.isDirectoryPresent(userAccountUuid, parentDirectoryFileNode.getUuid(), name, directoryFileNodeUuid)) {
+            throw BusinessException.folderNameNotUnique();
+        }
+
+        final var parentDirectoryFileNodeWithContents = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, parentDirectoryFileNode.getUuid())
+                .orElseThrow(BusinessException::directoryNotFound);
+        final var childFileNodes = parentDirectoryFileNodeWithContents.getChildFileNodes();
+        childFileNodes.remove(directoryFileNode);
+        directoryFileNode.setName(name);
+        childFileNodes.add(directoryFileNode);
+        fileNodeRepository.updateWithSession(directoryFileNode);
+        return toDirectoryContentsView(userAccountUuid, parentDirectoryFileNodeWithContents);
+    }
+
+    @Valid
+    @NotNull
+    public DirectoryContentsView deleteDirectory(@NotNull UUID userAccountUuid,
+                                                 @NotNull UUID directoryFileNodeUuid) {
+        final var directoryFileNode = fileNodeRepository.findDirectoryFileNode(userAccountUuid, directoryFileNodeUuid)
+                .map(fileNodeRepository::attachWithSession)
+                .orElseThrow(BusinessException::directoryNotFound);
+        final var parentDirectoryFileNode = directoryFileNode.getParentFileNode()
+                .orElseThrow(BusinessException::rootFolderDeletionNotAllowed);
+        fileNodeRepository.deleteWithSession(directoryFileNode);
+
+        final var parentDirectoryFileNodeWithContents = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, parentDirectoryFileNode.getUuid())
+                .orElseThrow(BusinessException::directoryNotFound);
+        parentDirectoryFileNodeWithContents.getChildFileNodes().remove(directoryFileNode);
+        return toDirectoryContentsView(userAccountUuid, parentDirectoryFileNodeWithContents);
+    }
+
+    @NonNull
+    private DirectoryContentsView toDirectoryContentsView(@NonNull UUID userAccountUuid,
+                                                          @NonNull FileNode directoryFileNode) {
+        return directoryFileNode.toDirectoryContentsView(fileNodeRepository.getAncestors(userAccountUuid, directoryFileNode.getUuid()));
     }
 }

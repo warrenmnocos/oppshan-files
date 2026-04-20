@@ -297,3 +297,65 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+.grid-item-meta {
+  font-size: 12px;
+  color: #5f6368;
+  text-align: center;
+}
+
+// Directory action buttons
+.list-col-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  width: 92px;
+  flex-shrink: 0;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.list-header .list-col-actions {
+  opacity: 1;
+}
+
+.list-row:hover .list-col-actions {
+  opacity: 1;
+}
+
+.grid-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.grid-item:hover .grid-item-actions {
+  opacity: 1;
+}
+
+.action-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  padding: 0;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: #e8e8e8;
+  }
+}
+
+.action-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.6;
+}

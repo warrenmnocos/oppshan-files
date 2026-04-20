@@ -2,6 +2,10 @@ import {Component, OnInit, signal} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {TranslatePipe} from '@ngx-translate/core';
 import {MessageCode} from '../../models/message-code';
+import {MessageBusService} from '../../services/message-bus-service';
+import {ApplicationEvent} from '../../models/application-event';
+import {ApplicationEventType} from '../../models/application-event-type';
+import {SignInCommand} from '../../models/operation-commands';
 
 @Component({
   selector: 'app-sign-in',
@@ -13,7 +17,8 @@ export class SignIn implements OnInit {
 
   protected errorKey = signal<MessageCode | null>(null);
 
-  constructor(private readonly route: ActivatedRoute) {
+  constructor(private readonly messageBusService: MessageBusService,
+              private readonly route: ActivatedRoute) {
   }
 
   ngOnInit(): void {
@@ -24,7 +29,12 @@ export class SignIn implements OnInit {
   }
 
   signIn(): void {
-    const tenant = this.route.snapshot.queryParamMap.get('tenant') ?? 'google';
-    window.location.href = `/api/auth/login/${tenant}`;
+    const command: SignInCommand = {
+      tenant: this.route.snapshot.queryParamMap.get('tenant') ?? 'google'
+    }
+    this.messageBusService.fireApplicationEvent(new ApplicationEvent(
+      ApplicationEventType.SignInInitiated,
+      command
+    ));
   }
 }
