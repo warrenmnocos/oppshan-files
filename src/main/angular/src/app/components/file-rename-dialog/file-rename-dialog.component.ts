@@ -1,4 +1,4 @@
-import {Component, computed, model, OnInit} from '@angular/core';
+import {Component, computed, OnInit, Signal, signal, WritableSignal} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {TranslatePipe} from '@ngx-translate/core';
 import {MessageBusService} from '../../services/message-bus-service';
@@ -15,15 +15,18 @@ import {FileNodeView} from '../../models/file-node-view';
 })
 export class FileRenameDialog implements OnInit {
 
-  protected readonly fileName = model('');
+  protected readonly fileName: WritableSignal<string>;
 
-  protected readonly errorMessage = model<string | null>(null);
+  protected readonly errorMessage: WritableSignal<string | null>;
 
-  private readonly selectedFile = computed(
-    () => this.messageBusService.applicationEventSignal().payload as FileNodeView | null
-  );
+  private readonly selectedFile: Signal<FileNodeView | null>;
 
   constructor(private readonly messageBusService: MessageBusService) {
+    this.fileName = signal<string>('');
+    this.errorMessage = signal<string | null>(null);
+    this.selectedFile = computed(
+      () => this.messageBusService.applicationEventSignal().payload as FileNodeView | null
+    );
   }
 
   ngOnInit(): void {

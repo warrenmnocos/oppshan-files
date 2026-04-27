@@ -97,18 +97,19 @@ public class FileNodeService {
     @Valid
     @NotNull
     public DirectoryContentsView renameDirectory(@NotNull UUID userAccountUuid,
+                                                 @NotNull UUID parentFileNodeUuid,
                                                  @NotNull RenameFileNodeRequest renameFileNodeRequest) {
-        final var name = renameFileNodeRequest.getName().trim();
+        final var name = renameFileNodeRequest.name().trim();
         if (name.isEmpty()) {
             throw BusinessException.folderNameRequired();
         }
 
-        final var directoryFileNode = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, renameFileNodeRequest.getParentFileNodeUuid())
+        final var directoryFileNode = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, parentFileNodeUuid)
                 .map(fileNodeRepository::attachWithSession)
                 .orElseThrow(BusinessException::directoryNotFound);
         final var parentDirectoryFileNode = directoryFileNode.getParentFileNode()
                 .orElseThrow(BusinessException::rootFolderDeletionNotAllowed);
-        if (fileNodeRepository.isDirectoryPresent(userAccountUuid, parentDirectoryFileNode.getUuid(), name, renameFileNodeRequest.getParentFileNodeUuid())) {
+        if (fileNodeRepository.isDirectoryPresent(userAccountUuid, parentDirectoryFileNode.getUuid(), name, parentFileNodeUuid)) {
             throw BusinessException.folderNameNotUnique();
         }
 
@@ -198,18 +199,19 @@ public class FileNodeService {
     @Valid
     @NotNull
     public DirectoryContentsView renameFile(@NotNull UUID userAccountUuid,
+                                            @NotNull UUID parentFileNodeUuid,
                                             @NotNull RenameFileNodeRequest renameFileNodeRequest) {
-        final var name = renameFileNodeRequest.getName().trim();
+        final var name = renameFileNodeRequest.name().trim();
         if (name.isEmpty()) {
             throw BusinessException.fileNameRequired();
         }
 
-        final var fileNode = fileNodeRepository.findFileNode(userAccountUuid, renameFileNodeRequest.getParentFileNodeUuid())
+        final var fileNode = fileNodeRepository.findFileNode(userAccountUuid, parentFileNodeUuid)
                 .map(fileNodeRepository::attachWithSession)
                 .orElseThrow(BusinessException::fileNotFound);
         final var parentDirectoryFileNode = fileNode.getParentFileNode()
                 .orElseThrow(BusinessException::directoryNotFound);
-        if (fileNodeRepository.isFilePresent(userAccountUuid, parentDirectoryFileNode.getUuid(), name, fileNode.getMimeType(), renameFileNodeRequest.getParentFileNodeUuid())) {
+        if (fileNodeRepository.isFilePresent(userAccountUuid, parentDirectoryFileNode.getUuid(), name, fileNode.getMimeType(), parentFileNodeUuid)) {
             throw BusinessException.fileNameNotUnique();
         }
 
@@ -262,12 +264,13 @@ public class FileNodeService {
     @Valid
     @NotNull
     public DirectoryContentsView renameFileNode(@NotNull UUID userAccountUuid,
+                                                @NotNull UUID parentFileNodeUuid,
                                                 @NotNull RenameFileNodeRequest renameFileNodeRequest) {
-        final var fileNode = fileNodeRepository.findNode(userAccountUuid, renameFileNodeRequest.getParentFileNodeUuid())
+        final var fileNode = fileNodeRepository.findNode(userAccountUuid, parentFileNodeUuid)
                 .orElseThrow(BusinessException::directoryNotFound);
         return fileNode.isDirectory()
-                ? renameDirectory(userAccountUuid, renameFileNodeRequest)
-                : renameFile(userAccountUuid, renameFileNodeRequest);
+                ? renameDirectory(userAccountUuid, parentFileNodeUuid, renameFileNodeRequest)
+                : renameFile(userAccountUuid, parentFileNodeUuid, renameFileNodeRequest);
     }
 
     @Valid

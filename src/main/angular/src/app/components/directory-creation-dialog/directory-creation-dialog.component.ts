@@ -1,4 +1,4 @@
-import {Component, computed, model} from '@angular/core';
+import {Component, computed, Signal, signal, WritableSignal} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {TranslatePipe} from '@ngx-translate/core';
 import {MessageBusService} from '../../services/message-bus-service';
@@ -14,15 +14,18 @@ import {DirectoryCreateCommand} from '../../models/operation-commands';
 })
 export class DirectoryCreationDialog {
 
-  protected readonly directoryName = model('');
+  protected readonly directoryName: WritableSignal<string>;
 
-  protected readonly errorMessage = model<string | null>(null);
+  protected readonly errorMessage: WritableSignal<string | null>;
 
-  private readonly parentDirectoryUuid = computed(
-    () => this.messageBusService.applicationEventSignal().payload as string | null
-  );
+  private readonly parentDirectoryUuid: Signal<string | null>;
 
   constructor(private readonly messageBusService: MessageBusService) {
+    this.directoryName = signal<string>('');
+    this.errorMessage = signal<string | null>(null);
+    this.parentDirectoryUuid = computed(
+      () => this.messageBusService.applicationEventSignal().payload as string | null
+    );
   }
 
   onConfirm(): void {

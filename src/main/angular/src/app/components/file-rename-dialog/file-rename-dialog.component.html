@@ -4,7 +4,8 @@
     <div class="dialog-body">
       <label class="dialog-label" for="fileName">{{ 'dialog.renameFile.label' | translate }}</label>
       <input (keydown.enter)="onConfirm()"
-             [(ngModel)]="fileName"
+             (ngModelChange)="fileName.set($event)"
+             [ngModel]="fileName()"
              class="dialog-input"
              id="fileName"
              maxlength="255"

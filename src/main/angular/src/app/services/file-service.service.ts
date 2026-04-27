@@ -83,7 +83,8 @@ export class FileService {
     );
   }
 
-  downloadFile(uuid: string, filename: string): void {
+  downloadFile(uuid: string,
+               filename: string): void {
     this.http.get(`/api/files/${uuid}/download`, {responseType: 'blob'}).subscribe(blob => {
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement('a');

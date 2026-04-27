@@ -1,4 +1,4 @@
-import {Component, computed, OnInit, signal} from '@angular/core';
+import {Component, computed, OnInit, Signal, signal, WritableSignal} from '@angular/core';
 import {TranslatePipe} from '@ngx-translate/core';
 import {FileSizePipe} from '../../misc/file-size.pipe';
 import {DateTimePipe} from '../../misc/date-time.pipe';
@@ -16,14 +16,16 @@ import {FilePropertiesView} from '../../models/file-properties-view';
 })
 export class FilePropertiesDialog implements OnInit {
 
-  protected readonly properties = signal<FilePropertiesView | null>(null);
+  protected readonly properties: WritableSignal<FilePropertiesView | null>;
 
-  private readonly selectedFile = computed(
-    () => this.messageBusService.applicationEventSignal().payload as FileNodeView | null
-  );
+  private readonly selectedFile: Signal<FileNodeView | null>;
 
   constructor(private readonly messageBusService: MessageBusService,
               private readonly fileService: FileService) {
+    this.properties = signal<FilePropertiesView | null>(null);
+    this.selectedFile = computed(
+      () => this.messageBusService.applicationEventSignal().payload as FileNodeView | null
+    );
   }
 
   ngOnInit(): void {

@@ -1,6 +1,6 @@
-import {computed, Injectable, OnDestroy} from '@angular/core';
+import {computed, Injectable, OnDestroy, Signal} from '@angular/core';
 import {ApplicationEventType} from '../models/application-event-type';
-import {filter, Subject} from 'rxjs';
+import {filter, Observable, Subject} from 'rxjs';
 import {toSignal} from '@angular/core/rxjs-interop';
 import {ApplicationEvent} from '../models/application-event';
 import {map} from 'rxjs/operators';
@@ -10,31 +10,40 @@ import {map} from 'rxjs/operators';
 })
 export class MessageBusService implements OnDestroy {
 
-  private readonly messageSubject = new Subject<unknown>();
+  private readonly messageSubject: Subject<unknown>;
 
-  readonly messages = this.messageSubject.asObservable();
+  readonly messages: Observable<unknown>;
 
-  readonly applicationEventStream = this.messageSubject
-    .asObservable()
-    .pipe(
-      filter((event): event is ApplicationEvent =>
-        event instanceof ApplicationEvent
-      ),
+  readonly applicationEventStream: Observable<ApplicationEvent>;
+
+  readonly applicationEventTypeStream: Observable<ApplicationEventType>;
+
+  readonly applicationEventSignal: Signal<ApplicationEvent>;
+
+  readonly applicationEvenTypeSignal: Signal<ApplicationEventType>;
+
+  constructor() {
+    this.messageSubject = new Subject<unknown>();
+    this.messages = this.messageSubject.asObservable();
+    this.applicationEventStream = this.messageSubject
+      .asObservable()
+      .pipe(
+        filter((event): event is ApplicationEvent =>
+          event instanceof ApplicationEvent
+        ),
+      );
+    this.applicationEventTypeStream = this.applicationEventStream
+      .pipe(
+        map(event => event.type),
+      );
+    this.applicationEventSignal = toSignal(
+      this.applicationEventStream,
+      {
+        initialValue: new ApplicationEvent(ApplicationEventType.None)
+      },
     );
-
-  readonly applicationEventTypeStream = this.applicationEventStream
-    .pipe(
-      map(event => event.type),
-    );
-
-  readonly applicationEventSignal = toSignal(
-    this.applicationEventStream,
-    {
-      initialValue: new ApplicationEvent(ApplicationEventType.None)
-    },
-  );
-
-  readonly applicationEvenTypeSignal = computed(() => this.applicationEventSignal().type);
+    this.applicationEvenTypeSignal = computed(() => this.applicationEventSignal().type);
+  }
 
   ngOnDestroy(): void {
     this.messageSubject.complete();

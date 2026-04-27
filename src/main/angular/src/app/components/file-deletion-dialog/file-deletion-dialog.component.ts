@@ -1,4 +1,4 @@
-import {Component, computed} from '@angular/core';
+import {Component, computed, Signal} from '@angular/core';
 import {TranslatePipe} from '@ngx-translate/core';
 import {MessageBusService} from '../../services/message-bus-service';
 import {ApplicationEvent} from '../../models/application-event';
@@ -14,13 +14,15 @@ import {FileNodeView} from '../../models/file-node-view';
 })
 export class FileDeletionDialog {
 
-  protected readonly selectedFile = computed(
-    () => this.messageBusService.applicationEventSignal().payload as FileNodeView | null
-  );
+  protected readonly selectedFile: Signal<FileNodeView | null>;
 
-  protected readonly fileName = computed(() => this.selectedFile()?.name ?? '');
+  protected readonly fileName: Signal<string>;
 
   constructor(private readonly messageBusService: MessageBusService) {
+    this.selectedFile = computed(
+      () => this.messageBusService.applicationEventSignal().payload as FileNodeView | null
+    );
+    this.fileName = computed(() => this.selectedFile()?.name ?? '');
   }
 
   onConfirm(): void {

@@ -80,11 +80,14 @@ public class FileSystemEndpoint {
     @Path("{uuid}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response renameFileNode(@Valid
-                                   @BeanParam
+    public Response renameFileNode(@PathParam("uuid")
+                                   UUID parentFileNodeUuid,
+
+                                   @Valid
                                    RenameFileNodeRequest request) {
         return Response.ok(fileNodeService.renameFileNode(
                         userSessionManager.getSessionUserAccount().uuid(),
+                        parentFileNodeUuid,
                         request
                 ))
                 .build();

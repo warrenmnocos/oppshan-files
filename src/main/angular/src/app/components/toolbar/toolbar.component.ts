@@ -1,4 +1,4 @@
-import {Component, HostListener, input, model, signal} from '@angular/core';
+import {Component, HostListener, input, signal, WritableSignal} from '@angular/core';
 import {TranslatePipe} from '@ngx-translate/core';
 import {UserAccountView} from '../../models/user-account-view';
 import {StorageBarPipe} from '../../misc/storage-bar.pipe';
@@ -15,11 +15,13 @@ export class Toolbar {
 
   readonly userAccountView = input<UserAccountView | null>();
 
-  readonly dropdownOpen = model<boolean>(false);
+  readonly dropdownOpen: WritableSignal<boolean>;
 
-  protected readonly photoFailed = signal(false);
+  protected readonly photoFailed: WritableSignal<boolean>;
 
   constructor(private readonly messageBusService: MessageBusService) {
+    this.dropdownOpen = signal<boolean>(false);
+    this.photoFailed = signal(false);
   }
 
   protected get showPhoto(): boolean {

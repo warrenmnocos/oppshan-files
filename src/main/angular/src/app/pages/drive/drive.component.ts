@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, model, OnDestroy} from '@angular/core';
+import {AfterViewInit, Component, OnDestroy, signal, WritableSignal} from '@angular/core';
 import {ActivatedRoute, Router} from '@angular/router';
 import {AuthService} from '../../services/auth-service.service';
 import {UserAccountView} from '../../models/user-account-view';
@@ -34,25 +34,33 @@ import {map} from 'rxjs/operators';
   templateUrl: './drive.component.html',
   styleUrl: './drive.component.scss',
   imports: [
-    Toolbar, Breadcrumb, FileBrowser, ErrorState,
-    DirectoryCreationDialog, DirectoryRenameDialog, DirectoryDeletionDialog, DirectoryPropertiesDialog,
-    FileRenameDialog, FileDeletionDialog, FilePropertiesDialog,
+    Toolbar,
+    Breadcrumb,
+    FileBrowser,
+    ErrorState,
+    DirectoryCreationDialog,
+    DirectoryRenameDialog,
+    DirectoryDeletionDialog,
+    DirectoryPropertiesDialog,
+    FileRenameDialog,
+    FileDeletionDialog,
+    FilePropertiesDialog,
     NotificationCenter,
   ],
 })
 export class Drive implements AfterViewInit, OnDestroy {
 
-  protected readonly userAccountView = model<UserAccountView | null>();
+  protected readonly userAccountView: WritableSignal<UserAccountView | null>;
 
-  protected readonly directoryContentsView = model<DirectoryContentsView | null>();
+  protected readonly directoryContentsView: WritableSignal<DirectoryContentsView | null>;
 
-  protected readonly loading = model<boolean>(false);
+  protected readonly loading: WritableSignal<boolean>;
 
-  protected readonly errorMessageCode = model<MessageCode | null>(null);
+  protected readonly errorMessageCode: WritableSignal<MessageCode | null>;
 
   protected readonly ApplicationEventType = ApplicationEventType;
 
-  private currentPath?: string | null = null;
+  private currentPath?: string | null;
   private userSubscription?: Subscription;
   private urlSubscription?: Subscription;
   private applicationEventSubscription?: Subscription;
@@ -64,6 +72,11 @@ export class Drive implements AfterViewInit, OnDestroy {
     private readonly router: Router,
     private readonly route: ActivatedRoute,
   ) {
+    this.userAccountView = signal<UserAccountView | null>(null);
+    this.directoryContentsView = signal<DirectoryContentsView | null>(null);
+    this.loading = signal<boolean>(false);
+    this.errorMessageCode = signal<MessageCode | null>(null);
+    this.currentPath = null;
   }
 
   ngAfterViewInit(): void {

@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, input, signal, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, input, signal, ViewChild, WritableSignal} from '@angular/core';
 import {TranslatePipe} from '@ngx-translate/core';
 import {FileNodeView} from '../../models/file-node-view';
 import {FileSizePipe} from '../../misc/file-size.pipe';
@@ -30,9 +30,9 @@ export class FileBrowser implements AfterViewInit {
 
   readonly parentDirectoryUuid = input<string | null>(null);
 
-  readonly viewMode = signal<ViewMode>(ViewMode.List);
+  readonly viewMode: WritableSignal<ViewMode>;
 
-  readonly dropTarget = signal(false);
+  readonly dropTarget: WritableSignal<boolean>;
 
   protected readonly ViewMode = ViewMode;
 
@@ -40,6 +40,8 @@ export class FileBrowser implements AfterViewInit {
 
   constructor(private readonly messageBusService: MessageBusService,
               private readonly fileService: FileService) {
+    this.viewMode = signal<ViewMode>(ViewMode.List);
+    this.dropTarget = signal(false);
   }
 
   ngAfterViewInit(): void {

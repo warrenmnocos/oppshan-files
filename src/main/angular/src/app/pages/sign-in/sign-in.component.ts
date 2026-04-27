@@ -1,4 +1,4 @@
-import {Component, OnInit, signal} from '@angular/core';
+import {Component, OnInit, signal, WritableSignal} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {TranslatePipe} from '@ngx-translate/core';
 import {MessageCode} from '../../models/message-code';
@@ -15,10 +15,11 @@ import {SignInCommand} from '../../models/operation-commands';
 })
 export class SignIn implements OnInit {
 
-  protected errorKey = signal<MessageCode | null>(null);
+  protected readonly errorKey: WritableSignal<MessageCode | null>;
 
   constructor(private readonly messageBusService: MessageBusService,
               private readonly route: ActivatedRoute) {
+    this.errorKey = signal<MessageCode | null>(null);
   }
 
   ngOnInit(): void {
