@@ -1,5 +1,6 @@
 export enum MessageCode {
   AuthenticationRequired = 'messages.errors.authenticationRequired',
+  AccessDenied = 'messages.errors.accessDenied',
   StorageCapacityExceeded = 'messages.errors.storageCapacityExceeded',
   UserNotFound = 'messages.errors.userNotFound',
   SignInFailed = 'messages.errors.signInFailed',
@@ -7,13 +8,22 @@ export enum MessageCode {
   DirectoryNameNotUnique = 'messages.errors.directoryNameNotUnique',
   DirectoryNameRequired = 'messages.errors.directoryNameRequired',
   RootDirectoryDeletionNotAllowed = 'messages.errors.rootDirectoryDeletionNotAllowed',
-  AccessDenied = 'messages.errors.accessDenied',
+  FileNotFound = 'messages.errors.fileNotFound',
+  FileNameNotUnique = 'messages.errors.fileNameNotUnique',
+  FileNameRequired = 'messages.errors.fileNameRequired',
+  FileSizeExceeded = 'messages.errors.fileSizeExceeded',
+  FileQuotaExceeded = 'messages.errors.fileQuotaExceeded',
+  FileDownloadFailed = 'messages.errors.fileDownloadFailed',
+  FolderUploadRejected = 'messages.errors.folderUploadRejected',
 
   SignInSucceeded = 'messages.info.signInSucceeded',
   DirectoryNavigated = 'messages.info.directoryNavigated',
   DirectoryCreated = 'messages.info.directoryCreated',
   DirectoryRenamed = 'messages.info.directoryRenamed',
   DirectoryDeleted = 'messages.info.directoryDeleted',
+  FileUploaded = 'messages.info.fileUploaded',
+  FileRenamed = 'messages.info.fileRenamed',
+  FileDeleted = 'messages.info.fileDeleted',
 
   Unknown = 'messages.errors.unknown',
 }

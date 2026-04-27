@@ -1,0 +1,53 @@
+@if (progressNotifications().length > 0 || messageNotifications().length > 0) {
+  <div class="notification-center">
+
+    @if (progressNotifications().length > 0) {
+      <div class="progress-section">
+        <div class="progress-header">
+          <span class="progress-title">
+            {{ 'notificationCenter.uploadingFiles' | translate: {count: progressNotifications().length} }}
+          </span>
+          <button (click)="toggleCollapsed()" class="icon-btn" type="button"
+                  [attr.aria-label]="collapsed() ? 'Expand' : 'Collapse'">
+            <span class="chevron" [class.chevron--collapsed]="collapsed()">&#8963;</span>
+          </button>
+        </div>
+        @if (!collapsed()) {
+          @for (notification of progressNotifications(); track notification.id) {
+            <div class="progress-entry">
+              <span class="progress-dot"></span>
+              <div class="progress-content">
+                <div class="progress-label-row">
+                  <span class="progress-label">{{ notification.label | translate: notification.params }}</span>
+                  <button (click)="dismissProgress(notification.id)"
+                          class="icon-btn" type="button" aria-label="Dismiss">&times;
+                  </button>
+                </div>
+                <div class="progress-bar-row">
+                  <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="notification.progress"></div>
+                  </div>
+                  <span class="progress-pct">{{ notification.progress }}%</span>
+                </div>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    }
+
+    @if (messageNotifications().length > 0) {
+      <div aria-live="polite" class="toast-section" role="status">
+        @for (notification of messageNotifications(); track notification.id) {
+          <div [class]="'toast toast--' + notification.severity">
+            <span class="toast-message">{{ notification.messageCode | translate: notification.params }}</span>
+            <button (click)="dismissMessage(notification.id)"
+                    aria-label="Dismiss" class="icon-btn toast-dismiss" type="button">&times;
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+}

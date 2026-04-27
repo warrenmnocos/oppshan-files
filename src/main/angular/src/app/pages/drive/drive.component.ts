@@ -13,7 +13,10 @@ import {DirectoryDeletionDialog} from '../../components/directory-deletion-dialo
 import {
   DirectoryPropertiesDialog
 } from '../../components/directory-properties-dialog/directory-properties-dialog.component';
-import {NotificationHost} from '../../components/notification-host/notification-host.component';
+import {NotificationCenter} from '../../components/notification-center/notification-center.component';
+import {FileRenameDialog} from '../../components/file-rename-dialog/file-rename-dialog.component';
+import {FileDeletionDialog} from '../../components/file-deletion-dialog/file-deletion-dialog.component';
+import {FilePropertiesDialog} from '../../components/file-properties-dialog/file-properties-dialog.component';
 import {Subscription} from 'rxjs';
 import {DirectoryContentsView} from '../../models/directory-contents-view';
 import {ApplicationEventType} from '../../models/application-event-type';
@@ -30,7 +33,12 @@ import {map} from 'rxjs/operators';
   selector: 'app-drive',
   templateUrl: './drive.component.html',
   styleUrl: './drive.component.scss',
-  imports: [Toolbar, Breadcrumb, FileBrowser, ErrorState, DirectoryCreationDialog, DirectoryRenameDialog, DirectoryDeletionDialog, DirectoryPropertiesDialog, NotificationHost],
+  imports: [
+    Toolbar, Breadcrumb, FileBrowser, ErrorState,
+    DirectoryCreationDialog, DirectoryRenameDialog, DirectoryDeletionDialog, DirectoryPropertiesDialog,
+    FileRenameDialog, FileDeletionDialog, FilePropertiesDialog,
+    NotificationCenter,
+  ],
 })
 export class Drive implements AfterViewInit, OnDestroy {
 
@@ -48,6 +56,7 @@ export class Drive implements AfterViewInit, OnDestroy {
   private userSubscription?: Subscription;
   private urlSubscription?: Subscription;
   private applicationEventSubscription?: Subscription;
+  private refreshSubscription?: Subscription;
 
   constructor(
     readonly messageBusService: MessageBusService,
@@ -74,15 +83,25 @@ export class Drive implements AfterViewInit, OnDestroy {
     this.userSubscription?.unsubscribe();
     this.urlSubscription?.unsubscribe();
     this.applicationEventSubscription?.unsubscribe();
+    this.refreshSubscription?.unsubscribe();
   }
 
   private handleApplicationEvent(event: ApplicationEvent): void {
     switch (event.type) {
       case ApplicationEventType.DirectoryCreateSucceeded:
       case ApplicationEventType.DirectoryRenameSucceeded:
-      case ApplicationEventType.DirectoryDeletionSucceeded:
       case ApplicationEventType.DirectoryNavigationSucceeded:
+      case ApplicationEventType.FileRenameSucceeded:
         this.loadDirectoryContents(event.payload as DirectoryContentsViewAwareDirectoryOperationResult);
+        break;
+      case ApplicationEventType.DirectoryDeletionSucceeded:
+      case ApplicationEventType.FileDeletionSucceeded:
+        this.loadDirectoryContents(event.payload as DirectoryContentsViewAwareDirectoryOperationResult);
+        this.refreshUserAccount();
+        break;
+      case ApplicationEventType.FileCreateSucceeded:
+        this.loadDirectoryContents(event.payload as DirectoryContentsViewAwareDirectoryOperationResult);
+        this.refreshUserAccount();
         break;
       case ApplicationEventType.DirectoryNavigationFailed:
         this.handleDirectoryNavigationFailure(event.payload as DirectoryNavigationFailed);
@@ -133,5 +152,11 @@ export class Drive implements AfterViewInit, OnDestroy {
         map(segments => segments.map(segment => decodeURIComponent(segment.path)).join('/'))
       )
       .subscribe(path => this.loadDirectoryByPath(path));
+  }
+
+  private refreshUserAccount(): void {
+    this.refreshSubscription?.unsubscribe();
+    this.refreshSubscription = this.authService.getCurrentUser()
+      .subscribe(userAccountView => this.userAccountView.set(userAccountView));
   }
 }

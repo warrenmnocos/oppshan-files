@@ -1,32 +1,49 @@
 import {Injectable, Signal, signal, WritableSignal} from '@angular/core';
 import {MessageCode} from '../models/message-code';
-import {Notification} from '../models/notification';
+import {ApplicationNotification, MessageNotification, ProgressNotification} from '../models/notification';
 import {NotificationDurationMs, resolveSeverity} from '../misc/utils';
 
 @Injectable({providedIn: 'root'})
 export class NotificationService {
 
-  readonly notifications: Signal<readonly Notification[]>;
-  private readonly notificationsSignal: WritableSignal<readonly Notification[]>;
-  private nextId = 1;
+  readonly notifications: Signal<readonly ApplicationNotification[]>;
+  private readonly notificationsSignal: WritableSignal<readonly ApplicationNotification[]>;
 
   constructor() {
-    this.notificationsSignal = signal<readonly Notification[]>([]);
+    this.notificationsSignal = signal<readonly ApplicationNotification[]>([]);
     this.notifications = this.notificationsSignal.asReadonly();
-    this.nextId = 1;
   }
 
-  push(messageCode: MessageCode): void {
-    const notification: Notification = {
-      id: this.nextId++,
-      messageCode: messageCode,
+  push(messageCode: MessageCode, params?: Record<string, unknown>): void {
+    const notification: MessageNotification = {
+      type: 'message',
+      id: crypto.randomUUID(),
+      messageCode,
       severity: resolveSeverity(messageCode),
+      params,
     };
-    this.notificationsSignal.update(notifications => [...notifications, notification]);
+    this.notificationsSignal.update(ns => [...ns, notification]);
     window.setTimeout(() => this.dismiss(notification.id), NotificationDurationMs);
   }
 
-  dismiss(id: number): void {
-    this.notificationsSignal.update(notifications => notifications.filter(notification => notification.id !== id));
+  dismiss(id: string): void {
+    this.notificationsSignal.update(ns => ns.filter(n => n.id !== id));
+  }
+
+  addProgress(id: string, label: string, params?: Record<string, unknown>): void {
+    const entry: ProgressNotification = {type: 'progress', id, label, params, progress: 0};
+    this.notificationsSignal.update(ns => [...ns, entry]);
+  }
+
+  updateProgress(id: string, progress: number): void {
+    this.notificationsSignal.update(applicationNotifications =>
+      applicationNotifications.map(applicationNotification => (applicationNotification.id === id && applicationNotification.type === 'progress')
+        ? {...(applicationNotification as ProgressNotification), progress}
+        : applicationNotification)
+    );
+  }
+
+  removeProgress(id: string): void {
+    this.notificationsSignal.update(applicationNotifications => applicationNotifications.filter(applicationNotification => applicationNotification.id !== id));
   }
 }

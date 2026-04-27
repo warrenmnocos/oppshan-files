@@ -47,6 +47,34 @@ public class BusinessException extends RuntimeException {
         return new BusinessException(MessageCode.ROOT_FOLDER_DELETION_NOT_ALLOWED);
     }
 
+    public static BusinessException fileNotFound() {
+        return new BusinessException(MessageCode.FILE_NOT_FOUND);
+    }
+
+    public static BusinessException fileNameNotUnique() {
+        return new BusinessException(MessageCode.FILE_NAME_NOT_UNIQUE);
+    }
+
+    public static BusinessException fileNameRequired() {
+        return new BusinessException(MessageCode.FILE_NAME_REQUIRED);
+    }
+
+    public static BusinessException fileSizeExceeded() {
+        return new BusinessException(MessageCode.FILE_SIZE_EXCEEDED);
+    }
+
+    public static BusinessException fileQuotaExceeded() {
+        return new BusinessException(MessageCode.FILE_QUOTA_EXCEEDED);
+    }
+
+    public static BusinessException fileDownloadFailed() {
+        return new BusinessException(MessageCode.FILE_DOWNLOAD_FAILED);
+    }
+
+    public static BusinessException fileDownloadFailed(Exception ex) {
+        return new BusinessException(MessageCode.FILE_DOWNLOAD_FAILED, ex);
+    }
+
     public MessageCode getErrorCode() {
         return messageCode;
     }

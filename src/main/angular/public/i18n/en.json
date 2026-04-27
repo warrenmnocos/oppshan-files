@@ -47,6 +47,28 @@
       "delete": "Delete",
       "cancel": "Cancel"
     },
+    "renameFile": {
+      "title": "Rename file",
+      "label": "File name",
+      "rename": "Rename",
+      "cancel": "Cancel"
+    },
+    "deleteFile": {
+      "title": "Delete file?",
+      "message": "\"{{name}}\" will be permanently deleted.",
+      "delete": "Delete",
+      "cancel": "Cancel"
+    },
+    "fileProperties": {
+      "title": "File properties",
+      "name": "Name",
+      "type": "Type",
+      "size": "Size",
+      "location": "Location",
+      "created": "Created",
+      "modified": "Updated",
+      "close": "Close"
+    },
     "directoryProperties": {
       "title": "Folder properties",
       "name": "Name",
@@ -67,11 +89,17 @@
       "terabytes": "TB"
     }
   },
+  "notificationCenter": {
+    "uploadingFiles": "Uploading {{count}} file(s)"
+  },
   "messages": {
     "info": {
       "directoryCreated": "Folder created.",
       "directoryRenamed": "Folder renamed.",
-      "directoryDeleted": "Folder deleted."
+      "directoryDeleted": "Folder deleted.",
+      "fileUploaded": "File uploaded.",
+      "fileRenamed": "File renamed.",
+      "fileDeleted": "File deleted."
     },
     "warning": {
     },
@@ -85,6 +113,12 @@
       "directoryNameRequired": "Folder name is required.",
       "rootDirectoryDeletionNotAllowed": "The root directory cannot be deleted.",
       "accessDenied": "You do not have permission to access this resource.",
+      "fileNotFound": "File not found.",
+      "fileNameNotUnique": "A file with this name already exists.",
+      "fileNameRequired": "File name is required.",
+      "fileSizeExceeded": "File exceeds the upload size limit.",
+      "fileQuotaExceeded": "Not enough storage. Delete some files to free up space.",
+      "folderUploadRejected": "Folders cannot be uploaded.",
       "unknown": "An unexpected error occurred. Please try again."
     }
   }

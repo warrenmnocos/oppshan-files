@@ -1,0 +1,16 @@
+<div (click)="onCancel()" class="dialog-overlay">
+  <div (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)" class="dialog">
+    <h2 class="dialog-title">{{ 'dialog.deleteFile.title' | translate }}</h2>
+    <div class="dialog-body">
+      <p class="dialog-message">{{ 'dialog.deleteFile.message' | translate: {name: fileName()} }}</p>
+    </div>
+    <div class="dialog-actions">
+      <button (click)="onCancel()" class="dialog-btn dialog-btn-secondary">
+        {{ 'dialog.deleteFile.cancel' | translate }}
+      </button>
+      <button (click)="onConfirm()" class="dialog-btn dialog-btn-danger">
+        {{ 'dialog.deleteFile.delete' | translate }}
+      </button>
+    </div>
+  </div>
+</div>

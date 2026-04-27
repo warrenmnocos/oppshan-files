@@ -130,7 +130,7 @@ export function resolveFileIcon(filename: string): string {
 }
 
 export function resolveMessageCode(error: HttpErrorResponse): MessageCode {
-  const messageCode = error.error?.messageCode;
+  const messageCode = error.headers.get('X-Message-Code') ?? error.error?.messageCode ?? error.message;
   return Object.values(MessageCode).find(code => code === messageCode) ?? MessageCode.Unknown;
 }
 

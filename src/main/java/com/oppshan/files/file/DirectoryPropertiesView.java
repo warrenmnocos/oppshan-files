@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 
 import java.io.Serial;
-import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -32,7 +31,7 @@ public record DirectoryPropertiesView(
 
         @PositiveOrZero
         long totalSizeBytes
-) implements Serializable {
+) implements FileNodePropertiesView {
 
     @Serial
     private static final long serialVersionUID = 1L;

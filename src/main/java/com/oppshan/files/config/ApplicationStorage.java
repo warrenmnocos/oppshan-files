@@ -16,6 +16,10 @@ public interface ApplicationStorage {
     @WithDefault("21474836480")
     long totalMaxBytes();
 
+    @Min(1048576)
+    @WithDefault("104857600")
+    long fileUploadMaxBytes();
+
     @NotEmpty
     @WithDefault("AES/CTR/NoPadding")
     String encryptionCipherAlgorithm();

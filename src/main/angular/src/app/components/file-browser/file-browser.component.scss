@@ -98,6 +98,12 @@
 .browser-content {
   flex: 1;
   background: #faf9f6;
+
+  &.drop-target {
+    outline: 2px dashed #009688;
+    outline-offset: -4px;
+    background: rgba(0, 150, 136, 0.04);
+  }
 }
 
 // Empty state
@@ -175,6 +181,7 @@
   @media (min-width: 600px) {
     display: flex;
     align-items: center;
+    gap: 16px;
     padding: 10px 24px;
   }
 }
@@ -182,6 +189,7 @@
 .list-row {
   display: flex;
   align-items: center;
+  gap: 16px;
   padding: 10px 16px;
   border-bottom: 1px solid #f0eeea;
   background: #fff;

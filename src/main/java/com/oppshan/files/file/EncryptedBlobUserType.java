@@ -48,7 +48,7 @@ public class EncryptedBlobUserType implements UserType<Blob> {
             value = new IncomingBlob(value.getBinaryStream());
         }
 
-        st.setBinaryStream(index, value.getBinaryStream());
+        st.setBlob(index, value);
     }
 
     @Override

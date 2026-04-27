@@ -7,6 +7,7 @@
   <app-error-state [messageCode]="errorMessageCode()!"/>
 } @else {
   <app-file-browser
+    [userAccountView]="userAccountView()"
     [fileNodeViews]="directoryContentsView()?.childrenFileNodeViews"
     [loading]="loading()"
     [parentDirectoryUuid]="directoryContentsView()?.uuid ?? null"/>
@@ -23,4 +24,13 @@
 @if (messageBusService.applicationEvenTypeSignal() === ApplicationEventType.DirectoryPropertiesShown) {
   <app-directory-properties-dialog/>
 }
-<app-notification-host/>
+@if (messageBusService.applicationEvenTypeSignal() === ApplicationEventType.FileRenameInitiated) {
+  <app-file-rename-dialog/>
+}
+@if (messageBusService.applicationEvenTypeSignal() === ApplicationEventType.FileDeletionInitiated) {
+  <app-file-deletion-dialog/>
+}
+@if (messageBusService.applicationEvenTypeSignal() === ApplicationEventType.FilePropertiesShown) {
+  <app-file-properties-dialog/>
+}
+<app-notification-center/>

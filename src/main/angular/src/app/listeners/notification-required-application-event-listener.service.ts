@@ -16,6 +16,12 @@ export class NotificationRequiredApplicationEventListener extends AbstractApplic
       ApplicationEventType.DirectoryCreateFailed,
       ApplicationEventType.DirectoryRenameFailed,
       ApplicationEventType.DirectoryDeletionFailed,
+      ApplicationEventType.FileCreateSucceeded,
+      ApplicationEventType.FileCreateFailed,
+      ApplicationEventType.FileRenameSucceeded,
+      ApplicationEventType.FileRenameFailed,
+      ApplicationEventType.FileDeletionSucceeded,
+      ApplicationEventType.FileDeletionFailed,
     );
   }
 
@@ -24,7 +30,6 @@ export class NotificationRequiredApplicationEventListener extends AbstractApplic
     if (!payload) {
       return;
     }
-
     this.notificationService.push(payload.messageCode);
   }
 }
