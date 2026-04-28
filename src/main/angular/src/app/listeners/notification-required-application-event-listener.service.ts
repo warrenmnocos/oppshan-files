@@ -22,6 +22,8 @@ export class NotificationRequiredApplicationEventListener extends AbstractApplic
       ApplicationEventType.FileRenameFailed,
       ApplicationEventType.FileDeletionSucceeded,
       ApplicationEventType.FileDeletionFailed,
+      ApplicationEventType.FileDownloadSucceeded,
+      ApplicationEventType.FileDownloadFailed,
     );
   }
 

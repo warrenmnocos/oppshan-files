@@ -90,7 +90,8 @@
     }
   },
   "notificationCenter": {
-    "uploadingFiles": "Uploading {{count}} file(s)"
+    "uploadingFiles": "Uploading {{count}} file(s)",
+    "downloadingFiles": "Downloading {{count}} file(s)"
   },
   "messages": {
     "info": {
@@ -98,6 +99,7 @@
       "directoryRenamed": "Folder renamed.",
       "directoryDeleted": "Folder deleted.",
       "fileUploaded": "File uploaded.",
+      "fileDownloaded": "File downloaded.",
       "fileRenamed": "File renamed.",
       "fileDeleted": "File deleted."
     },

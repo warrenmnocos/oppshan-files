@@ -7,11 +7,10 @@ import {VIEW_MODE_KEY, ViewMode} from '../../models/view-mode';
 import {MessageBusService} from '../../services/message-bus-service';
 import {ApplicationEvent} from '../../models/application-event';
 import {ApplicationEventType} from '../../models/application-event-type';
-import {DirectoryNavigationCommand, FileCreateCommand} from '../../models/operation-commands';
+import {DirectoryNavigationCommand, FileCreateCommand, FileDownloadCommand} from '../../models/operation-commands';
 import {FileCreateFailed} from '../../models/operation-outcomes';
 import {MessageCode} from '../../models/message-code';
 import {resolveFileIcon} from '../../misc/utils';
-import {FileService} from '../../services/file-service.service';
 import {UserAccountView} from '../../models/user-account-view';
 
 @Component({
@@ -38,8 +37,7 @@ export class FileBrowser implements AfterViewInit {
 
   @ViewChild('fileInput') private fileInputRef!: ElementRef<HTMLInputElement>;
 
-  constructor(private readonly messageBusService: MessageBusService,
-              private readonly fileService: FileService) {
+  constructor(private readonly messageBusService: MessageBusService) {
     this.viewMode = signal<ViewMode>(ViewMode.List);
     this.dropTarget = signal(false);
   }
@@ -182,7 +180,12 @@ export class FileBrowser implements AfterViewInit {
   }
 
   onFileDownloadRequested(fileNodeView: FileNodeView): void {
-    this.fileService.downloadFile(fileNodeView.uuid, fileNodeView.name);
+    this.messageBusService.fireApplicationEvent(
+      new ApplicationEvent(ApplicationEventType.FileDownloadConfirmed, {
+        uuid: fileNodeView.uuid,
+        name: fileNodeView.name,
+      } as FileDownloadCommand)
+    );
   }
 
   onFileRenameRequested(fileNodeView: FileNodeView): void {

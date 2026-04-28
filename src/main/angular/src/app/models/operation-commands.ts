@@ -6,7 +6,8 @@ export type OperationCommand =
   | DirectoryDeletionCommand
   | FileCreateCommand
   | FileRenameCommand
-  | FileDeletionCommand;
+  | FileDeletionCommand
+  | FileDownloadCommand;
 
 export interface SignInCommand {
   readonly tenant: string;
@@ -43,4 +44,9 @@ export interface FileRenameCommand {
 
 export interface FileDeletionCommand {
   readonly uuid: string;
+}
+
+export interface FileDownloadCommand {
+  readonly uuid: string;
+  readonly name: string;
 }

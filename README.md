@@ -532,7 +532,239 @@ minimum viable product.
 
 **Tier 2 (Exceeded)** includes US-04, US-08, US-10, US-12, US-14, US-17, US-19, US-20, US-21, and US-22."
 
-**Tier 3 (Polish)** includes US-23 and US-24 for storage quota enforcement.
+**Acceptance criteria.**
+
+- Sign out is reachable from the profile menu.
+- Clicking it terminates the OIDC session via `POST /sso/sign-out`.
+- The user is redirected to the sign-in page.
+- Subsequent protected-route access is intercepted by `authGuard`.
+
+#### US-04 — Profile panel `[Done]`
+
+> As a User, I want to see my profile showing my Google name, photo, and storage usage so I know who I am logged
+> in as.
+
+**Acceptance criteria.**
+
+- A profile dropdown is anchored in the toolbar avatar.
+- It shows the Google profile photo, full name, email, and a storage-usage row (`usedStorageBytes` of
+  `maxStorageBytes`).
+- The storage figures update on the next `GET /api/auth/me` call after every successful upload or delete because the
+  server invalidates its cached `UserAccountView` on those operations.
+
+### Epic 2 — Navigation and Layout
+
+#### US-05 — Root directory on login `[Done]`
+
+> As a User, I want to see my root directory when I log in so I can immediately access my files and folders.
+
+**Acceptance criteria.**
+
+- The root directory loads automatically.
+- Folders are sorted before files.
+- An empty state shows a drag-and-drop hint.
+- Folder and file rows are visually distinguished by icon.
+
+#### US-06 — Navigate by clicking a folder `[Done]`
+
+> As a User, I want to navigate into a folder by clicking it so I can browse its contents.
+
+**Acceptance criteria.**
+
+- Clicking a folder opens its contents and updates the URL to the folder's path (`/drive/<segment>/<segment>/...`).
+- The browser back button works via Angular Router history.
+- Deep linking to a nested path resolves the contents server-side via `GET /api/files/contents?path=...`.
+
+#### US-07 — Breadcrumb navigation `[Done]`
+
+> As a User, I want to see breadcrumb navigation so I always know my current location in the folder tree.
+
+**Acceptance criteria.**
+
+- The breadcrumb trail shows the path from root to the current directory.
+- Each ancestor segment is clickable and re-navigates.
+- The root is rendered as "My files".
+- The current directory segment is non-interactive.
+- Server-side, the ancestor list is computed by a recursive CTE in `FileNode.GET_ANCESTORS` and embedded in
+  `DirectoryContentsView.breadcrumbViews`.
+
+#### US-08 — Grid/list view toggle `[Done]`
+
+> As a User, I want to switch between grid view and list view so I can browse my preferred way.
+
+**Acceptance criteria.**
+
+- A toggle in the toolbar switches between list (table layout with name, modified, size columns) and grid (card
+  layout with auto-fill responsive columns).
+- The choice persists across navigation and reloads via `localStorage` under the `VIEW_MODE_KEY`.
+
+### Epic 3 — Folder Management
+
+#### US-09 — Create folder `[Done]`
+
+> As a User, I want to create a folder in my current directory so I can organize my files.
+
+**Acceptance criteria.**
+
+- A "New folder" toolbar button opens a custom dialog component bound by Angular signals.
+- The name is required, trimmed, and bounded to 255 characters.
+- Duplicates within the same parent are rejected with a human error message keyed by `directoryNameNotUnique`.
+- The new folder appears immediately in the directory listing.
+- Server-side, uniqueness is enforced via a `(parent_file_node_id, name, mime_type)` `UNIQUE NULLS NOT DISTINCT`
+  constraint plus an explicit `isDirectoryPresent` check.
+
+#### US-10 — Rename folder `[Done]`
+
+> As a User, I want to rename a folder so I can correct or update its name.
+
+**Acceptance criteria.**
+
+- Rename is exposed today through the dialog component triggered programmatically (the right-click context menu
+  lands in Epic 5).
+- The dialog opens pre-filled with the current name.
+- Trimmed empty names and duplicates within the same parent are rejected.
+- Pressing Escape cancels.
+- Server-side, `PATCH /api/files/{uuid}` dispatches polymorphically to `FileNodeService.renameDirectory`.
+
+#### US-11 — Delete folder recursively `[Done]`
+
+> As a User, I want to delete a folder and all its contents so I can free up space.
+
+**Acceptance criteria.**
+
+- A confirmation dialog displays the affected name and a count of nested items.
+- Only a deliberate confirmation initiates `DELETE /api/files/{uuid}`.
+- The backend cascades the delete to child rows via `ON DELETE CASCADE` on the `parent_file_node_id` foreign key.
+- The per-row `BEFORE DELETE` trigger `trg_delete_file_lob` calls `lo_unlink` on each associated Large Object so
+  storage is reclaimed.
+- Deleting the root directory is forbidden and returns `rootDirectoryDeletionNotAllowed`.
+
+#### US-12 — Folder properties `[Done]`
+
+> As a User, I want to see folder properties so I can review its details.
+
+**Acceptance criteria.**
+
+- A read-only properties dialog displays the folder name, creation date, last modified date, nested folder count,
+  nested file count, and total content size in bytes (rendered through `FileSizePipe` as KB, MB, or GB).
+- Aggregates are computed server-side by the `GET_DIRECTORY_STATISTICS` recursive CTE and returned in
+  `DirectoryPropertiesView`.
+
+### Epic 4 — File Management
+
+#### US-13 — Upload via button `[Done]`
+
+> As a User, I want to upload a file using an upload button so I can store it in my current folder.
+
+**Acceptance criteria.**
+
+- An "Upload" button opens the OS file picker.
+- Multi-file selection is supported.
+- Each selected file becomes its own `FileUploadInitiated` event, streamed to `POST /api/files/{uuid}/upload` with
+  `reportProgress: true, observe: 'events'`.
+- The upload progress panel shows a per-file progress bar driven by HTTP progress events translated into
+  `ProgressNotification` updates.
+- Uploaded files appear in the directory listing as soon as the directory contents view returned by the server is
+  committed.
+
+#### US-14 — Upload via drag-and-drop `[Done]`
+
+> As a User, I want to upload a file via drag-and-drop so I can upload quickly without using a button.
+
+**Acceptance criteria.**
+
+- The directory view acts as a drop zone.
+- Dragging a file shows a visual highlight.
+- Dropping multiple files at once initiates concurrent uploads.
+- Folders dropped via `webkitGetAsEntry()` are detected and rejected with the `folderUploadRejected` toast — they
+  never enter the upload pipeline.
+
+#### US-15 — Reject oversized files `[Done]`
+
+> As a User, I want to be notified when a file exceeds the upload size limit so I understand why it was rejected.
+
+**Acceptance criteria.**
+
+- Size is checked client-side in `FileBrowser` against `UserAccountView.maxFileUploadBytes` (currently 100 MB) before
+  the `FileCreateConfirmed` command is fired.
+- Rejected files surface as `fileSizeExceeded` toasts.
+- Valid siblings in the same multi-file selection still upload.
+- The backend re-enforces the limit through a `CountingInputStream` that fails with `fileSizeExceeded` if the
+  streamed byte count exceeds `getMaxFileUploadBytes` (per-user, sourced from `user_storage.max_file_upload_bytes`).
+
+#### US-16 — Download `[Done]`
+
+> As a User, I want to download a file so I can retrieve it to my device.
+
+**Acceptance criteria.**
+
+- `GET /api/files/{uuid}/download` streams the decrypted file body with the correct
+  `Content-Disposition: attachment; filename=...` and `Content-Type` from the original MIME type.
+- The endpoint returns a `FileDownloadViewResolver` that the custom `FileDownloadViewMessageBodyWriter` consumes,
+  so the JTA transaction stays open for the duration of the Large Object stream.
+
+#### US-17 — Rename file `[Done]`
+
+> As a User, I want to rename a file so I can correct or update its name.
+
+**Acceptance criteria.**
+
+- A rename dialog opens pre-filled with the current name.
+- Empty names and duplicates within the same directory and MIME type are rejected via `fileNameRequired` and
+  `fileNameNotUnique`.
+- Updates dispatch through the same polymorphic `PATCH /api/files/{uuid}` that handles folders.
+
+#### US-18 — Delete file `[Done]`
+
+> As a User, I want to delete a file so I can remove content I no longer need.
+
+**Acceptance criteria.**
+
+- A confirmation dialog displays the file name.
+- Deletion calls `DELETE /api/files/{uuid}` (polymorphic) and removes the row, which trips the
+  `trg_delete_file_lob` trigger to `lo_unlink` the encrypted Large Object.
+- Cached `UserAccountView` is invalidated server-side, so the next profile fetch reflects updated
+  `usedStorageBytes`.
+
+#### US-19 — File properties `[Done]`
+
+> As a User, I want to see file properties so I can review its details.
+
+**Acceptance criteria.**
+
+- A read-only properties dialog displays the file name, MIME type, size, parent directory name, creation date,
+  and last modified date.
+- Server-side, `GET /api/files/{uuid}/properties` dispatches to `FilePropertiesView` for files or
+  `DirectoryPropertiesView` for directories — the same endpoint serves both.
+
+### Epic 5 — Context Menu (Planned)
+
+#### US-20 — File context menu `[Planned]`
+
+Right-click a file to expose Download, Rename, Delete, Properties — wired to US-16, US-17, US-18, US-19 actions.
+
+#### US-21 — Folder context menu `[Planned]`
+
+Right-click a folder to expose Open, Rename, Delete, Properties — wired to US-06, US-10, US-11, US-12.
+
+#### US-22 — Empty-space context menu `[Planned]`
+
+Right-click empty space to expose New folder and Upload — wired to US-09 and US-13.
+
+### Epic 6 — Storage (Planned)
+
+#### US-23 — Storage usage bar `[Planned]`
+
+Sidebar/profile panel shows used vs. total storage with a progress bar that changes color at 80% (warning) and 95%
+(critical).
+
+#### US-24 — Quota enforcement `[Planned]`
+
+Uploads exceeding `maxStorageBytes - usedStorageBytes` are blocked client-side and re-enforced server-side with HTTP
+
+413. Backend infrastructure for this check already exists in `FileNodeService.uploadFile`
+     (`fileNodeRepository.getTotalSizeBytes(userAccountUuid) + counted > getMaxStorageBytes(userAccountUuid)` → throws
+     `fileQuotaExceeded`); the remaining work is the front-end usage indicator.
 
 ---
 

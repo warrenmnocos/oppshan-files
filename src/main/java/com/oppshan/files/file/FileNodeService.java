@@ -128,15 +128,15 @@ public class FileNodeService {
     public DirectoryContentsView deleteDirectory(@NotNull UUID userAccountUuid,
                                                  @NotNull UUID directoryFileNodeUuid) {
         final var directoryFileNode = fileNodeRepository.findDirectoryFileNode(userAccountUuid, directoryFileNodeUuid)
+                .orElseThrow(BusinessException::directoryNotFound);
+        final var parentDirectoryFileNodeUuid = directoryFileNode.getParentFileNode()
+                .orElseThrow(BusinessException::rootFolderDeletionNotAllowed)
+                .getUuid();
+        final var parentDirectoryFileNodeWithContents = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, parentDirectoryFileNodeUuid)
                 .map(fileNodeRepository::attachWithSession)
                 .orElseThrow(BusinessException::directoryNotFound);
-        final var parentDirectoryFileNode = directoryFileNode.getParentFileNode()
-                .orElseThrow(BusinessException::rootFolderDeletionNotAllowed);
-        fileNodeRepository.deleteWithSession(directoryFileNode);
-
-        final var parentDirectoryFileNodeWithContents = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, parentDirectoryFileNode.getUuid())
-                .orElseThrow(BusinessException::directoryNotFound);
-        parentDirectoryFileNodeWithContents.getChildFileNodes().remove(directoryFileNode);
+        parentDirectoryFileNodeWithContents.getChildFileNodes()
+                .removeIf(childFileNode -> childFileNode.getUuid().equals(directoryFileNodeUuid));
         return toDirectoryContentsView(userAccountUuid, parentDirectoryFileNodeWithContents);
     }
 

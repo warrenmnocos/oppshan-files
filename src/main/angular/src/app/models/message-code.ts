@@ -22,6 +22,7 @@ export enum MessageCode {
   DirectoryRenamed = 'messages.info.directoryRenamed',
   DirectoryDeleted = 'messages.info.directoryDeleted',
   FileUploaded = 'messages.info.fileUploaded',
+  FileDownloaded = 'messages.info.fileDownloaded',
   FileRenamed = 'messages.info.fileRenamed',
   FileDeleted = 'messages.info.fileDeleted',
 

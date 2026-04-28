@@ -109,9 +109,6 @@ export class Drive implements AfterViewInit, OnDestroy {
         break;
       case ApplicationEventType.DirectoryDeletionSucceeded:
       case ApplicationEventType.FileDeletionSucceeded:
-        this.loadDirectoryContents(event.payload as DirectoryContentsViewAwareDirectoryOperationResult);
-        this.refreshUserAccount();
-        break;
       case ApplicationEventType.FileCreateSucceeded:
         this.loadDirectoryContents(event.payload as DirectoryContentsViewAwareDirectoryOperationResult);
         this.refreshUserAccount();
@@ -141,14 +138,14 @@ export class Drive implements AfterViewInit, OnDestroy {
     ));
   }
 
-  private async loadDirectoryContents(directoryContentsViewAwareDirectoryOperationResult: DirectoryContentsViewAwareDirectoryOperationResult) {
+  private loadDirectoryContents(directoryContentsViewAwareDirectoryOperationResult: DirectoryContentsViewAwareDirectoryOperationResult) {
     this.directoryContentsView.set(directoryContentsViewAwareDirectoryOperationResult.directoryContentsView);
     this.currentPath = directoryContentsViewAwareDirectoryOperationResult.directoryContentsView.breadcrumbViews
       .slice(1)
       .map(breadcrumbView => breadcrumbView.name)
       .join("/");
-    await this.router.navigate(['/drive', this.currentPath]);
-    this.loading.set(false);
+    this.router.navigate(['/drive', this.currentPath])
+      .then(_ => this.loading.set(false));
   }
 
   private handleDirectoryNavigationFailure(directoryNavigationFailed: DirectoryNavigationFailed): void {

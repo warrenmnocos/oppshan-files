@@ -44,7 +44,12 @@ import {
 import {
   FileDeletionConfirmedApplicationEventListener
 } from './listeners/file-deletion-confirmed-application-event-listener.service';
-import {UploadProgressApplicationEventListener} from './listeners/upload-progress-application-event-listener.service';
+import {
+  OperationProgressApplicationEventListener
+} from './listeners/operation-progress-application-event-listener.service';
+import {
+  FileDownloadConfirmedApplicationEventListener
+} from './listeners/file-download-confirmed-application-event-listener.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -122,7 +127,12 @@ export const appConfig: ApplicationConfig = {
     },
     {
       provide: MESSAGE_LISTENERS,
-      useClass: UploadProgressApplicationEventListener,
+      useClass: FileDownloadConfirmedApplicationEventListener,
+      multi: true,
+    },
+    {
+      provide: MESSAGE_LISTENERS,
+      useClass: OperationProgressApplicationEventListener,
       multi: true,
     },
   ],

@@ -1,6 +1,11 @@
 import {Injectable, Signal, signal, WritableSignal} from '@angular/core';
 import {MessageCode} from '../models/message-code';
-import {ApplicationNotification, MessageNotification, ProgressNotification} from '../models/notification';
+import {
+  ApplicationNotification,
+  MessageNotification,
+  ProgressKind,
+  ProgressNotification,
+} from '../models/notification';
 import {NotificationDurationMs, resolveSeverity} from '../misc/utils';
 
 @Injectable({providedIn: 'root'})
@@ -22,17 +27,19 @@ export class NotificationService {
       severity: resolveSeverity(messageCode),
       params,
     };
-    this.notificationsSignal.update(ns => [...ns, notification]);
+    this.notificationsSignal.update(applicationNotifications => [...applicationNotifications, notification]);
     window.setTimeout(() => this.dismiss(notification.id), NotificationDurationMs);
   }
 
   dismiss(id: string): void {
-    this.notificationsSignal.update(ns => ns.filter(n => n.id !== id));
+    this.notificationsSignal.update(applicationNotifications =>
+      applicationNotifications.filter(applicationNotification => applicationNotification.id !== id)
+    );
   }
 
-  addProgress(id: string, label: string, params?: Record<string, unknown>): void {
-    const entry: ProgressNotification = {type: 'progress', id, label, params, progress: 0};
-    this.notificationsSignal.update(ns => [...ns, entry]);
+  addProgress(kind: ProgressKind, id: string, label: string, params?: Record<string, unknown>): void {
+    const entry: ProgressNotification = {type: 'progress', kind, id, label, params, progress: 0};
+    this.notificationsSignal.update(applicationNotifications => [...applicationNotifications, entry]);
   }
 
   updateProgress(id: string, progress: number): void {

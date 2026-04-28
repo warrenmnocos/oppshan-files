@@ -56,6 +56,7 @@ jobs:
         with:
           jacoco-csv-file: target/jacoco-report/jacoco.csv
           badges-directory: .github/badges
+          coverage-label: Coverage
 
       - name: Commit the badge (if it changed)
         # This ensures the bot only tries to push when you merge or push to main directly

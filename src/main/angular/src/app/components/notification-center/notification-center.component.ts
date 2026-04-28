@@ -11,17 +11,31 @@ import {MessageNotification, ProgressNotification} from '../../models/notificati
 })
 export class NotificationCenter {
 
-  protected readonly collapsed: WritableSignal<boolean>;
+  protected readonly uploadCollapsed: WritableSignal<boolean>;
 
-  protected readonly progressNotifications: Signal<readonly ProgressNotification[]>;
+  protected readonly downloadCollapsed: WritableSignal<boolean>;
+
+  protected readonly uploadProgressNotifications: Signal<readonly ProgressNotification[]>;
+
+  protected readonly downloadProgressNotifications: Signal<readonly ProgressNotification[]>;
 
   protected readonly messageNotifications: Signal<readonly MessageNotification[]>;
 
   constructor(private readonly notificationService: NotificationService) {
-    this.collapsed = signal(false);
-    this.progressNotifications = computed<readonly ProgressNotification[]>(() =>
+    this.uploadCollapsed = signal(false);
+    this.downloadCollapsed = signal(false);
+    this.uploadProgressNotifications = computed<readonly ProgressNotification[]>(() =>
       this.notificationService.notifications().filter(
-        (applicationNotification): applicationNotification is ProgressNotification => applicationNotification.type === 'progress'
+        (applicationNotification): applicationNotification is ProgressNotification =>
+          applicationNotification.type === 'progress'
+          && (applicationNotification as ProgressNotification).kind === 'upload'
+      )
+    );
+    this.downloadProgressNotifications = computed<readonly ProgressNotification[]>(() =>
+      this.notificationService.notifications().filter(
+        (applicationNotification): applicationNotification is ProgressNotification =>
+          applicationNotification.type === 'progress'
+          && (applicationNotification as ProgressNotification).kind === 'download'
       )
     );
     this.messageNotifications = computed<readonly MessageNotification[]>(() =>
@@ -31,8 +45,12 @@ export class NotificationCenter {
     );
   }
 
-  protected toggleCollapsed(): void {
-    this.collapsed.update(collapsed => !collapsed);
+  protected toggleUploadCollapsed(): void {
+    this.uploadCollapsed.update(collapsed => !collapsed);
+  }
+
+  protected toggleDownloadCollapsed(): void {
+    this.downloadCollapsed.update(collapsed => !collapsed);
   }
 
   protected dismissMessage(id: string): void {

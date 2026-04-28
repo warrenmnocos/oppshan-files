@@ -61,4 +61,10 @@ export enum ApplicationEventType {
   FileUploadProgressUpdated = 'fileUploadProgressUpdated',
   FileUploadSucceeded = 'fileUploadSucceeded',
   FileUploadFailed = 'fileUploadFailed',
+
+  FileDownloadInitiated = 'fileDownloadInitiated',
+  FileDownloadConfirmed = 'fileDownloadConfirmed',
+  FileDownloadProgressUpdated = 'fileDownloadProgressUpdated',
+  FileDownloadSucceeded = 'fileDownloadSucceeded',
+  FileDownloadFailed = 'fileDownloadFailed',
 }

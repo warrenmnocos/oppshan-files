@@ -52,6 +52,10 @@
   background: #009688;
   margin-top: 5px;
   flex-shrink: 0;
+
+  &--download {
+    background: #1a73e8;
+  }
 }
 
 .progress-content {
@@ -95,6 +99,10 @@
   background: #009688;
   border-radius: 2px;
   transition: width 0.2s ease;
+
+  &--download {
+    background: #1a73e8;
+  }
 }
 
 .progress-pct {

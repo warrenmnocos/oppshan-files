@@ -16,7 +16,9 @@ export type OperationOutcome =
   | FileRenameSucceeded
   | FileRenameFailed
   | FileDeletionSucceeded
-  | FileDeletionFailed;
+  | FileDeletionFailed
+  | FileDownloadSucceeded
+  | FileDownloadFailed;
 
 export interface SignInSucceeded {
   readonly messageCode: MessageCode;
@@ -112,6 +114,27 @@ export interface FileUploadSucceeded {
 }
 
 export interface FileUploadFailed {
+  readonly id: string;
+  readonly messageCode: MessageCode;
+}
+
+export interface FileDownloadInitiated {
+  readonly id: string;
+  readonly label: string;
+  readonly params?: Record<string, unknown>;
+}
+
+export interface FileDownloadProgressUpdated {
+  readonly id: string;
+  readonly progress: number;
+}
+
+export interface FileDownloadSucceeded {
+  readonly id: string;
+  readonly messageCode: MessageCode;
+}
+
+export interface FileDownloadFailed {
   readonly id: string;
   readonly messageCode: MessageCode;
 }

@@ -13,8 +13,11 @@ export interface MessageNotification extends ApplicationNotification {
   readonly params?: Record<string, unknown>;
 }
 
+export type ProgressKind = 'upload' | 'download';
+
 export interface ProgressNotification extends ApplicationNotification {
   readonly type: 'progress';
+  readonly kind: ProgressKind;
   readonly label: string;
   readonly params?: Record<string, unknown>;
   readonly progress: number;

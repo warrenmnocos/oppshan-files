@@ -37,34 +37,41 @@ export class FileCreateConfirmedApplicationEventListener extends AbstractApplica
     const id = window.crypto.randomUUID();
 
     this.messageBusService.fireApplicationEvent(
-      new ApplicationEvent(ApplicationEventType.FileUploadInitiated, {
-        id,
-        label: file.name,
-      } as FileUploadInitiated)
+      new ApplicationEvent(ApplicationEventType.FileUploadInitiated,
+        {
+          id,
+          label: file.name,
+        } as FileUploadInitiated
+      )
     );
 
     this.fileService.uploadFile(parentUuid, file).subscribe({
       next: event => {
         if (event.type === HttpEventType.UploadProgress && event.total) {
           this.messageBusService.fireApplicationEvent(
-            new ApplicationEvent(ApplicationEventType.FileUploadProgressUpdated, {
-              id,
-              progress: Math.round(100 * event.loaded / event.total),
-            } as FileUploadProgressUpdated)
+            new ApplicationEvent(ApplicationEventType.FileUploadProgressUpdated,
+              {
+                id,
+                progress: Math.round(100 * event.loaded / event.total),
+              } as FileUploadProgressUpdated)
           );
         } else if (event instanceof HttpResponse) {
           const directoryContentsView = event.body as DirectoryContentsView;
           this.messageBusService.fireApplicationEvent(
-            new ApplicationEvent(ApplicationEventType.FileUploadSucceeded, {
-              id,
-              directoryContentsView,
-            } as FileUploadSucceeded)
+            new ApplicationEvent(ApplicationEventType.FileUploadSucceeded,
+              {
+                id,
+                directoryContentsView,
+              } as FileUploadSucceeded
+            )
           );
           this.messageBusService.fireApplicationEvent(
-            new ApplicationEvent(ApplicationEventType.FileCreateSucceeded, {
-              messageCode: MessageCode.FileUploaded,
-              directoryContentsView,
-            } as FileCreateSucceeded)
+            new ApplicationEvent(ApplicationEventType.FileCreateSucceeded,
+              {
+                messageCode: MessageCode.FileUploaded,
+                directoryContentsView,
+              } as FileCreateSucceeded
+            )
           );
         }
       },
@@ -72,14 +79,16 @@ export class FileCreateConfirmedApplicationEventListener extends AbstractApplica
         const messageCode = resolveMessageCode(error);
         this.messageBusService.fireApplicationEvent(
           new ApplicationEvent(ApplicationEventType.FileUploadFailed, {
-            id,
-            messageCode,
-          } as FileUploadFailed)
+              id,
+              messageCode,
+            } as FileUploadFailed
+          )
         );
         this.messageBusService.fireApplicationEvent(
           new ApplicationEvent(ApplicationEventType.FileCreateFailed, {
-            messageCode,
-          } as FileCreateFailed)
+              messageCode,
+            } as FileCreateFailed
+          )
         );
       },
     });
