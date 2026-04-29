@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient, HttpEvent, HttpHeaders, HttpParams} from '@angular/common/http';
+import {HttpClient, HttpEvent, HttpHeaders, HttpParams, HttpResponse} from '@angular/common/http';
 import {map, Observable} from 'rxjs';
 import {DirectoryContentsView} from '../models/directory-contents-view';
 import {DirectoryPropertiesView} from '../models/directory-properties-view';
@@ -76,10 +76,18 @@ export class FileService {
       'Content-Type': file.type || 'application/octet-stream',
       'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(file.name)}`,
     });
-    return this.http.post<DirectoryContentsView>(
+    return this.http.post<Record<string, unknown>>(
       `/api/files/${parentUuid}/upload`,
       file,
       {headers, reportProgress: true, observe: 'events'},
+    ).pipe(
+      map(event => event instanceof HttpResponse
+        ? event.clone({
+          body: this.jsonMapperService.deserialize(
+            DirectoryContentsView, event.body as unknown as Record<string, unknown>)
+        })
+        : event,
+      ),
     );
   }
 
