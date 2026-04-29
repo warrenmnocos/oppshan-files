@@ -1,10 +1,14 @@
 package com.oppshan.files.file;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.PositiveOrZero;
 
 import java.io.Serial;
 import java.io.Serializable;
 
+@Valid
+@RegisterForReflection
 public record DirectoryStatistics(
         @PositiveOrZero
         long folderCount,

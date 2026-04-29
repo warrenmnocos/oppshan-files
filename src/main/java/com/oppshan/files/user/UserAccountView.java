@@ -1,5 +1,6 @@
 package com.oppshan.files.user;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -13,6 +14,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Valid
+@RegisterForReflection
 public record UserAccountView(
         @NotNull
         UUID uuid,

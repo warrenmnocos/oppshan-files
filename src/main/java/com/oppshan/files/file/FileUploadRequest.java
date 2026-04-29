@@ -1,6 +1,8 @@
 package com.oppshan.files.file;
 
 import com.google.common.base.MoreObjects;
+import io.quarkus.runtime.annotations.RegisterForReflection;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.HeaderParam;
@@ -13,6 +15,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+@Valid
+@RegisterForReflection
 public class FileUploadRequest implements Serializable {
 
     private static final Pattern contentDispositionFilenamePattern = Pattern.compile("filename\\*?=\"?(?:UTF-8'')?([^\";]+)\"?");
