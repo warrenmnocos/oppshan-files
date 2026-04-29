@@ -93,7 +93,7 @@
     "downloadingFiles": "Downloading {{count}} file(s)"
   },
   "footer": {
-    "tagline": "Files — A personal file manager",
+    "tagline": "Files — Your personal file manager",
     "copyright": "© {{year}} Warren Nocos",
     "source": "Source",
     "version": "v1.0.0",
