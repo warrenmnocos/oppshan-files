@@ -1,3 +1,10 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .action-bar {
   display: flex;
   align-items: center;
@@ -6,6 +13,7 @@
   border-bottom: 1px solid #e0e0e0;
   background: #fff;
   gap: 12px;
+  flex-shrink: 0;
 
   @media (min-width: 600px) {
     padding: 12px 24px;
@@ -97,6 +105,8 @@
 
 .browser-content {
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   background: #faf9f6;
 
   &.drop-target {

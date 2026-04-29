@@ -6,12 +6,13 @@ import {MessageBusService} from '../../services/message-bus-service';
 import {ApplicationEvent} from '../../models/application-event';
 import {ApplicationEventType} from '../../models/application-event-type';
 import {SignInCommand} from '../../models/operation-commands';
+import {Footer} from '../../components/footer/footer.component';
 
 @Component({
   selector: 'app-sign-in',
   templateUrl: './sign-in.component.html',
   styleUrl: './sign-in.component.scss',
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, Footer],
 })
 export class SignIn implements OnInit {
 

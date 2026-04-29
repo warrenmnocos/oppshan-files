@@ -109,6 +109,7 @@ const FileIcons: Readonly<Record<string, string>> = {
   ini: 'script',
   env: 'script',
   conf: 'script',
+  ovpn: 'script',
 
   txt: 'text',
   log: 'text',
@@ -122,6 +123,7 @@ const FileIcons: Readonly<Record<string, string>> = {
   asc: 'crypto',
   gpg: 'crypto',
 
+  '': 'executable',
   exe: 'executable',
   msi: 'executable',
   appx: 'executable',
@@ -136,6 +138,8 @@ const FileIcons: Readonly<Record<string, string>> = {
   flatpak: 'executable',
   apk: 'executable',
   jar: 'executable',
+  ear: 'executable',
+  war: 'executable',
   bin: 'executable',
   run: 'executable',
 

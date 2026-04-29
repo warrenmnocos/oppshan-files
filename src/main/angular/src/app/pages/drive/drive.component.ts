@@ -17,6 +17,7 @@ import {NotificationCenter} from '../../components/notification-center/notificat
 import {FileRenameDialog} from '../../components/file-rename-dialog/file-rename-dialog.component';
 import {FileDeletionDialog} from '../../components/file-deletion-dialog/file-deletion-dialog.component';
 import {FilePropertiesDialog} from '../../components/file-properties-dialog/file-properties-dialog.component';
+import {Footer} from '../../components/footer/footer.component';
 import {Subscription} from 'rxjs';
 import {DirectoryContentsView} from '../../models/directory-contents-view';
 import {ApplicationEventType} from '../../models/application-event-type';
@@ -46,6 +47,7 @@ import {map} from 'rxjs/operators';
     FileDeletionDialog,
     FilePropertiesDialog,
     NotificationCenter,
+    Footer,
   ],
 })
 export class Drive implements AfterViewInit, OnDestroy {

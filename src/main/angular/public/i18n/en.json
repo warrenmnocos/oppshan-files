@@ -5,8 +5,7 @@
     "prompt": "Sign in to access your files securely from anywhere.",
     "signInWithGoogle": "Sign in with Google",
     "oauthNote": "Secured with Single Sign-on \u2014 we never see your credentials",
-    "error": "Sign in failed. Please try again.",
-    "footer": "ITMD 504 \u2014 Illinois Institute of Technology"
+    "error": "Sign in failed. Please try again."
   },
   "toolbar": {
     "title": "Files",
@@ -92,6 +91,13 @@
   "notificationCenter": {
     "uploadingFiles": "Uploading {{count}} file(s)",
     "downloadingFiles": "Downloading {{count}} file(s)"
+  },
+  "footer": {
+    "tagline": "Files — A personal file manager",
+    "copyright": "© {{year}} Warren Nocos",
+    "source": "Source",
+    "version": "v1.0.0",
+    "academic": "Final exam for ITMD 504, Illinois Institute of Technology"
   },
   "messages": {
     "info": {
