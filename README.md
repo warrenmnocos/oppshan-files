@@ -4,8 +4,8 @@
 
 [![Coverage](https://raw.githubusercontent.com/warrenmnocos/oppshan-files/main/.github/badges/jacoco.svg)](https://raw.githubusercontent.com/warrenmnocos/oppshan-files/main/.github/badges/jacoco.svg)
 ![Java](https://img.shields.io/badge/Java-25-orange?logo=openjdk)
-![Quarkus](https://img.shields.io/badge/Quarkus-3.32.4-blue?logo=quarkus)
-![Angular](https://img.shields.io/badge/Angular-Material-red?logo=angular)
+![Quarkus](https://img.shields.io/badge/Quarkus-3.34.3-blue?logo=quarkus)
+![Angular](https://img.shields.io/badge/Angular-21-red?logo=angular)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-blue?logo=postgresql)
 ![AWS](https://img.shields.io/badge/AWS-Graviton_ARM64-orange?logo=amazonaws)
 
@@ -33,7 +33,7 @@
 
 **Files** is a full-stack personal cloud file manager that allows authenticated users to upload, organize, download, and
 manage files through a browser-based interface. It supports folder hierarchies, drag-and-drop uploads with progress
-tracking, right-click context menus, list and grid view modes, and per-user storage quota enforcement. All uploaded
+tracking, list and grid view modes, and file/folder lifecycle management (rename, delete, properties). All uploaded
 files are encrypted at rest using AES/CTR with per-file initialization vectors.
 
 This project is developed as the final exam for **ITMD 504 — Programming and Application Foundations** at **Illinois
@@ -41,11 +41,11 @@ Institute of Technology**.
 
 ### Features
 
-Files delivers a complete file management experience through six functional areas: authentication via Google OAuth 2.0
+Files delivers a complete file management experience through five functional areas: authentication via Google OAuth 2.0
 with automatic account provisioning, hierarchical directory navigation with breadcrumb trails, folder operations
-including create, rename, and recursive delete, file operations including streaming upload, encrypted storage, download,
-and rename, contextual right-click menus for files, folders, and empty space, and per-user storage quota tracking with
-visual usage indicators.
+including create, rename, and recursive delete, and file operations including streaming upload with progress tracking,
+encrypted storage, download, rename, delete, and properties inspection. Right-click context menus (Epic 5) and
+per-user storage quota tracking with visual usage indicators (Epic 6) are planned for upcoming sprints.
 
 ### Repository
 
@@ -204,8 +204,8 @@ grid views.
 ###### Notes
 
 - Store view preference in localStorage (UI preference only, not server-side)
-- Angular Material Grid List for grid view
-- Angular Material Table for list view
+- Custom CSS grid with `auto-fill`/`minmax` for grid view
+- Custom list rows for list view
 - Both views support context menu (US-21, US-22)
 
 #### Epic 3 — Folder Management
@@ -228,7 +228,7 @@ along with all nested contents, and inspect their metadata.
 
 - `POST /api/directories` with `{ name, parentId }`
 - Backend validates name uniqueness within same parent + same user
-- Angular Material Dialog for the name input
+- Custom dialog component with reactive form validation
 
 ##### US-10: As a User, I want to rename a folder so I can correct or update its name.
 
@@ -291,13 +291,14 @@ size-limit feedback, download files, rename them, delete them, and inspect their
 - Multiple file selection supported
 - Upload progress shown per file
 - Uploaded files appear in the directory immediately after upload
-- Files exceeding 30 MB are rejected before upload begins
+- Files exceeding the server-configured upload limit are rejected before upload begins
 
 ###### Notes
 
-- `POST /api/files/upload`
-- Fields: `file` (binary), `fileName`, `mimeType`, `parentId`
-- Angular HttpClient reports upload progress via `reportProgress: true`
+- `POST /api/files/{parentUuid}/upload` with `Content-Type` and `Content-Disposition` headers; raw binary body
+- Angular HttpClient reports upload progress via `reportProgress: true, observe: 'events'`
+- Upload limit read from `UserAccountView.maxFileUploadBytes` (server-configured, currently 100 MB); validated in the
+  component before the command is dispatched
 
 ##### US-14: As a User, I want to upload a file via drag-and-drop so I can upload quickly without using a button.
 
@@ -308,7 +309,7 @@ size-limit feedback, download files, rename them, delete them, and inspect their
 - Dropping begins the upload immediately
 - Multiple files can be dropped at once
 - Upload progress shown per file
-- Files exceeding 30 MB are rejected with an error message
+- Files exceeding the server-configured upload limit are rejected with a toast notification
 - Folders dropped are ignored with a helpful message
 
 ###### Notes
@@ -318,20 +319,22 @@ size-limit feedback, download files, rename them, delete them, and inspect their
 - Check `file.size` before initiating upload
 - Folder detection: check if `DataTransferItem.webkitGetAsEntry()` returns a directory
 
-##### US-15: As a User, I want to be notified when a file exceeds 30 MB so I understand why it was rejected.
+##### US-15: As a User, I want to be notified when a file exceeds the upload size limit so I understand why it was rejected.
 
 ###### Acceptance Criteria
 
-- Files larger than 30 MB are rejected on the client before upload
-- Error message clearly states the file name and size limit
+- Files larger than the server-configured limit are rejected on the client before upload begins
+- Error message clearly states the file name and size limit via toast notification
 - Other valid files in a multi-file upload still proceed
-- Backend also enforces 30 MB limit as a second layer
+- Backend enforces the same limit as a second layer via `CountingInputStream` after streaming
 
 ###### Notes
 
-- Client check: `file.size > 30 * 1024 * 1024`
-- Backend: `quarkus.http.limits.max-body-size=31M` in `application.properties`
-- Angular Material Snackbar for error notification
+- Client check: `file.size > userAccountView.maxFileUploadBytes` — limit sourced from server, validated in `FileBrowser`
+  before the upload command is dispatched; folders dropped via drag-and-drop are also rejected here
+- Backend: `quarkus.http.limits.max-body-size=1G` (stream limit); `app.storage.file-upload-max-bytes=104857600` (
+  application guard via `CountingInputStream`); per-user override stored in `user_storage.max_file_upload_bytes`
+- Error surfaces as a toast via `NotificationCenter`
 
 ##### US-16: As a User, I want to download a file so I can retrieve it to my device.
 
@@ -412,9 +415,8 @@ space to access relevant actions without returning to the toolbar.
 
 ###### Notes
 
-- No native Angular Material context menu — build custom using `Overlay` + `TemplatePortal` from Angular CDK
-- Position strategy: `FlexibleConnectedPositionStrategy`
-- Attach to document click listener to close on outside click
+- Custom context menu using native `contextmenu` event + absolute positioning
+- Attach to document click/`Escape` listener to close on outside interaction
 
 ##### US-21: As a User, I want to right-click a folder to see actions so I can manage it quickly.
 
@@ -466,8 +468,7 @@ in use and are blocked from uploading once the quota is exceeded.
 ###### Notes
 
 - `GET /api/users/me/storage` returns `{ used, quota }`
-- Angular Material Progress Bar component
-- Color thresholds: default → warn → danger using `ngClass`
+- Custom progress bar component with CSS color thresholds: teal → amber → red based on usage percentage
 
 ##### US-24: As a User, I want to be prevented from uploading when I exceed my storage quota so I know I need to free up space.
 
@@ -531,21 +532,253 @@ minimum viable product.
 
 **Tier 2 (Exceeded)** includes US-04, US-08, US-10, US-12, US-14, US-17, US-19, US-20, US-21, and US-22."
 
-**Tier 3 (Polish)** includes US-23 and US-24 for storage quota enforcement.
+**Acceptance criteria.**
+
+- Sign out is reachable from the profile menu.
+- Clicking it terminates the OIDC session via `POST /sso/sign-out`.
+- The user is redirected to the sign-in page.
+- Subsequent protected-route access is intercepted by `authGuard`.
+
+#### US-04 — Profile panel `[Done]`
+
+> As a User, I want to see my profile showing my Google name, photo, and storage usage so I know who I am logged
+> in as.
+
+**Acceptance criteria.**
+
+- A profile dropdown is anchored in the toolbar avatar.
+- It shows the Google profile photo, full name, email, and a storage-usage row (`usedStorageBytes` of
+  `maxStorageBytes`).
+- The storage figures update on the next `GET /api/auth/me` call after every successful upload or delete because the
+  server invalidates its cached `UserAccountView` on those operations.
+
+### Epic 2 — Navigation and Layout
+
+#### US-05 — Root directory on login `[Done]`
+
+> As a User, I want to see my root directory when I log in so I can immediately access my files and folders.
+
+**Acceptance criteria.**
+
+- The root directory loads automatically.
+- Folders are sorted before files.
+- An empty state shows a drag-and-drop hint.
+- Folder and file rows are visually distinguished by icon.
+
+#### US-06 — Navigate by clicking a folder `[Done]`
+
+> As a User, I want to navigate into a folder by clicking it so I can browse its contents.
+
+**Acceptance criteria.**
+
+- Clicking a folder opens its contents and updates the URL to the folder's path (`/drive/<segment>/<segment>/...`).
+- The browser back button works via Angular Router history.
+- Deep linking to a nested path resolves the contents server-side via `GET /api/files/contents?path=...`.
+
+#### US-07 — Breadcrumb navigation `[Done]`
+
+> As a User, I want to see breadcrumb navigation so I always know my current location in the folder tree.
+
+**Acceptance criteria.**
+
+- The breadcrumb trail shows the path from root to the current directory.
+- Each ancestor segment is clickable and re-navigates.
+- The root is rendered as "My files".
+- The current directory segment is non-interactive.
+- Server-side, the ancestor list is computed by a recursive CTE in `FileNode.GET_ANCESTORS` and embedded in
+  `DirectoryContentsView.breadcrumbViews`.
+
+#### US-08 — Grid/list view toggle `[Done]`
+
+> As a User, I want to switch between grid view and list view so I can browse my preferred way.
+
+**Acceptance criteria.**
+
+- A toggle in the toolbar switches between list (table layout with name, modified, size columns) and grid (card
+  layout with auto-fill responsive columns).
+- The choice persists across navigation and reloads via `localStorage` under the `VIEW_MODE_KEY`.
+
+### Epic 3 — Folder Management
+
+#### US-09 — Create folder `[Done]`
+
+> As a User, I want to create a folder in my current directory so I can organize my files.
+
+**Acceptance criteria.**
+
+- A "New folder" toolbar button opens a custom dialog component bound by Angular signals.
+- The name is required, trimmed, and bounded to 255 characters.
+- Duplicates within the same parent are rejected with a human error message keyed by `directoryNameNotUnique`.
+- The new folder appears immediately in the directory listing.
+- Server-side, uniqueness is enforced via a `(parent_file_node_id, name, mime_type)` `UNIQUE NULLS NOT DISTINCT`
+  constraint plus an explicit `isDirectoryPresent` check.
+
+#### US-10 — Rename folder `[Done]`
+
+> As a User, I want to rename a folder so I can correct or update its name.
+
+**Acceptance criteria.**
+
+- Rename is exposed today through the dialog component triggered programmatically (the right-click context menu
+  lands in Epic 5).
+- The dialog opens pre-filled with the current name.
+- Trimmed empty names and duplicates within the same parent are rejected.
+- Pressing Escape cancels.
+- Server-side, `PATCH /api/files/{uuid}` dispatches polymorphically to `FileNodeService.renameDirectory`.
+
+#### US-11 — Delete folder recursively `[Done]`
+
+> As a User, I want to delete a folder and all its contents so I can free up space.
+
+**Acceptance criteria.**
+
+- A confirmation dialog displays the affected name and a count of nested items.
+- Only a deliberate confirmation initiates `DELETE /api/files/{uuid}`.
+- The backend cascades the delete to child rows via `ON DELETE CASCADE` on the `parent_file_node_id` foreign key.
+- The per-row `BEFORE DELETE` trigger `trg_delete_file_lob` calls `lo_unlink` on each associated Large Object so
+  storage is reclaimed.
+- Deleting the root directory is forbidden and returns `rootDirectoryDeletionNotAllowed`.
+
+#### US-12 — Folder properties `[Done]`
+
+> As a User, I want to see folder properties so I can review its details.
+
+**Acceptance criteria.**
+
+- A read-only properties dialog displays the folder name, creation date, last modified date, nested folder count,
+  nested file count, and total content size in bytes (rendered through `FileSizePipe` as KB, MB, or GB).
+- Aggregates are computed server-side by the `GET_DIRECTORY_STATISTICS` recursive CTE and returned in
+  `DirectoryPropertiesView`.
+
+### Epic 4 — File Management
+
+#### US-13 — Upload via button `[Done]`
+
+> As a User, I want to upload a file using an upload button so I can store it in my current folder.
+
+**Acceptance criteria.**
+
+- An "Upload" button opens the OS file picker.
+- Multi-file selection is supported.
+- Each selected file becomes its own `FileUploadInitiated` event, streamed to `POST /api/files/{uuid}/upload` with
+  `reportProgress: true, observe: 'events'`.
+- The upload progress panel shows a per-file progress bar driven by HTTP progress events translated into
+  `ProgressNotification` updates.
+- Uploaded files appear in the directory listing as soon as the directory contents view returned by the server is
+  committed.
+
+#### US-14 — Upload via drag-and-drop `[Done]`
+
+> As a User, I want to upload a file via drag-and-drop so I can upload quickly without using a button.
+
+**Acceptance criteria.**
+
+- The directory view acts as a drop zone.
+- Dragging a file shows a visual highlight.
+- Dropping multiple files at once initiates concurrent uploads.
+- Folders dropped via `webkitGetAsEntry()` are detected and rejected with the `folderUploadRejected` toast — they
+  never enter the upload pipeline.
+
+#### US-15 — Reject oversized files `[Done]`
+
+> As a User, I want to be notified when a file exceeds the upload size limit so I understand why it was rejected.
+
+**Acceptance criteria.**
+
+- Size is checked client-side in `FileBrowser` against `UserAccountView.maxFileUploadBytes` (currently 100 MB) before
+  the `FileCreateConfirmed` command is fired.
+- Rejected files surface as `fileSizeExceeded` toasts.
+- Valid siblings in the same multi-file selection still upload.
+- The backend re-enforces the limit through a `CountingInputStream` that fails with `fileSizeExceeded` if the
+  streamed byte count exceeds `getMaxFileUploadBytes` (per-user, sourced from `user_storage.max_file_upload_bytes`).
+
+#### US-16 — Download `[Done]`
+
+> As a User, I want to download a file so I can retrieve it to my device.
+
+**Acceptance criteria.**
+
+- `GET /api/files/{uuid}/download` streams the decrypted file body with the correct
+  `Content-Disposition: attachment; filename=...` and `Content-Type` from the original MIME type.
+- The endpoint returns a `FileDownloadViewResolver` that the custom `FileDownloadViewMessageBodyWriter` consumes,
+  so the JTA transaction stays open for the duration of the Large Object stream.
+
+#### US-17 — Rename file `[Done]`
+
+> As a User, I want to rename a file so I can correct or update its name.
+
+**Acceptance criteria.**
+
+- A rename dialog opens pre-filled with the current name.
+- Empty names and duplicates within the same directory and MIME type are rejected via `fileNameRequired` and
+  `fileNameNotUnique`.
+- Updates dispatch through the same polymorphic `PATCH /api/files/{uuid}` that handles folders.
+
+#### US-18 — Delete file `[Done]`
+
+> As a User, I want to delete a file so I can remove content I no longer need.
+
+**Acceptance criteria.**
+
+- A confirmation dialog displays the file name.
+- Deletion calls `DELETE /api/files/{uuid}` (polymorphic) and removes the row, which trips the
+  `trg_delete_file_lob` trigger to `lo_unlink` the encrypted Large Object.
+- Cached `UserAccountView` is invalidated server-side, so the next profile fetch reflects updated
+  `usedStorageBytes`.
+
+#### US-19 — File properties `[Done]`
+
+> As a User, I want to see file properties so I can review its details.
+
+**Acceptance criteria.**
+
+- A read-only properties dialog displays the file name, MIME type, size, parent directory name, creation date,
+  and last modified date.
+- Server-side, `GET /api/files/{uuid}/properties` dispatches to `FilePropertiesView` for files or
+  `DirectoryPropertiesView` for directories — the same endpoint serves both.
+
+### Epic 5 — Context Menu (Planned)
+
+#### US-20 — File context menu `[Planned]`
+
+Right-click a file to expose Download, Rename, Delete, Properties — wired to US-16, US-17, US-18, US-19 actions.
+
+#### US-21 — Folder context menu `[Planned]`
+
+Right-click a folder to expose Open, Rename, Delete, Properties — wired to US-06, US-10, US-11, US-12.
+
+#### US-22 — Empty-space context menu `[Planned]`
+
+Right-click empty space to expose New folder and Upload — wired to US-09 and US-13.
+
+### Epic 6 — Storage (Planned)
+
+#### US-23 — Storage usage bar `[Planned]`
+
+Sidebar/profile panel shows used vs. total storage with a progress bar that changes color at 80% (warning) and 95%
+(critical).
+
+#### US-24 — Quota enforcement `[Planned]`
+
+Uploads exceeding `maxStorageBytes - usedStorageBytes` are blocked client-side and re-enforced server-side with HTTP
+
+413. Backend infrastructure for this check already exists in `FileNodeService.uploadFile`
+     (`fileNodeRepository.getTotalSizeBytes(userAccountUuid) + counted > getMaxStorageBytes(userAccountUuid)` → throws
+     `fileQuotaExceeded`); the remaining work is the front-end usage indicator.
 
 ---
 
 ## Tech Stack
 
-The backend is built with **Quarkus 3.32.4** on **Java 25**, using RESTEasy Reactive for JAX-RS endpoints, Hibernate ORM
+The backend is built with **Quarkus 3.34.3** on **Java 25**, using RESTEasy Reactive for JAX-RS endpoints, Hibernate ORM
 for persistence, Hibernate Validator for input validation, and the Quarkus OIDC extension for Google OAuth 2.0
 authentication. The database is **PostgreSQL 18** using Large Objects for binary file storage and Flyway for schema
 migration management. The application runs on JDK 25 virtual threads via `@RunOnVirtualThread` for efficient concurrent
 I/O.
 
-The frontend is built with **Angular** and **Angular Material** using SASS for theming. It is compiled with **Yarn** via
-the `frontend-maven-plugin` and bundled into the Quarkus application as static resources, eliminating the need for
-separate frontend hosting or CORS configuration.
+The frontend is built with **Angular** using custom SCSS components. It is compiled
+with **Yarn** via the `frontend-maven-plugin` and bundled into the Quarkus application as static resources, eliminating
+the need for separate frontend hosting or CORS configuration.
 
 The build pipeline uses **Maven** as the top-level build tool, **GraalVM** for native image compilation targeting ARM64,
 and **GitHub Actions** with the native `ubuntu-24.04-arm` runner for CI/CD. Code quality is monitored with **JaCoCo**
@@ -576,8 +809,8 @@ of file size.
 
 The application's visual design was planned before implementation using wireframe mockups. The design system uses a teal
 primary color (#0D9488) for interactive elements and active states, amber (#F59E0B) as the accent color for upload
-actions and folder icons, and a neutral gray palette for backgrounds and text. The font is Inter. Angular Material
-components are themed using SASS mixins with a custom Material palette.
+actions and folder icons, and a neutral gray palette for backgrounds and text. The font is Inter. Components are built
+with custom SCSS following the project's design token conventions.
 
 The following wireframes document the user flow through all 24 user stories.
 
@@ -641,10 +874,9 @@ provides a contextual alternative to the toolbar buttons.
 
 ![Create folder dialog](docs/mockups/08-create-folder-dialog.png)
 
-An Angular Material dialog overlaying the drive view. The dialog shows a title, a text input with the label "Folder
-name" and placeholder "Untitled folder," and Cancel/Create buttons. The mockup shows the validation error state with a
-red border and the message "Folder name is required," with the Create button disabled. This demonstrates Reactive Forms
-with validators.
+A custom dialog overlaying the drive view. The dialog shows a title, a text input with the label "Folder name" and
+placeholder "Untitled folder," and Cancel/Create buttons. The mockup shows the validation error state with a red border
+and the message "Folder name is required," with the Create button disabled.
 
 ### Rename dialog (US-10, US-17)
 
@@ -673,9 +905,12 @@ date.
 
 ![Upload progress](docs/mockups/12-upload-progress.png)
 
-A bottom panel that appears during file uploads. Each uploading file is shown as a row with the file name, a teal
-progress bar with percentage, and a cancel button. Multiple concurrent uploads are stacked. This demonstrates Angular
-HttpClient progress events.
+The upload progress section lives inside the `NotificationCenter` — a unified fixed bottom-right panel that renders all
+application notifications. During active uploads the panel shows an "Uploading N files" header with a collapse chevron.
+Each uploading file is a row with a green status dot, the file name, a teal progress bar with percentage, and a ×
+dismiss button. Multiple concurrent uploads are stacked. Completed entries are removed immediately; failed uploads
+disappear and surface as toast notifications. This section is feature-agnostic: any future progress-emitting operation
+(download, transcoding, etc.) can add entries using the same `ProgressNotification` model.
 
 ### Profile dropdown (US-03, US-04, US-23)
 
@@ -685,13 +920,53 @@ Clicking the avatar in the navigation bar opens a dropdown panel showing the use
 link, a storage usage section with a progress bar and percentage, and a red "Sign out" button separated by a divider.
 The storage bar changes color based on usage: teal for 0–70%, amber for 70–90%, and red for 90–100%.
 
-### Error states (US-15, US-24)
+### Error states and notifications (US-15, US-24)
 
 ![Error states](docs/mockups/15-21-22-24.png)
 
-Two inline alert banners. The "File too large" alert (red background) appears when a file exceeds the size limit,
-showing the file name and actual size versus the limit. The "Storage quota exceeded" alert (amber background) appears
-when the user's storage is full, showing a red 100% progress bar and a disabled upload button.
+Validation errors and operation outcomes surface through the `NotificationCenter` toast section. File-too-large and
+storage-quota-exceeded errors appear as auto-dismissing toast notifications with severity-appropriate styling derived
+from the `MessageCode` prefix (`messages.errors.*` → error severity). Toast notifications support i18n interpolation
+via `params: Record<string, unknown>` so messages can include dynamic values such as file names or sizes. Operation
+successes (folder created, file renamed, file deleted) also appear as info-severity toasts in the same panel.
+
+---
+
+## Frontend Architecture
+
+### Event bus and reactive pattern
+
+The Angular frontend is built around a central `MessageBusService` that owns a `Subject<ApplicationEvent>`. Every
+mutation flows through the bus:
+
+1. A user action fires an `*Initiated` event (with context payload).
+2. A dialog (if needed) fires a `*Confirmed` command event.
+3. A **listener** receives the command, calls the relevant `FileService` method, and fires `*Succeeded` or `*Failed`.
+4. Downstream listeners react to the outcome — refreshing directory contents, showing notifications, updating progress.
+
+**Listeners are single-responsibility and output-only:** each listener receives one event type and fires event types as
+its only output. Direct service state mutations are not permitted inside a listener that also makes HTTP calls; those
+concerns are split across dedicated listeners. For example, `FileCreateConfirmedApplicationEventListener` fires upload
+lifecycle events (`FileUploadInitiated`, `FileUploadProgressUpdated`, `FileUploadSucceeded`, `FileUploadFailed`) and a
+separate `UploadProgressApplicationEventListener` translates those into `NotificationService` calls.
+
+### Notification system
+
+All user-facing feedback flows through a unified `NotificationService` and rendered by a single `NotificationCenter`
+component fixed at the bottom-right of the screen.
+
+Two notification types share a common `ApplicationNotification` base interface:
+
+- **`MessageNotification`** — auto-dismissing toast for operation outcomes and errors. Carries a `MessageCode`
+  (translation key), optional `params: Record<string, unknown>` for interpolation, and severity derived from the key
+  prefix (`messages.errors.*` → error, `messages.info.*` → info).
+- **`ProgressNotification`** — live progress entry for long-running operations. Carries a `label` translation key,
+  optional `params`, and a `progress: number` (0–100). Feature-agnostic: file uploads, future downloads, and any other
+  progress-emitting operation use the same type. Entries are removed on completion; failures are removed immediately and
+  surface as `MessageNotification` toasts.
+
+The `NotificationCenter` renders progress entries in a collapsible section (matching the upload progress mockup) and
+toasts in a separate stack, both within the same panel.
 
 ---
 

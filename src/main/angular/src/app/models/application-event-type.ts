@@ -56,4 +56,15 @@ export enum ApplicationEventType {
 
   FilePropertiesShown = 'filePropertiesShown',
   FilePropertiesHidden = 'filePropertiesHidden',
+
+  FileUploadInitiated = 'fileUploadInitiated',
+  FileUploadProgressUpdated = 'fileUploadProgressUpdated',
+  FileUploadSucceeded = 'fileUploadSucceeded',
+  FileUploadFailed = 'fileUploadFailed',
+
+  FileDownloadInitiated = 'fileDownloadInitiated',
+  FileDownloadConfirmed = 'fileDownloadConfirmed',
+  FileDownloadProgressUpdated = 'fileDownloadProgressUpdated',
+  FileDownloadSucceeded = 'fileDownloadSucceeded',
+  FileDownloadFailed = 'fileDownloadFailed',
 }

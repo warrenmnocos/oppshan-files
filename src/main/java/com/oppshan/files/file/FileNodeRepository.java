@@ -166,6 +166,20 @@ public interface FileNodeRepository
                                         UUID userAccountUuid);
 
     @Query("""
+            SELECT userStorage.maxStorageBytes
+            FROM UserStorage userStorage
+            WHERE userStorage.userAccount.uuid = :userAccountUuid""")
+    long getMaxStorageBytes(@NotNull
+                            UUID userAccountUuid);
+
+    @Query("""
+            SELECT userStorage.maxFileUploadBytes
+            FROM UserStorage userStorage
+            WHERE userStorage.userAccount.uuid = :userAccountUuid""")
+    long getMaxFileUploadBytes(@NotNull
+                               UUID userAccountUuid);
+
+    @Query("""
             SELECT fileNode
             FROM FileNode fileNode
             WHERE fileNode.parentFileNode.uuid = :parentFileNodeUuid
@@ -177,4 +191,73 @@ public interface FileNodeRepository
 
                             @NotNull
                             UUID parentFileNodeUuid);
+
+    @Query("""
+            SELECT fileNode
+            FROM FileNode fileNode
+            WHERE fileNode.userAccount.uuid = :userAccountUuid
+                AND fileNode.uuid = :uuid
+                AND fileNode.directory = false""")
+    @NotNull
+    Optional<FileNode> findFileNode(@NotNull
+                                    UUID userAccountUuid,
+
+                                    @NotNull
+                                    UUID uuid);
+
+    @Query("""
+            SELECT fileNode
+            FROM FileNode fileNode
+            WHERE fileNode.userAccount.uuid = :userAccountUuid
+                AND fileNode.uuid = :uuid""")
+    @NotNull
+    Optional<FileNode> findNode(@NotNull
+                                UUID userAccountUuid,
+
+                                @NotNull
+                                UUID uuid);
+
+    @Query("""
+            SELECT COUNT(fileNode) > 0
+            FROM FileNode fileNode
+            WHERE fileNode.userAccount.uuid = :userAccountUuid
+                AND fileNode.parentFileNode.uuid = :parentFileNodeUuid
+                AND fileNode.name = :name
+                AND fileNode.mimeType = :mimeType
+                AND fileNode.directory = false""")
+    boolean isFilePresent(@NotNull
+                          UUID userAccountUuid,
+
+                          @NotNull
+                          UUID parentFileNodeUuid,
+
+                          @NotEmpty
+                          String name,
+
+                          @NotEmpty
+                          String mimeType);
+
+    @Query("""
+            SELECT COUNT(fileNode) > 0
+            FROM FileNode fileNode
+            WHERE fileNode.userAccount.uuid = :userAccountUuid
+                AND fileNode.parentFileNode.uuid = :parentFileNodeUuid
+                AND fileNode.name = :name
+                AND fileNode.mimeType = :mimeType
+                AND fileNode.directory = false
+                AND fileNode.uuid != :excludeUuid""")
+    boolean isFilePresent(@NotNull
+                          UUID userAccountUuid,
+
+                          @NotNull
+                          UUID parentFileNodeUuid,
+
+                          @NotEmpty
+                          String name,
+
+                          @NotEmpty
+                          String mimeType,
+
+                          @NotNull
+                          UUID excludeUuid);
 }

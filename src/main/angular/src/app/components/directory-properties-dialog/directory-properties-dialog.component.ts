@@ -1,4 +1,4 @@
-import {Component, computed, OnInit, signal} from '@angular/core';
+import {Component, computed, OnInit, Signal, signal, WritableSignal} from '@angular/core';
 import {TranslatePipe} from '@ngx-translate/core';
 import {DirectoryPropertiesView} from '../../models/directory-properties-view';
 import {FileSizePipe} from '../../misc/file-size.pipe';
@@ -16,14 +16,16 @@ import {FileNodeView} from '../../models/file-node-view';
 })
 export class DirectoryPropertiesDialog implements OnInit {
 
-  protected readonly properties = signal<DirectoryPropertiesView | null>(null);
+  protected readonly properties: WritableSignal<DirectoryPropertiesView | null>;
 
-  private readonly selectedDirectory = computed(
-    () => this.messageBusService.applicationEventSignal().payload as FileNodeView | null
-  );
+  private readonly selectedDirectory: Signal<FileNodeView | null>;
 
   constructor(private readonly messageBusService: MessageBusService,
               private readonly fileService: FileService) {
+    this.properties = signal<DirectoryPropertiesView | null>(null);
+    this.selectedDirectory = computed(
+      () => this.messageBusService.applicationEventSignal().payload as FileNodeView | null
+    );
   }
 
   ngOnInit(): void {

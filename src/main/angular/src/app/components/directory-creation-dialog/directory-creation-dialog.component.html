@@ -4,7 +4,8 @@
     <div class="dialog-body">
       <label class="dialog-label" for="directoryName">{{ 'dialog.createDirectory.label' | translate }}</label>
       <input (keydown.enter)="onConfirm()"
-             [(ngModel)]="directoryName"
+             (ngModelChange)="directoryName.set($event)"
+             [ngModel]="directoryName()"
              [placeholder]="'dialog.createDirectory.placeholder' | translate"
              class="dialog-input"
              id="directoryName"

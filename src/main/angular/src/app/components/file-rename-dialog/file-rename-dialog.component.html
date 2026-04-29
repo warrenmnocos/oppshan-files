@@ -1,0 +1,26 @@
+<div (click)="onCancel()" class="dialog-overlay">
+  <div (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)" class="dialog">
+    <h2 class="dialog-title">{{ 'dialog.renameFile.title' | translate }}</h2>
+    <div class="dialog-body">
+      <label class="dialog-label" for="fileName">{{ 'dialog.renameFile.label' | translate }}</label>
+      <input (keydown.enter)="onConfirm()"
+             (ngModelChange)="fileName.set($event)"
+             [ngModel]="fileName()"
+             class="dialog-input"
+             id="fileName"
+             maxlength="255"
+             type="text"/>
+      @if (errorMessage()) {
+        <p class="dialog-error">{{ errorMessage() }}</p>
+      }
+    </div>
+    <div class="dialog-actions">
+      <button (click)="onCancel()" class="dialog-btn dialog-btn-secondary">
+        {{ 'dialog.renameFile.cancel' | translate }}
+      </button>
+      <button (click)="onConfirm()" class="dialog-btn dialog-btn-primary">
+        {{ 'dialog.renameFile.rename' | translate }}
+      </button>
+    </div>
+  </div>
+</div>

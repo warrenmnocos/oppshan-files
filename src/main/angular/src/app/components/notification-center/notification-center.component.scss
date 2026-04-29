@@ -1,0 +1,181 @@
+.notification-center {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1000;
+}
+
+// ── Progress section ──────────────────────────────────────────────────────────
+
+.progress-section {
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #dadce0;
+}
+
+.progress-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #202124;
+}
+
+.progress-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f1f3f4;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #009688;
+  margin-top: 5px;
+  flex-shrink: 0;
+
+  &--download {
+    background: #1a73e8;
+  }
+}
+
+.progress-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.progress-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.progress-label {
+  font-size: 13px;
+  color: #202124;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.progress-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #009688;
+  border-radius: 2px;
+  transition: width 0.2s ease;
+
+  &--download {
+    background: #1a73e8;
+  }
+}
+
+.progress-pct {
+  font-size: 11px;
+  color: #5f6368;
+  min-width: 32px;
+  text-align: right;
+}
+
+// ── Toast section ─────────────────────────────────────────────────────────────
+
+.toast-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 4px;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  font-size: 14px;
+
+  &--info {
+    background: #323232;
+  }
+
+  &--warning {
+    background: #c98803;
+  }
+
+  &--error {
+    background: #b3261e;
+  }
+}
+
+.toast-message {
+  flex: 1;
+}
+
+// ── Shared ────────────────────────────────────────────────────────────────────
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #5f6368;
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 4px;
+
+  &:hover {
+    color: #202124;
+  }
+}
+
+.toast-dismiss {
+  color: rgba(255, 255, 255, 0.7);
+
+  &:hover {
+    color: #fff;
+  }
+}
+
+.chevron {
+  display: inline-block;
+  transition: transform 0.2s ease;
+
+  &--collapsed {
+    transform: rotate(180deg);
+  }
+}

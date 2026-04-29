@@ -1,0 +1,62 @@
+# Build the Quarkus native image on an ARM runner and deploy to EC2 via SSM Run Command.
+# No SSH, no long-lived AWS keys — OIDC federation lets this workflow assume an IAM role
+# at runtime, scoped via the role's trust policy to this repo + main branch only.
+
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-prod
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    timeout-minutes: 25
+
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'graalvm'
+          cache: 'maven'            # cache ~/.m2 across runs
+
+      - name: Build native image
+        run: ./mvnw -B -Pnative-release package -DskipTests
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload artifact to S3
+        run: |
+          ARTIFACT_KEY="releases/$(git rev-parse --short HEAD).runner"
+          aws s3 cp target/oppshan-files-*-runner "s3://${{ secrets.AWS_ARTIFACT_BUCKET }}/${ARTIFACT_KEY}"
+          echo "ARTIFACT_KEY=${ARTIFACT_KEY}" >> "$GITHUB_ENV"
+
+      - name: Deploy via SSM Run Command
+        run: |
+          CMD_ID=$(aws ssm send-command \
+            --instance-ids "${{ secrets.AWS_INSTANCE_ID }}" \
+            --document-name "AWS-RunShellScript" \
+            --parameters commands="[
+              \"sudo systemctl stop oppshan-files || true\",
+              \"sudo aws s3 cp s3://${{ secrets.AWS_ARTIFACT_BUCKET }}/${ARTIFACT_KEY} /opt/oppshan-files/oppshan-files-runner\",
+              \"sudo chmod +x /opt/oppshan-files/oppshan-files-runner\",
+              \"sudo chown oppshan:oppshan /opt/oppshan-files/oppshan-files-runner\",
+              \"sudo systemctl start oppshan-files\"
+            ]" \
+            --query 'Command.CommandId' --output text)
+          aws ssm wait command-executed --command-id "$CMD_ID" \
+            --instance-id "${{ secrets.AWS_INSTANCE_ID }}"

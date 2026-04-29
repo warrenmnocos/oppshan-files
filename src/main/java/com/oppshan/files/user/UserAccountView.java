@@ -34,6 +34,9 @@ public record UserAccountView(
         @PositiveOrZero
         long maxStorageBytes,
 
+        @PositiveOrZero
+        long maxFileUploadBytes,
+
         UUID rootFileNodeUuid,
 
         @NotNull
@@ -52,6 +55,7 @@ public record UserAccountView(
             "anonymous",
             "anonymous",
             "anonymous",
+            0,
             0,
             0,
             UUID.nameUUIDFromBytes("anonymous".getBytes(StandardCharsets.UTF_8)),

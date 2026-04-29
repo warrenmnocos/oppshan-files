@@ -1,4 +1,4 @@
-import {Component, OnInit, signal} from '@angular/core';
+import {Component, OnInit, signal, WritableSignal} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {TranslatePipe} from '@ngx-translate/core';
 import {MessageCode} from '../../models/message-code';
@@ -6,19 +6,21 @@ import {MessageBusService} from '../../services/message-bus-service';
 import {ApplicationEvent} from '../../models/application-event';
 import {ApplicationEventType} from '../../models/application-event-type';
 import {SignInCommand} from '../../models/operation-commands';
+import {Footer} from '../../components/footer/footer.component';
 
 @Component({
   selector: 'app-sign-in',
   templateUrl: './sign-in.component.html',
   styleUrl: './sign-in.component.scss',
-  imports: [TranslatePipe],
+  imports: [TranslatePipe, Footer],
 })
 export class SignIn implements OnInit {
 
-  protected errorKey = signal<MessageCode | null>(null);
+  protected readonly errorKey: WritableSignal<MessageCode | null>;
 
   constructor(private readonly messageBusService: MessageBusService,
               private readonly route: ActivatedRoute) {
+    this.errorKey = signal<MessageCode | null>(null);
   }
 
   ngOnInit(): void {

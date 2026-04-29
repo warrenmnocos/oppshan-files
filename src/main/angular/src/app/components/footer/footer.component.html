@@ -1,0 +1,15 @@
+<footer class="footer">
+  <div class="footer-row">
+    <span class="footer-tagline">{{ 'footer.tagline' | translate }}</span>
+    <span class="footer-meta">
+      <span class="footer-copyright">{{ 'footer.copyright' | translate: {year: currentYear()} }}</span>
+      <span aria-hidden="true" class="footer-separator">·</span>
+      <a [href]="sourceUrl" class="footer-link" rel="noopener noreferrer" target="_blank">
+        {{ 'footer.source' | translate }}
+      </a>
+      <span aria-hidden="true" class="footer-separator">·</span>
+      <span class="footer-version">{{ 'footer.version' | translate }}</span>
+    </span>
+  </div>
+  <div class="footer-academic">{{ 'footer.academic' | translate }}</div>
+</footer>

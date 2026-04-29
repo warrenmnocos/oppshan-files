@@ -1,10 +1,12 @@
+<input #fileInput (change)="onFilesSelected(fileInput.files)" accept="*/*" hidden multiple type="file"/>
+
 <div class="action-bar">
   <div class="action-bar-left">
     <button (click)="onDirectoryCreationRequested()" [disabled]="loading()" class="action-btn action-btn-primary">
       <img alt="" class="action-btn-icon" src="/icons/plus.svg"/>
       {{ 'fileBrowser.newDirectory' | translate }}
     </button>
-    <button class="action-btn action-btn-secondary" disabled>
+      <button (click)="onUploadRequested()" [disabled]="loading()" class="action-btn action-btn-secondary">
       <img alt="" class="action-btn-icon" src="/icons/upload.svg"/>
       {{ 'fileBrowser.upload' | translate }}
     </button>
@@ -25,7 +27,11 @@
   </div>
 </div>
 
-<div class="browser-content">
+<div class="browser-content"
+     [class.drop-target]="dropTarget()"
+     (dragover)="onDragOver($event)"
+     (dragleave)="onDragLeave()"
+     (drop)="onDrop($event)">
   @if (loading() && viewMode() === ViewMode.List) {
     <div class="list-view">
       <div class="list-header">
@@ -35,7 +41,7 @@
         <span class="list-col-actions" aria-hidden="true"></span>
       </div>
       <div class="skeleton-list">
-        @for (_ of [1, 2, 3, 4, 5]; track $index) {
+          @for (skeletonItem of [1, 2, 3, 4, 5]; track $index) {
           <div class="skeleton-row">
             <div class="skeleton-line skeleton-icon"></div>
             <div class="skeleton-line skeleton-name"></div>
@@ -47,7 +53,7 @@
     </div>
   } @else if (loading() && viewMode() === ViewMode.Grid) {
     <div class="grid-view">
-      @for (_ of [1, 2, 3, 4, 5, 6, 7, 8]; track $index) {
+        @for (skeletonItem of [1, 2, 3, 4, 5, 6, 7, 8]; track $index) {
         <div class="skeleton-grid-item">
           <div class="skeleton-line skeleton-grid-icon"></div>
           <div class="skeleton-line skeleton-grid-name"></div>
@@ -94,6 +100,25 @@
                 <img alt="Properties" class="action-icon" src="/icons/info.svg"/>
               </button>
             </span>
+          } @else {
+              <span class="list-col-actions">
+              <button (click)="onFileDownloadRequested(fileNodeView); $event.stopPropagation()"
+                      class="action-icon-btn" title="Download">
+                <img alt="Download" class="action-icon" src="/icons/download.svg"/>
+              </button>
+              <button (click)="onFileRenameRequested(fileNodeView); $event.stopPropagation()"
+                      class="action-icon-btn" title="Rename">
+                <img alt="Rename" class="action-icon" src="/icons/edit.svg"/>
+              </button>
+              <button (click)="onFileDeletionRequested(fileNodeView); $event.stopPropagation()"
+                      class="action-icon-btn" title="Delete">
+                <img alt="Delete" class="action-icon" src="/icons/delete.svg"/>
+              </button>
+              <button (click)="onFilePropertiesRequested(fileNodeView); $event.stopPropagation()"
+                      class="action-icon-btn" title="Properties">
+                <img alt="Properties" class="action-icon" src="/icons/info.svg"/>
+              </button>
+            </span>
           }
         </div>
       }
@@ -122,6 +147,25 @@
                 <img alt="Delete" class="action-icon" src="/icons/delete.svg"/>
               </button>
               <button (click)="onDirectoryPropertiesRequested(fileNodeView); $event.stopPropagation()"
+                      class="action-icon-btn" title="Properties">
+                <img alt="Properties" class="action-icon" src="/icons/info.svg"/>
+              </button>
+            </span>
+          } @else {
+              <span class="grid-item-actions">
+              <button (click)="onFileDownloadRequested(fileNodeView); $event.stopPropagation()"
+                      class="action-icon-btn" title="Download">
+                <img alt="Download" class="action-icon" src="/icons/download.svg"/>
+              </button>
+              <button (click)="onFileRenameRequested(fileNodeView); $event.stopPropagation()"
+                      class="action-icon-btn" title="Rename">
+                <img alt="Rename" class="action-icon" src="/icons/edit.svg"/>
+              </button>
+              <button (click)="onFileDeletionRequested(fileNodeView); $event.stopPropagation()"
+                      class="action-icon-btn" title="Delete">
+                <img alt="Delete" class="action-icon" src="/icons/delete.svg"/>
+              </button>
+              <button (click)="onFilePropertiesRequested(fileNodeView); $event.stopPropagation()"
                       class="action-icon-btn" title="Properties">
                 <img alt="Properties" class="action-icon" src="/icons/info.svg"/>
               </button>

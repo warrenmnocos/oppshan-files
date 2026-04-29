@@ -1,0 +1,7 @@
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+  <path d="M6 2h8l6 6v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" fill="#3949ab"/>
+  <path d="M14 2v6h6z" fill="#ffffff" fill-opacity="0.35"/>
+  <text x="12" y="17" font-family="Segoe UI, Arial, sans-serif" font-size="4.2" font-weight="700" fill="#ffffff"
+        text-anchor="middle">LIB
+  </text>
+</svg>

@@ -52,4 +52,10 @@ public class SessionScopedUserSessionManager implements UserSessionManager {
 
         delegate.signOut();
     }
+
+    @Override
+    @Lock(Type.WRITE)
+    public void refreshSessionUserAccount() {
+        sessionUserAccountView = delegate.getSessionUserAccount();
+    }
 }

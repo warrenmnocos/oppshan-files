@@ -219,8 +219,7 @@ public class FileNode
 
     @Basic(optional = false)
     @Column(name = "size_bytes",
-            nullable = false,
-            updatable = false)
+            nullable = false)
     @PositiveOrZero
     private long sizeBytes;
 
@@ -278,12 +277,23 @@ public class FileNode
     @NotNull
     private Instant lastModifiedAt;
 
-    public static FileNode createRoot(UserAccount userAccount) {
+    public static FileNode createDirectory(UserAccount userAccount,
+                                           String name) {
         return new FileNode()
-                .setName("root")
+                .setName(name)
                 .setMimeType("application/vnd.oppshan-files.folder")
                 .setDirectory(true)
-                .setUserAccount(userAccount)
+                .setUserAccount(userAccount);
+    }
+
+    public static FileNode createDirectory(FileNode parentFileNode,
+                                           String name) {
+        return createDirectory(parentFileNode.getUserAccount(), name)
+                .setParentFileNode(parentFileNode);
+    }
+
+    public static FileNode createRoot(UserAccount userAccount) {
+        return createDirectory(userAccount, "Root")
                 .addDirectoryChildFileNode("Audio")
                 .addDirectoryChildFileNode("Documents")
                 .addDirectoryChildFileNode("Photos")

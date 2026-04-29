@@ -13,4 +13,7 @@ public interface UserSessionManager extends Serializable {
     boolean isSignedOut();
 
     void signOut();
+
+    default void refreshSessionUserAccount() {
+    }
 }

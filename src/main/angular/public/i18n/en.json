@@ -5,8 +5,7 @@
     "prompt": "Sign in to access your files securely from anywhere.",
     "signInWithGoogle": "Sign in with Google",
     "oauthNote": "Secured with Single Sign-on \u2014 we never see your credentials",
-    "error": "Sign in failed. Please try again.",
-    "footer": "ITMD 504 \u2014 Illinois Institute of Technology"
+    "error": "Sign in failed. Please try again."
   },
   "toolbar": {
     "title": "Files",
@@ -47,6 +46,28 @@
       "delete": "Delete",
       "cancel": "Cancel"
     },
+    "renameFile": {
+      "title": "Rename file",
+      "label": "File name",
+      "rename": "Rename",
+      "cancel": "Cancel"
+    },
+    "deleteFile": {
+      "title": "Delete file?",
+      "message": "\"{{name}}\" will be permanently deleted.",
+      "delete": "Delete",
+      "cancel": "Cancel"
+    },
+    "fileProperties": {
+      "title": "File properties",
+      "name": "Name",
+      "type": "Type",
+      "size": "Size",
+      "location": "Location",
+      "created": "Created",
+      "modified": "Updated",
+      "close": "Close"
+    },
     "directoryProperties": {
       "title": "Folder properties",
       "name": "Name",
@@ -67,11 +88,26 @@
       "terabytes": "TB"
     }
   },
+  "notificationCenter": {
+    "uploadingFiles": "Uploading {{count}} file(s)",
+    "downloadingFiles": "Downloading {{count}} file(s)"
+  },
+  "footer": {
+    "tagline": "Files — A personal file manager",
+    "copyright": "© {{year}} Warren Nocos",
+    "source": "Source",
+    "version": "v1.0.0",
+    "academic": "Final exam for ITMD 504, Illinois Institute of Technology"
+  },
   "messages": {
     "info": {
       "directoryCreated": "Folder created.",
       "directoryRenamed": "Folder renamed.",
-      "directoryDeleted": "Folder deleted."
+      "directoryDeleted": "Folder deleted.",
+      "fileUploaded": "File uploaded.",
+      "fileDownloaded": "File downloaded.",
+      "fileRenamed": "File renamed.",
+      "fileDeleted": "File deleted."
     },
     "warning": {
     },
@@ -85,6 +121,12 @@
       "directoryNameRequired": "Folder name is required.",
       "rootDirectoryDeletionNotAllowed": "The root directory cannot be deleted.",
       "accessDenied": "You do not have permission to access this resource.",
+      "fileNotFound": "File not found.",
+      "fileNameNotUnique": "A file with this name already exists.",
+      "fileNameRequired": "File name is required.",
+      "fileSizeExceeded": "File exceeds the upload size limit.",
+      "fileQuotaExceeded": "Not enough storage. Delete some files to free up space.",
+      "folderUploadRejected": "Folders cannot be uploaded.",
       "unknown": "An unexpected error occurred. Please try again."
     }
   }

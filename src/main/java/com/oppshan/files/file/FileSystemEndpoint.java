@@ -5,6 +5,7 @@ import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
+import jakarta.ws.rs.BeanParam;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.DefaultValue;
@@ -17,21 +18,23 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
+import java.io.InputStream;
 import java.util.UUID;
 
-@Path("api/directories")
+@Path("api/files")
 @Authenticated
 @ApplicationScoped
-public class DirectoryEndpoint {
+public class FileSystemEndpoint {
 
     private final UserSessionManager userSessionManager;
 
     private final FileNodeService fileNodeService;
 
     @Inject
-    public DirectoryEndpoint(UserSessionManager userSessionManager,
-                             FileNodeService fileNodeService) {
+    public FileSystemEndpoint(UserSessionManager userSessionManager,
+                              FileNodeService fileNodeService) {
         this.userSessionManager = userSessionManager;
         this.fileNodeService = fileNodeService;
     }
@@ -65,7 +68,8 @@ public class DirectoryEndpoint {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createDirectory(@Valid CreateDirectoryRequest request) {
-        return Response.ok(fileNodeService.createDirectory(
+        return Response.status(Status.CREATED)
+                .entity(fileNodeService.createDirectory(
                         userSessionManager.getSessionUserAccount().uuid(),
                         request
                 ))
@@ -76,13 +80,14 @@ public class DirectoryEndpoint {
     @Path("{uuid}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response renameDirectory(@PathParam("uuid")
-                                    UUID directoryUuid,
+    public Response renameFileNode(@PathParam("uuid")
+                                   UUID parentFileNodeUuid,
 
-                                    @Valid RenameDirectoryRequest request) {
-        return Response.ok(fileNodeService.renameDirectory(
+                                   @Valid
+                                   RenameFileNodeRequest request) {
+        return Response.ok(fileNodeService.renameFileNode(
                         userSessionManager.getSessionUserAccount().uuid(),
-                        directoryUuid,
+                        parentFileNodeUuid,
                         request
                 ))
                 .build();
@@ -91,24 +96,57 @@ public class DirectoryEndpoint {
     @DELETE
     @Path("{uuid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response deleteDirectory(@PathParam("uuid")
-                                    UUID directoryUuid) {
-        return Response.ok(fileNodeService.deleteDirectory(
-                        userSessionManager.getSessionUserAccount().uuid(),
-                        directoryUuid
-                ))
-                .build();
+    public Response deleteFileNode(@PathParam("uuid")
+                                   UUID nodeUuid) {
+        final var directoryContentsView = fileNodeService.deleteFileNode(
+                userSessionManager.getSessionUserAccount().uuid(),
+                nodeUuid
+        );
+        userSessionManager.refreshSessionUserAccount();
+        return Response.ok(directoryContentsView).build();
     }
 
     @GET
     @Path("{uuid}/properties")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getDirectoryProperties(@PathParam("uuid")
-                                           UUID directoryUuid) {
-        return Response.ok(fileNodeService.getDirectoryProperties(
+    public Response getFileNodeProperties(@PathParam("uuid")
+                                          UUID nodeUuid) {
+        return Response.ok(fileNodeService.getFileNodePropertiesView(
                         userSessionManager.getSessionUserAccount().uuid(),
-                        directoryUuid
+                        nodeUuid
                 ))
                 .build();
+    }
+
+    @POST
+    @Path("{uuid}/upload")
+    @Consumes(MediaType.WILDCARD)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response uploadFile(@Valid
+                               @BeanParam
+                               FileUploadRequest request,
+
+                               InputStream bodyStream) {
+        final var directoryContentsView = fileNodeService.uploadFile(
+                userSessionManager.getSessionUserAccount().uuid(),
+                request.getParentFileNodeUuid(),
+                request.getContentFilename(),
+                request.getContentType(),
+                bodyStream
+        );
+        userSessionManager.refreshSessionUserAccount();
+        return Response.status(Status.CREATED)
+                .entity(directoryContentsView)
+                .build();
+    }
+
+    @GET
+    @Path("{uuid}/download")
+    @Produces(MediaType.WILDCARD)
+    public FileDownloadViewResolver downloadFile(@PathParam("uuid") UUID fileUuid) {
+        return fileNodeService.getFileDownloadViewResolver(
+                userSessionManager.getSessionUserAccount().uuid(),
+                fileUuid
+        );
     }
 }

@@ -60,6 +60,11 @@ public class UserStorage
     @PositiveOrZero
     private long maxStorageBytes;
 
+    @Column(name = "max_file_upload_bytes",
+            nullable = false)
+    @PositiveOrZero
+    private long maxFileUploadBytes;
+
     @OneToOne(
             cascade = CascadeType.ALL,
             orphanRemoval = true,
@@ -112,6 +117,15 @@ public class UserStorage
 
     public UserStorage setMaxStorageBytes(long maxStorageBytes) {
         this.maxStorageBytes = maxStorageBytes;
+        return this;
+    }
+
+    public long getMaxFileUploadBytes() {
+        return maxFileUploadBytes;
+    }
+
+    public UserStorage setMaxFileUploadBytes(long maxFileUploadBytes) {
+        this.maxFileUploadBytes = maxFileUploadBytes;
         return this;
     }
 

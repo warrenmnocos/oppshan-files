@@ -1,0 +1,90 @@
+@if (uploadProgressNotifications().length > 0
+|| downloadProgressNotifications().length > 0
+|| messageNotifications().length > 0) {
+  <div class="notification-center">
+
+    @if (uploadProgressNotifications().length > 0) {
+      <div class="progress-section">
+        <div class="progress-header">
+          <span class="progress-title">
+            {{ 'notificationCenter.uploadingFiles' | translate: {count: uploadProgressNotifications().length} }}
+          </span>
+          <button (click)="toggleUploadCollapsed()" class="icon-btn" type="button"
+                  [attr.aria-label]="uploadCollapsed() ? 'Expand' : 'Collapse'">
+            <span class="chevron" [class.chevron--collapsed]="uploadCollapsed()">&#8963;</span>
+          </button>
+        </div>
+        @if (!uploadCollapsed()) {
+          @for (notification of uploadProgressNotifications(); track notification.id) {
+            <div class="progress-entry">
+              <span class="progress-dot"></span>
+              <div class="progress-content">
+                <div class="progress-label-row">
+                  <span class="progress-label">{{ notification.label | translate: notification.params }}</span>
+                  <button (click)="dismissProgress(notification.id)"
+                          class="icon-btn" type="button" aria-label="Dismiss">&times;
+                  </button>
+                </div>
+                <div class="progress-bar-row">
+                  <div class="progress-bar">
+                    <div class="progress-fill" [style.width.%]="notification.progress"></div>
+                  </div>
+                  <span class="progress-pct">{{ notification.progress }}%</span>
+                </div>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    }
+
+    @if (downloadProgressNotifications().length > 0) {
+      <div class="progress-section">
+        <div class="progress-header">
+          <span class="progress-title">
+            {{ 'notificationCenter.downloadingFiles' | translate: {count: downloadProgressNotifications().length} }}
+          </span>
+          <button (click)="toggleDownloadCollapsed()" class="icon-btn" type="button"
+                  [attr.aria-label]="downloadCollapsed() ? 'Expand' : 'Collapse'">
+            <span class="chevron" [class.chevron--collapsed]="downloadCollapsed()">&#8963;</span>
+          </button>
+        </div>
+        @if (!downloadCollapsed()) {
+          @for (notification of downloadProgressNotifications(); track notification.id) {
+            <div class="progress-entry">
+              <span class="progress-dot progress-dot--download"></span>
+              <div class="progress-content">
+                <div class="progress-label-row">
+                  <span class="progress-label">{{ notification.label | translate: notification.params }}</span>
+                  <button (click)="dismissProgress(notification.id)"
+                          class="icon-btn" type="button" aria-label="Dismiss">&times;
+                  </button>
+                </div>
+                <div class="progress-bar-row">
+                  <div class="progress-bar">
+                    <div class="progress-fill progress-fill--download" [style.width.%]="notification.progress"></div>
+                  </div>
+                  <span class="progress-pct">{{ notification.progress }}%</span>
+                </div>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    }
+
+    @if (messageNotifications().length > 0) {
+      <div aria-live="polite" class="toast-section" role="status">
+        @for (notification of messageNotifications(); track notification.id) {
+          <div [class]="'toast toast--' + notification.severity">
+            <span class="toast-message">{{ notification.messageCode | translate: notification.params }}</span>
+            <button (click)="dismissMessage(notification.id)"
+                    aria-label="Dismiss" class="icon-btn toast-dismiss" type="button">&times;
+            </button>
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+}

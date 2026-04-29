@@ -67,4 +67,8 @@ public interface StatefulWriteRepository<T> {
 
         return CDI.current().select(EntityManager.class).get().merge(entity);
     }
+
+    default void flushWithSession() {
+        CDI.current().select(EntityManager.class).get().flush();
+    }
 }

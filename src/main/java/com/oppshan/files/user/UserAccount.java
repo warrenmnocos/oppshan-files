@@ -207,6 +207,7 @@ public class UserAccount
                 photoUrl,
                 usedStorageBytes,
                 userStorage.getMaxStorageBytes(),
+                userStorage.getMaxFileUploadBytes(),
                 userStorage.getRootFileNode().getUuid(),
                 createdAt,
                 lastModifiedAt

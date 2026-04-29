@@ -1,5 +1,6 @@
 package com.oppshan.files.common;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.undertow.servlet.ServletExtension;
 import io.undertow.servlet.api.DeploymentInfo;
 import jakarta.servlet.ServletContext;
@@ -13,8 +14,12 @@ import java.util.concurrent.Executors;
 /**
  * Undertow SPI extension that replaces the servlet worker thread pool with a virtual-thread-per-task executor.
  * <p>
- * Registered via {@code META-INF/services/io.undertow.servlet.ServletExtension}.
+ * Registered via {@code META-INF/services/io.undertow.servlet.ServletExtension}. The
+ * {@link RegisterForReflection} annotation guarantees that GraalVM keeps the no-arg constructor
+ * accessible so {@code ServiceLoader.load(ServletExtension.class)} can instantiate this class at
+ * runtime in the native image.
  */
+@RegisterForReflection
 public class VirtualThreadServletExtension implements ServletExtension, UncaughtExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(VirtualThreadServletExtension.class);

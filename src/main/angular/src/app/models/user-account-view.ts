@@ -17,6 +17,8 @@ export class UserAccountView {
 
   maxStorageBytes!: number;
 
+  maxFileUploadBytes!: number;
+
   rootFileNodeUuid!: string;
 
   @TransformDateTime()

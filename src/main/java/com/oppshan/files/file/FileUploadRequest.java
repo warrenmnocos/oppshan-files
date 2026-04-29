@@ -2,12 +2,15 @@ package com.oppshan.files.file;
 
 import com.google.common.base.MoreObjects;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.PathParam;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import java.util.regex.Pattern;
 
 public class FileUploadRequest implements Serializable {
@@ -17,6 +20,10 @@ public class FileUploadRequest implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    @NotNull
+    @PathParam("uuid")
+    private UUID parentFileNodeUuid;
+
     @NotEmpty
     @HeaderParam("Content-Type")
     private String contentType;
@@ -24,6 +31,10 @@ public class FileUploadRequest implements Serializable {
     @NotEmpty
     @HeaderParam("Content-Disposition")
     private String contentDisposition;
+
+    public UUID getParentFileNodeUuid() {
+        return parentFileNodeUuid;
+    }
 
     public String getContentType() {
         return contentType;

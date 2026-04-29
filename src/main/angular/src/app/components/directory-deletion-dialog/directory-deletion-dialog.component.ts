@@ -1,4 +1,4 @@
-import {Component, computed, OnInit, signal} from '@angular/core';
+import {Component, computed, OnInit, Signal, signal, WritableSignal} from '@angular/core';
 import {TranslatePipe} from '@ngx-translate/core';
 import {MessageBusService} from '../../services/message-bus-service';
 import {ApplicationEvent} from '../../models/application-event';
@@ -15,16 +15,19 @@ import {FileNodeView} from '../../models/file-node-view';
 })
 export class DirectoryDeletionDialog implements OnInit {
 
-  protected readonly itemCount = signal(0);
+  protected readonly itemCount: WritableSignal<number>;
 
-  protected readonly selectedDirectory = computed(
-    () => this.messageBusService.applicationEventSignal().payload as FileNodeView | null
-  );
+  protected readonly selectedDirectory: Signal<FileNodeView | null>;
 
-  protected readonly directoryName = computed(() => this.selectedDirectory()?.name ?? '');
+  protected readonly directoryName: Signal<string>;
 
   constructor(private readonly messageBusService: MessageBusService,
               private readonly fileService: FileService) {
+    this.itemCount = signal(0);
+    this.selectedDirectory = computed(
+      () => this.messageBusService.applicationEventSignal().payload as FileNodeView | null
+    );
+    this.directoryName = computed(() => this.selectedDirectory()?.name ?? '');
   }
 
   ngOnInit(): void {

@@ -117,6 +117,7 @@ public class UserAccountService {
                         new UserStorage()
                                 .setUserAccount(newUser)
                                 .setMaxStorageBytes(applicationStorage.userMaxBytes())
+                                .setMaxFileUploadBytes(applicationStorage.fileUploadMaxBytes())
                                 .setRootFileNode(FileNode.createRoot(newUser))
                 )
                 .getIdpAccounts().add(googleAccount);

@@ -23,6 +23,8 @@
         <jakarta.data-api.version>1.0.1</jakarta.data-api.version>
         <yarn.version>v1.22.22</yarn.version>
         <skipITs>true</skipITs>
+        <!-- Default -march for native build; overridden by arch-aarch64 / arch-amd64 profiles. -->
+        <native.march>-march=compatibility</native.march>
     </properties>
 
     <dependencyManagement>
@@ -65,10 +67,6 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-jdbc-postgresql</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-jdbc-h2</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -221,7 +219,7 @@
                         </goals>
                         <phase>generate-resources</phase>
                         <configuration>
-                            <arguments>build --configuration development</arguments>
+                            <arguments>build</arguments>
                         </configuration>
                     </execution>
                 </executions>
@@ -238,9 +236,80 @@
                 </property>
             </activation>
             <properties>
-                <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
                 <skipITs>false</skipITs>
+                <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
                 <quarkus.native.enabled>true</quarkus.native.enabled>
+                <quarkus.native.additional-build-args>
+                    -H:+UnlockExperimentalVMOptions,
+                    -H:+AddAllCharsets,
+                    -H:+InstallExitHandlers,
+                    -R:MaxHeapSize=1G,
+                    -H:+JNI,
+                    -H:+UseServiceLoaderFeature,
+                    -H:+TraceSecurityServices,
+                    -H:+EnableSecurityServicesFeature,
+                    -H:+SourceLevelDebug,
+                    -H:+ReportExceptionStackTraces,
+                    -g,
+                    ${native.march},
+                    --gc=G1,
+                    --future-defaults=all,
+                    --enable-native-access=ALL-UNNAMED,
+                    --verbose,
+                </quarkus.native.additional-build-args>
+                <quarkus.native.resources.includes>
+                    META-INF/services/**,**/*.properties,**/*.xml,**/*.json,**/*.sql,**/*.html,**/*.css,**/*.js,**/*.svg,**/*.png,**/*.jpg,**/*.jpeg,**/*.gif,**/*.ico,**/*.woff,**/*.woff2,**/*.ttf,**/*.otf,**/*.eot,**/*.txt,**/*.md
+                </quarkus.native.resources.includes>
+            </properties>
+        </profile>
+        <profile>
+            <id>native-release</id>
+            <activation>
+                <property>
+                    <name>native-release</name>
+                </property>
+            </activation>
+            <properties>
+                <skipITs>false</skipITs>
+                <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
+                <quarkus.native.enabled>true</quarkus.native.enabled>
+                <quarkus.native.additional-build-args>
+                    -H:+UnlockExperimentalVMOptions,
+                    -H:+InstallExitHandlers,
+                    -H:+JNI,
+                    -H:+UseServiceLoaderFeature,
+                    -H:+EnableSecurityServicesFeature,
+                    -H:+ReportExceptionStackTraces,
+                    ${native.march},
+                    --gc=G1,
+                    --future-defaults=all,
+                    --enable-native-access=ALL-UNNAMED,
+                </quarkus.native.additional-build-args>
+                <quarkus.native.resources.includes>
+                    META-INF/services/**,**/*.properties,**/*.xml,**/*.json,**/*.sql,**/*.html,**/*.css,**/*.js,**/*.svg,**/*.png,**/*.jpg,**/*.jpeg,**/*.gif,**/*.ico,**/*.woff,**/*.woff2,**/*.ttf,**/*.otf,**/*.eot,**/*.txt,**/*.md
+                </quarkus.native.resources.includes>
+            </properties>
+        </profile>
+        <profile>
+            <id>arch-aarch64</id>
+            <activation>
+                <os>
+                    <arch>aarch64</arch>
+                </os>
+            </activation>
+            <properties>
+                <native.march>-march=armv8-a+crypto</native.march>
+            </properties>
+        </profile>
+        <profile>
+            <id>arch-amd64</id>
+            <activation>
+                <os>
+                    <arch>amd64</arch>
+                </os>
+            </activation>
+            <properties>
+                <native.march>-march=x86-64-v3</native.march>
             </properties>
         </profile>
     </profiles>

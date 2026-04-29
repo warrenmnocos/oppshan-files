@@ -35,6 +35,21 @@ import {
   DirectoryNavigationInitiatedApplicationEventListener
 } from './listeners/directory-navigation-initiated-application-event-listener.service';
 import {SessionHttpInterceptor} from './misc/session-http-interceptor.service';
+import {
+  FileCreateConfirmedApplicationEventListener
+} from './listeners/file-create-confirmed-application-event-listener.service';
+import {
+  FileRenameConfirmedApplicationEventListener
+} from './listeners/file-rename-confirmed-application-event-listener.service';
+import {
+  FileDeletionConfirmedApplicationEventListener
+} from './listeners/file-deletion-confirmed-application-event-listener.service';
+import {
+  OperationProgressApplicationEventListener
+} from './listeners/operation-progress-application-event-listener.service';
+import {
+  FileDownloadConfirmedApplicationEventListener
+} from './listeners/file-download-confirmed-application-event-listener.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -93,6 +108,31 @@ export const appConfig: ApplicationConfig = {
     {
       provide: MESSAGE_LISTENERS,
       useClass: NotificationRequiredApplicationEventListener,
+      multi: true,
+    },
+    {
+      provide: MESSAGE_LISTENERS,
+      useClass: FileCreateConfirmedApplicationEventListener,
+      multi: true,
+    },
+    {
+      provide: MESSAGE_LISTENERS,
+      useClass: FileRenameConfirmedApplicationEventListener,
+      multi: true,
+    },
+    {
+      provide: MESSAGE_LISTENERS,
+      useClass: FileDeletionConfirmedApplicationEventListener,
+      multi: true,
+    },
+    {
+      provide: MESSAGE_LISTENERS,
+      useClass: FileDownloadConfirmedApplicationEventListener,
+      multi: true,
+    },
+    {
+      provide: MESSAGE_LISTENERS,
+      useClass: OperationProgressApplicationEventListener,
       multi: true,
     },
   ],

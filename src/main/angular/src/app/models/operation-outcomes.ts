@@ -10,7 +10,15 @@ export type OperationOutcome =
   | DirectoryRenameSucceeded
   | DirectoryRenameFailed
   | DirectoryDeletionSucceeded
-  | DirectoryDeletionFailed;
+  | DirectoryDeletionFailed
+  | FileCreateSucceeded
+  | FileCreateFailed
+  | FileRenameSucceeded
+  | FileRenameFailed
+  | FileDeletionSucceeded
+  | FileDeletionFailed
+  | FileDownloadSucceeded
+  | FileDownloadFailed;
 
 export interface SignInSucceeded {
   readonly messageCode: MessageCode;
@@ -60,5 +68,73 @@ export interface DirectoryDeletionSucceeded extends DirectoryContentsViewAwareDi
 }
 
 export interface DirectoryDeletionFailed {
+  readonly messageCode: MessageCode;
+}
+
+export interface FileCreateSucceeded extends DirectoryContentsViewAwareDirectoryOperationResult {
+  readonly messageCode: MessageCode;
+}
+
+export interface FileCreateFailed {
+  readonly messageCode: MessageCode;
+}
+
+export interface FileRenameSucceeded extends DirectoryContentsViewAwareDirectoryOperationResult {
+  readonly messageCode: MessageCode;
+  readonly uuid: string;
+}
+
+export interface FileRenameFailed {
+  readonly messageCode: MessageCode;
+}
+
+export interface FileDeletionSucceeded extends DirectoryContentsViewAwareDirectoryOperationResult {
+  readonly messageCode: MessageCode;
+  readonly uuid: string;
+}
+
+export interface FileDeletionFailed {
+  readonly messageCode: MessageCode;
+}
+
+export interface FileUploadInitiated {
+  readonly id: string;
+  readonly label: string;
+  readonly params?: Record<string, unknown>;
+}
+
+export interface FileUploadProgressUpdated {
+  readonly id: string;
+  readonly progress: number;
+}
+
+export interface FileUploadSucceeded {
+  readonly id: string;
+  readonly directoryContentsView: DirectoryContentsView;
+}
+
+export interface FileUploadFailed {
+  readonly id: string;
+  readonly messageCode: MessageCode;
+}
+
+export interface FileDownloadInitiated {
+  readonly id: string;
+  readonly label: string;
+  readonly params?: Record<string, unknown>;
+}
+
+export interface FileDownloadProgressUpdated {
+  readonly id: string;
+  readonly progress: number;
+}
+
+export interface FileDownloadSucceeded {
+  readonly id: string;
+  readonly messageCode: MessageCode;
+}
+
+export interface FileDownloadFailed {
+  readonly id: string;
   readonly messageCode: MessageCode;
 }
