@@ -298,7 +298,7 @@
                 </os>
             </activation>
             <properties>
-                <native.march>-march=armv8-a+crypto</native.march>
+                <native.march>-march=armv8-a+aes+lse</native.march>
             </properties>
         </profile>
         <profile>
