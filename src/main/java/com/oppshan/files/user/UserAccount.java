@@ -233,17 +233,17 @@ public class UserAccount
                 .thenComparing(UserAccount::getLastName, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(UserAccount::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(UserAccount::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(UserAccount::getUuid)),
+                .thenComparing(UserAccount::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))),
         LAST_NAME(Comparator.comparing(UserAccount::getLastName, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(UserAccount::getFirstName, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(UserAccount::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(UserAccount::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(UserAccount::getUuid)),
+                .thenComparing(UserAccount::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))),
         CREATED_AT(Comparator.comparing(UserAccount::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(UserAccount::getFirstName, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(UserAccount::getLastName, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(UserAccount::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(UserAccount::getUuid)),
+                .thenComparing(UserAccount::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))),
         ;
 
         private final Comparator<UserAccount> comparator;

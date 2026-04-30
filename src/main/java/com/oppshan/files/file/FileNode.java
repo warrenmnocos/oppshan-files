@@ -542,18 +542,18 @@ public class FileNode
     }
 
     public enum FileNodeComparator implements Comparator<FileNode> {
-        NAME(Comparator.comparing(FileNode::getUserAccount)
-                .thenComparing(fileNode -> fileNode.parentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid)))
+        NAME(Comparator.comparing(FileNode::getUserAccount, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(fileNode -> fileNode.parentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))))
                 .thenComparing(FileNode::getName, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(FileNode::getMimeType, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(FileNode::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(FileNode::getUuid)),
-        SIZE_BYTES(Comparator.comparing(FileNode::getUserAccount)
-                .thenComparing(fileNode -> fileNode.parentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid)))
+                .thenComparing(FileNode::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))),
+        SIZE_BYTES(Comparator.comparing(FileNode::getUserAccount, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(fileNode -> fileNode.parentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))))
                 .thenComparingLong(FileNode::getSizeBytes)
                 .thenComparing(FileNode::getName, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(FileNode::getMimeType, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(FileNode::getUuid)),
+                .thenComparing(FileNode::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))),
         ;
 
         private final Comparator<FileNode> comparator;
