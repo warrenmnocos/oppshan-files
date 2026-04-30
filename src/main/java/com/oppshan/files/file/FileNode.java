@@ -542,18 +542,21 @@ public class FileNode
     }
 
     public enum FileNodeComparator implements Comparator<FileNode> {
-        NAME(Comparator.comparing(FileNode::getUserAccount)
-                .thenComparing(fileNode -> fileNode.parentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid)))
-                .thenComparing(FileNode::getName)
-                .thenComparing(FileNode::getMimeType)
-                .thenComparing(FileNode::getLastModifiedAt)
-        ),
-        SIZE_BYTES(Comparator.comparing(FileNode::getUserAccount)
-                .thenComparing(fileNode -> fileNode.parentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid)))
-                .thenComparingLong(FileNode::getSizeBytes)
-                .thenComparing(FileNode::getName)
-                .thenComparing(FileNode::getMimeType)
-        ),
+        NAME(Comparator.nullsLast(
+                Comparator.comparing(FileNode::getUserAccount)
+                        .thenComparing(fileNode -> fileNode.parentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid)))
+                        .thenComparing(FileNode::getName)
+                        .thenComparing(FileNode::getMimeType)
+                        .thenComparing(FileNode::getLastModifiedAt)
+        )),
+        SIZE_BYTES(Comparator.nullsLast(
+                Comparator.comparing(FileNode::getUserAccount)
+                        .thenComparing(fileNode -> fileNode.parentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid)))
+                        .thenComparingLong(FileNode::getSizeBytes)
+                        .thenComparing(FileNode::getName)
+                        .thenComparing(FileNode::getMimeType)
+
+        )),
         ;
 
         private final Comparator<FileNode> comparator;
