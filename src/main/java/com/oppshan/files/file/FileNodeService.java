@@ -181,7 +181,9 @@ public class FileNodeService {
         }
 
         fileNode.setSizeBytes(counted);
-        return toDirectoryContentsView(userAccountUuid, parentFileNode);
+        fileNodeRepository.flushWithSession();
+        final var refreshedParentFileNode = fileNodeRepository.refreshWithSession(parentFileNode);
+        return toDirectoryContentsView(userAccountUuid, refreshedParentFileNode);
     }
 
     @NotNull

@@ -68,6 +68,13 @@ public interface StatefulWriteRepository<T> {
         return CDI.current().select(EntityManager.class).get().merge(entity);
     }
 
+    default <S extends T> S refreshWithSession(@Nonnull S entity) {
+        requireNonNull(entity, "Null entity");
+
+        CDI.current().select(EntityManager.class).get().refresh(entity);
+        return entity;
+    }
+
     default void flushWithSession() {
         CDI.current().select(EntityManager.class).get().flush();
     }
