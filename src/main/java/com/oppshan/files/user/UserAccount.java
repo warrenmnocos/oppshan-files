@@ -229,24 +229,21 @@ public class UserAccount
     }
 
     public enum UserAccountComparator implements Comparator<UserAccount> {
-        FIRST_NAME(Comparator.nullsLast(
-                Comparator.comparing(UserAccount::getFirstName)
-                        .thenComparing(UserAccount::getLastName)
-                        .thenComparing(UserAccount::getCreatedAt)
-                        .thenComparing(UserAccount::getLastModifiedAt)
-        )),
-        LAST_NAME(Comparator.nullsLast(
-                Comparator.comparing(UserAccount::getLastName)
-                        .thenComparing(UserAccount::getFirstName)
-                        .thenComparing(UserAccount::getCreatedAt)
-                        .thenComparing(UserAccount::getLastModifiedAt)
-        )),
-        CREATED_AT(Comparator.nullsLast(
-                Comparator.comparing(UserAccount::getCreatedAt)
-                        .thenComparing(UserAccount::getFirstName)
-                        .thenComparing(UserAccount::getLastName)
-                        .thenComparing(UserAccount::getLastModifiedAt)
-        )),
+        FIRST_NAME(Comparator.comparing(UserAccount::getFirstName, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(UserAccount::getLastName, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(UserAccount::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(UserAccount::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(UserAccount::getUuid)),
+        LAST_NAME(Comparator.comparing(UserAccount::getLastName, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(UserAccount::getFirstName, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(UserAccount::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(UserAccount::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(UserAccount::getUuid)),
+        CREATED_AT(Comparator.comparing(UserAccount::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(UserAccount::getFirstName, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(UserAccount::getLastName, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(UserAccount::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(UserAccount::getUuid)),
         ;
 
         private final Comparator<UserAccount> comparator;
