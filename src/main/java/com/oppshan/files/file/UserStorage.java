@@ -20,6 +20,7 @@ import org.hibernate.annotations.UuidGenerator.Style;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -162,7 +163,7 @@ public class UserStorage
 
     @Override
     public int compareTo(UserStorage otherUserStorage) {
-        return userAccount.compareTo(otherUserStorage.getUserAccount());
+        return UserStorageComparator.USER_ACCOUNT.compare(this, otherUserStorage);
     }
 
     @Override
@@ -176,16 +177,43 @@ public class UserStorage
         }
 
         return Objects.equals(uuid, that.uuid) &&
-                Objects.equals(createdAt, that.createdAt) &&
-                Objects.equals(lastModifiedAt, that.lastModifiedAt);
+               maxStorageBytes == that.maxStorageBytes &&
+               maxFileUploadBytes == that.maxFileUploadBytes &&
+               Objects.equals(createdAt, that.createdAt) &&
+               Objects.equals(lastModifiedAt, that.lastModifiedAt) &&
+               Objects.equals(userAccount, that.userAccount);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
                 uuid,
+                maxStorageBytes,
+                maxFileUploadBytes,
                 createdAt,
-                lastModifiedAt
+                lastModifiedAt,
+                userAccount
         );
+    }
+
+    public enum UserStorageComparator implements Comparator<UserStorage> {
+        USER_ACCOUNT(Comparator.comparing(UserStorage::getUserAccount, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparingLong(UserStorage::getMaxStorageBytes)
+                .thenComparingLong(UserStorage::getMaxFileUploadBytes)
+                .thenComparing(UserStorage::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(UserStorage::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(UserStorage::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))),
+        ;
+
+        private final Comparator<UserStorage> comparator;
+
+        UserStorageComparator(Comparator<UserStorage> comparator) {
+            this.comparator = comparator;
+        }
+
+        @Override
+        public int compare(UserStorage userStorage1, UserStorage userStorage2) {
+            return comparator.compare(userStorage1, userStorage2);
+        }
     }
 }

@@ -18,7 +18,7 @@ import static org.hamcrest.Matchers.not;
 class BlobRoundTripTest {
 
     @Test
-    void incomingBlobThenOutgoingBlobRoundTripsPlaintextThroughEncryption() throws Exception {
+    void shouldPerformEncryptionAndDecryptionSuccessfully() throws Exception {
         final var plaintext = "The quick brown fox jumps over the lazy dog".getBytes(StandardCharsets.UTF_8);
 
         final var encryptedBytes = readAllBytes(new IncomingBlob(new ByteArrayInputStream(plaintext)));
@@ -29,7 +29,7 @@ class BlobRoundTripTest {
     }
 
     @Test
-    void incomingBlobEncryptedOutputBeginsWithRandomInitializationVector() throws Exception {
+    void shouldBeginEncryptedOutputWithRandomInitializationVector() throws Exception {
         final var plaintextOne = "first stream content".getBytes(StandardCharsets.UTF_8);
         final var plaintextTwo = "first stream content".getBytes(StandardCharsets.UTF_8);
 
@@ -45,7 +45,7 @@ class BlobRoundTripTest {
     }
 
     @Test
-    void incomingBlobRefusesSecondConsumption() throws Exception {
+    void shouldRefuseSecondConsumptionOfIncomingBlob() throws Exception {
         final var incomingBlob = new IncomingBlob(new ByteArrayInputStream("payload".getBytes(StandardCharsets.UTF_8)));
         try (final var firstStream = incomingBlob.getBinaryStream()) {
             firstStream.readAllBytes();
@@ -60,7 +60,7 @@ class BlobRoundTripTest {
     }
 
     @Test
-    void roundTripPreservesLargerBinaryPayload() throws Exception {
+    void shouldPreserveLargerBinaryPayloadAfterRoundTrip() throws Exception {
         final var payload = new byte[8 * 1024];
         new Random(0xC0FFEEL).nextBytes(payload);
 
@@ -71,7 +71,7 @@ class BlobRoundTripTest {
     }
 
     @Test
-    void outgoingBlobLengthExcludesInitializationVector() throws Exception {
+    void shouldExcludeInitializationVectorFromOutgoingBlobLength() throws Exception {
         final var plaintext = "ten bytes!".getBytes(StandardCharsets.UTF_8);
         final var encryptedBytes = readAllBytes(new IncomingBlob(new ByteArrayInputStream(plaintext)));
         final var outgoingBlob = new OutgoingBlob(new SerialBlob(encryptedBytes));

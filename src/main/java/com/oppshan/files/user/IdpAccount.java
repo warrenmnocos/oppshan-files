@@ -23,6 +23,7 @@ import org.hibernate.annotations.UuidGenerator.Style;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -163,7 +164,7 @@ public abstract class IdpAccount
 
     @Override
     public int compareTo(IdpAccount otherIdpAccount) {
-        return uuid.compareTo(otherIdpAccount.getUuid());
+        return IdpAccountComparator.PROVIDER_NAME.compare(this, otherIdpAccount);
     }
 
     @Override
@@ -176,16 +177,22 @@ public abstract class IdpAccount
             return false;
         }
 
-        return Objects.equals(providerId, that.providerId) &&
-                Objects.equals(providerName, that.providerName) &&
-                Objects.equals(userAccount, that.userAccount);
+        return Objects.equals(uuid, that.uuid) &&
+               Objects.equals(providerId, that.providerId) &&
+               Objects.equals(providerName, that.providerName) &&
+               Objects.equals(lastModifiedAt, that.lastModifiedAt) &&
+               Objects.equals(createdAt, that.createdAt) &&
+               Objects.equals(userAccount, that.userAccount);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
+                uuid,
                 providerId,
                 providerName,
+                lastModifiedAt,
+                createdAt,
                 userAccount
         );
     }
@@ -194,5 +201,38 @@ public abstract class IdpAccount
         return Optional.of(this)
                 .filter(GoogleAccount.class::isInstance)
                 .map(GoogleAccount.class::cast);
+    }
+
+    public enum IdpAccountComparator implements Comparator<IdpAccount> {
+        PROVIDER_ID(Comparator.comparing(IdpAccount::getProviderId, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(IdpAccount::getProviderName, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(IdpAccount::getUserAccount, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(IdpAccount::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(IdpAccount::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(IdpAccount::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))),
+        PROVIDER_NAME(Comparator.comparing(IdpAccount::getProviderName, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(IdpAccount::getProviderId, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(IdpAccount::getUserAccount, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(IdpAccount::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(IdpAccount::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(IdpAccount::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))),
+        UUID(Comparator.comparing(IdpAccount::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(IdpAccount::getProviderId, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(IdpAccount::getProviderName, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(IdpAccount::getUserAccount, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(IdpAccount::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(IdpAccount::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))),
+        ;
+
+        private final Comparator<IdpAccount> comparator;
+
+        IdpAccountComparator(Comparator<IdpAccount> comparator) {
+            this.comparator = comparator;
+        }
+
+        @Override
+        public int compare(IdpAccount idpAccount1, IdpAccount idpAccount2) {
+            return comparator.compare(idpAccount1, idpAccount2);
+        }
     }
 }

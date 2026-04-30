@@ -19,8 +19,11 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -37,7 +40,7 @@ class UserAccountServiceTest {
     EntityManager entityManager;
 
     @Test
-    void createOrGetUserAccountReturnsExistingUserWhenIdpAccountAlreadyPresent() {
+    void shouldGetExistingUserWhenIdentityProviderAccountAlreadyPresent() {
         final var seeded = seedExistingUser("Alice", "Wonderland", "alice@example.com",
                 "Alice Wonderland", "https://example.com/alice.png");
         final var jwt = googleJwt(seeded.providerId(), "Alice", "Wonderland",
@@ -56,7 +59,7 @@ class UserAccountServiceTest {
     }
 
     @Test
-    void createOrGetUserAccountUpdatesFirstNameWhenJwtClaimChanged() {
+    void shouldUpdateFirstNameWhenJsonWebTokenClaimChanged() {
         final var seeded = seedExistingUser("OldFirst", "Surname", "user@example.com",
                 "OldFirst Surname", "https://example.com/u.png");
         final var jwt = googleJwt(seeded.providerId(), "NewFirst", "Surname",
@@ -70,7 +73,7 @@ class UserAccountServiceTest {
     }
 
     @Test
-    void createOrGetUserAccountUpdatesLastNameWhenJwtClaimChanged() {
+    void shouldUpdateLastNameWhenJsonWebTokenClaimChanged() {
         final var seeded = seedExistingUser("First", "OldSurname", "user@example.com",
                 "First OldSurname", "https://example.com/u.png");
         final var jwt = googleJwt(seeded.providerId(), "First", "NewSurname",
@@ -84,7 +87,7 @@ class UserAccountServiceTest {
     }
 
     @Test
-    void createOrGetUserAccountIsIdempotentForUnchangedClaims() {
+    void shouldBeIdempotentWhenJsonWebTokenClaimsUnchanged() {
         final var seeded = seedExistingUser("Stable", "User", "stable@example.com",
                 "Stable User", "https://example.com/s.png");
         final var jwt = googleJwt(seeded.providerId(), "Stable", "User",
@@ -101,7 +104,7 @@ class UserAccountServiceTest {
     }
 
     @Test
-    void getUserAccountByJwtReturnsExistingUser() {
+    void shouldReturnExistingUserWhenGettingByJsonWebToken() {
         final var seeded = seedExistingUser("Carol", "Curie", "carol@example.com",
                 "Carol Curie", "https://example.com/c.png");
         final var jwt = googleJwt(seeded.providerId(), "Carol", "Curie",
@@ -115,7 +118,7 @@ class UserAccountServiceTest {
     }
 
     @Test
-    void getUserAccountByJwtThrowsUserNotFoundForUnknownSub() {
+    void shouldThrowUserNotFoundWhenJsonWebTokenSubjectUnknown() {
         final var jwt = googleJwt("unknown-sub-" + UUID.randomUUID(),
                 "Ghost", "User", "Ghost User", "ghost@example.com", "https://example.com/g.png");
 
@@ -127,7 +130,7 @@ class UserAccountServiceTest {
     }
 
     @Test
-    void getUserAccountByUuidReturnsExistingUser() {
+    void shouldReturnExistingUserWhenGettingByUuid() {
         final var seeded = seedExistingUser("Dave", "Dean", "dave@example.com",
                 "Dave Dean", "https://example.com/d.png");
 
@@ -140,7 +143,7 @@ class UserAccountServiceTest {
     }
 
     @Test
-    void getUserAccountByUuidThrowsUserNotFoundForUnknownUuid() {
+    void shouldThrowUserNotFoundWhenGettingByUnknownUuid() {
         final var businessException = assertThrows(
                 BusinessException.class,
                 () -> userAccountService.getUserAccount(UUID.randomUUID())
@@ -149,7 +152,7 @@ class UserAccountServiceTest {
     }
 
     @Test
-    void userAccountViewExposesStorageMetadataFromUserStorageEntity() {
+    void shouldExposeStorageMetadataFromUserStorageEntityInUserAccountView() {
         final var seeded = seedExistingUser("Storage", "User", "storage@example.com",
                 "Storage User", "https://example.com/st.png");
 
@@ -164,7 +167,7 @@ class UserAccountServiceTest {
     }
 
     @Test
-    void createOrGetUserAccountSecondCallSeesAnyAuditBumpFromTheFirstUpdate() {
+    void shouldSeeAuditBumpFromFirstUpdateOnSecondCall() {
         final var seeded = seedExistingUser("Old", "Name", "auditbump@example.com",
                 "Old Name", "https://example.com/o.png");
         final var renamingJwt = googleJwt(seeded.providerId(), "New", "Name",
@@ -179,6 +182,96 @@ class UserAccountServiceTest {
         assertThat(secondView.firstName(), is("New"));
         assertThat(secondView.lastModifiedAt().toEpochMilli(),
                 is(greaterThan(0L)));
+    }
+
+    @Test
+    void shouldCreateNewUserFromJsonWebTokenWhenIdentityProviderAccountAbsent() {
+        final var newSub = "new-google-sub-" + UUID.randomUUID();
+        final var jwt = googleJwt(newSub, "Eve", "Newton",
+                "Eve Newton", "eve@example.com", "https://example.com/eve.png");
+
+        final var view = userAccountService.createOrGetUserAccount(jwt);
+
+        assertThat(view.uuid(), is(notNullValue()));
+        assertThat(view.firstName(), is("Eve"));
+        assertThat(view.lastName(), is("Newton"));
+        assertThat(view.email(), is("eve@example.com"));
+        assertThat(view.photoUrl(), is("https://example.com/eve.png"));
+        assertThat(view.usedStorageBytes(), is(0L));
+        assertThat(view.maxStorageBytes(), is(applicationStorage.userMaxBytes()));
+        assertThat(view.maxFileUploadBytes(), is(applicationStorage.fileUploadMaxBytes()));
+        assertThat(view.rootFileNodeUuid(), is(notNullValue()));
+        assertThat(view.createdAt(), is(notNullValue()));
+        assertThat(view.lastModifiedAt(), is(notNullValue()));
+    }
+
+    @Test
+    void shouldCreateRootWithFourDefaultSubdirectoriesForNewUser() {
+        final var newSub = "new-google-sub-" + UUID.randomUUID();
+        final var jwt = googleJwt(newSub, "Frank", "Frost",
+                "Frank Frost", "frank@example.com", "https://example.com/frank.png");
+
+        final var view = userAccountService.createOrGetUserAccount(jwt);
+
+        QuarkusTransaction.requiringNew().run(() -> {
+            final var root = entityManager.find(FileNode.class, view.rootFileNodeUuid());
+            assertThat(root, is(notNullValue()));
+            assertThat(root.getName(), is("Root"));
+
+            final var childNames = root.getChildFileNodes().stream()
+                    .map(FileNode::getName)
+                    .toList();
+            assertThat(childNames, containsInAnyOrder("Audio", "Documents", "Photos", "Videos"));
+        });
+    }
+
+    @Test
+    void shouldNotThrowNullPointerExceptionWhenGivenNameClaimMissing() {
+        final var newSub = "new-google-sub-" + UUID.randomUUID();
+        // Map.of() leaves "given_name" out entirely; idToken.getClaim("given_name") returns null
+        // — exactly the production scenario where the comparator NPE'd.
+        final var jwt = new TestGoogleJwt(newSub, Map.of(
+                "family_name", "OnlyLast",
+                "name", "OnlyLast",
+                "email", "missing-given@example.com",
+                "picture", "https://example.com/missing-given.png"
+        ));
+
+        // Whatever the failure is (constraint violation, validation error, or success with null),
+        // it must NOT be a NullPointerException coming from the comparator chain.
+        try {
+            userAccountService.createOrGetUserAccount(jwt);
+            // If validation lets null through, the create-path must at least not crash.
+        } catch (Exception ex) {
+            Throwable cursor = ex;
+            while (cursor != null) {
+                assertThat("Comparator NPE regression",
+                        cursor, is(not(instanceOf(NullPointerException.class))));
+                cursor = cursor.getCause();
+            }
+        }
+    }
+
+    @Test
+    void shouldNotThrowNullPointerExceptionWhenFamilyNameClaimMissing() {
+        final var newSub = "new-google-sub-" + UUID.randomUUID();
+        final var jwt = new TestGoogleJwt(newSub, Map.of(
+                "given_name", "OnlyFirst",
+                "name", "OnlyFirst",
+                "email", "missing-family@example.com",
+                "picture", "https://example.com/missing-family.png"
+        ));
+
+        try {
+            userAccountService.createOrGetUserAccount(jwt);
+        } catch (Exception ex) {
+            Throwable cursor = ex;
+            while (cursor != null) {
+                assertThat("Comparator NPE regression",
+                        cursor, is(not(instanceOf(NullPointerException.class))));
+                cursor = cursor.getCause();
+            }
+        }
     }
 
     private static JsonWebToken googleJwt(String sub,

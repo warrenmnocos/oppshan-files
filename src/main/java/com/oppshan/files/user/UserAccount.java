@@ -183,6 +183,8 @@ public class UserAccount
         }
 
         return Objects.equals(uuid, that.uuid) &&
+               Objects.equals(firstName, that.firstName) &&
+               Objects.equals(lastName, that.lastName) &&
                Objects.equals(createdAt, that.createdAt) &&
                Objects.equals(lastModifiedAt, that.lastModifiedAt);
     }
@@ -191,6 +193,8 @@ public class UserAccount
     public int hashCode() {
         return Objects.hash(
                 uuid,
+                firstName,
+                lastName,
                 createdAt,
                 lastModifiedAt
         );
@@ -231,13 +235,13 @@ public class UserAccount
     public enum UserAccountComparator implements Comparator<UserAccount> {
         FIRST_NAME(Comparator.comparing(UserAccount::getFirstName, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(UserAccount::getLastName, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(UserAccount::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(UserAccount::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(UserAccount::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(UserAccount::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))),
         LAST_NAME(Comparator.comparing(UserAccount::getLastName, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(UserAccount::getFirstName, Comparator.nullsLast(Comparator.naturalOrder()))
-                .thenComparing(UserAccount::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(UserAccount::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(UserAccount::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(UserAccount::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))),
         CREATED_AT(Comparator.comparing(UserAccount::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(UserAccount::getFirstName, Comparator.nullsLast(Comparator.naturalOrder()))

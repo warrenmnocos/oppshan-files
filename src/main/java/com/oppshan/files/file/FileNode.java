@@ -421,35 +421,6 @@ public class FileNode
         return this;
     }
 
-    @Override
-    public int compareTo(FileNode otherFileNode) {
-        return FileNodeComparator.NAME.compare(this, otherFileNode);
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if (this == other) {
-            return true;
-        }
-
-        if (!(other instanceof final FileNode fileNode)) {
-            return false;
-        }
-
-        return Objects.equals(uuid, fileNode.uuid) &&
-               Objects.equals(createdAt, fileNode.createdAt) &&
-               Objects.equals(lastModifiedAt, fileNode.lastModifiedAt);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(
-                uuid,
-                createdAt,
-                lastModifiedAt
-        );
-    }
-
     public BreadcrumbView toBreadcrumbView() {
         return new BreadcrumbView(
                 uuid,
@@ -512,6 +483,47 @@ public class FileNode
     }
 
     @Override
+    public int compareTo(FileNode otherFileNode) {
+        return FileNodeComparator.NAME.compare(this, otherFileNode);
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) {
+            return true;
+        }
+
+        if (!(other instanceof final FileNode that)) {
+            return false;
+        }
+
+        return Objects.equals(uuid, that.uuid) &&
+               directory == that.directory &&
+               Objects.equals(name, that.name) &&
+               Objects.equals(mimeType, that.mimeType) &&
+               sizeBytes == that.sizeBytes &&
+               Objects.equals(createdAt, that.createdAt) &&
+               Objects.equals(lastModifiedAt, that.lastModifiedAt) &&
+               Objects.equals(parentFileNode, that.parentFileNode) &&
+               Objects.equals(userAccount, that.userAccount);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                uuid,
+                directory,
+                name,
+                mimeType,
+                sizeBytes,
+                createdAt,
+                lastModifiedAt,
+                parentFileNode,
+                userAccount
+        );
+    }
+
+    @Override
     public String toString() {
         return MoreObjects.toStringHelper(this)
                 .add("uuid", uuid)
@@ -544,15 +556,30 @@ public class FileNode
     public enum FileNodeComparator implements Comparator<FileNode> {
         NAME(Comparator.comparing(FileNode::getUserAccount, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(fileNode -> fileNode.parentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))))
+                .thenComparing(FileNode::isDirectory)
                 .thenComparing(FileNode::getName, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(FileNode::getMimeType, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(FileNode::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(FileNode::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparingLong(FileNode::getSizeBytes)
+                .thenComparing(FileNode::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))),
+        LAST_MODIFIED_AT(Comparator.comparing(FileNode::getUserAccount, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(fileNode -> fileNode.parentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))))
+                .thenComparing(FileNode::isDirectory)
+                .thenComparing(FileNode::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(FileNode::getName, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(FileNode::getMimeType, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(FileNode::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparingLong(FileNode::getSizeBytes)
                 .thenComparing(FileNode::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))),
         SIZE_BYTES(Comparator.comparing(FileNode::getUserAccount, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(fileNode -> fileNode.parentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))))
+                .thenComparing(FileNode::isDirectory)
                 .thenComparingLong(FileNode::getSizeBytes)
                 .thenComparing(FileNode::getName, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(FileNode::getMimeType, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(FileNode::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(FileNode::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(FileNode::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))),
         ;
 

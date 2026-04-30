@@ -21,7 +21,7 @@ class FileContentCipherServiceTest {
     FileContentCipherService fileContentCipherService;
 
     @Test
-    void encryptThenDecryptRoundTripsThePlaintext() throws Exception {
+    void shouldRoundTripPlaintextWhenEncryptingThenDecrypting() throws Exception {
         final var iv = fileContentCipherService.generateIv();
         final var encryptCipher = fileContentCipherService.encryptCipher(iv);
         final var plaintext = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.".getBytes();
@@ -36,13 +36,13 @@ class FileContentCipherServiceTest {
     }
 
     @Test
-    void generatedIvLengthMatchesConfiguredLength() {
+    void shouldGenerateIvOfConfiguredLength() {
         final var iv = fileContentCipherService.generateIv();
         assertThat(iv.length, is(fileContentCipherService.getIvLength()));
     }
 
     @Test
-    void successiveGeneratedIvsAreUnique() {
+    void shouldGenerateUniqueIvsAcrossSuccessiveCalls() {
         final Set<String> seenIvs = new HashSet<>();
         for (int generationIndex = 0; generationIndex < 256; generationIndex++) {
             final var generatedIv = fileContentCipherService.generateIv();
@@ -52,7 +52,7 @@ class FileContentCipherServiceTest {
     }
 
     @Test
-    void encryptCipherIsInitializedInEncryptMode() throws Exception {
+    void shouldInitializeEncryptCipherInEncryptMode() throws Exception {
         final var iv = fileContentCipherService.generateIv();
         final var encryptCipher = fileContentCipherService.encryptCipher(iv);
         assertThat(encryptCipher.getAlgorithm(), is("AES/CTR/NoPadding"));
@@ -60,7 +60,7 @@ class FileContentCipherServiceTest {
     }
 
     @Test
-    void decryptCipherIsInitializedInDecryptMode() throws Exception {
+    void shouldInitializeDecryptCipherInDecryptMode() throws Exception {
         final var iv = fileContentCipherService.generateIv();
         final var decryptCipher = fileContentCipherService.decryptCipher(iv);
         assertThat(decryptCipher.getAlgorithm(), is("AES/CTR/NoPadding"));
@@ -68,7 +68,7 @@ class FileContentCipherServiceTest {
     }
 
     @Test
-    void differentIvsProduceDifferentCiphertextForSamePlaintext() throws Exception {
+    void shouldProduceDifferentCiphertextWhenIvsDifferForSamePlaintext() throws Exception {
         final var firstIv = fileContentCipherService.generateIv();
         final var secondIv = fileContentCipherService.generateIv();
         final var plaintext = "shared plaintext".getBytes();

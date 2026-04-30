@@ -45,7 +45,7 @@ class FileNodeServiceTest {
     private UUID rootDirectoryUuid;
 
     @Test
-    void getRootDirectoryContentsReturnsRootWithFourDefaultSubdirectories() {
+    void shouldReturnRootWithFourDefaultSubdirectoriesWhenGettingRootContents() {
         seedUser();
 
         final var view = fileNodeService.getRootDirectoryContents(userAccountUuid);
@@ -60,7 +60,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void getDirectoryContentsByUuidReturnsTheDirectory() {
+    void shouldReturnDirectoryWhenGettingContentsByUuid() {
         seedUser();
 
         final var view = fileNodeService.getDirectoryContents(userAccountUuid, rootDirectoryUuid);
@@ -71,7 +71,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void getDirectoryContentsByUuidThrowsDirectoryNotFoundForUnknownUuid() {
+    void shouldThrowDirectoryNotFoundWhenGettingContentsByUnknownUuid() {
         seedUser();
 
         final var businessException = assertThrows(
@@ -82,7 +82,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void getDirectoryContentsByEmptyPathReturnsRoot() {
+    void shouldReturnRootWhenGettingContentsByEmptyPath() {
         seedUser();
 
         final var view = fileNodeService.getDirectoryContents(userAccountUuid, "");
@@ -91,7 +91,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void getDirectoryContentsByPathResolvesNestedSegments() {
+    void shouldResolveNestedSegmentsWhenGettingContentsByPath() {
         seedUser();
         createDirectory(rootDirectoryUuid, "Projects");
 
@@ -102,7 +102,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void getDirectoryContentsByUnknownPathThrowsDirectoryNotFound() {
+    void shouldThrowDirectoryNotFoundWhenGettingContentsByUnknownPath() {
         seedUser();
 
         final var businessException = assertThrows(
@@ -113,7 +113,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void getDirectoryPropertiesAggregatesNestedFolderAndFileCounts() {
+    void shouldAggregateNestedFolderAndFileCountsWhenGettingDirectoryProperties() {
         seedUser();
         final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
         createDirectory(workspaceUuid, "Subfolder");
@@ -129,7 +129,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void getDirectoryPropertiesThrowsForUnknownUuid() {
+    void shouldThrowWhenGettingDirectoryPropertiesByUnknownUuid() {
         seedUser();
 
         final var businessException = assertThrows(
@@ -140,7 +140,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void createDirectoryAddsChildToParent() {
+    void shouldAddChildToParentWhenCreatingDirectory() {
         seedUser();
 
         final var view = fileNodeService.createDirectory(
@@ -156,7 +156,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void createDirectoryTrimsLeadingAndTrailingWhitespace() {
+    void shouldTrimLeadingAndTrailingWhitespaceWhenCreatingDirectory() {
         seedUser();
 
         final var view = fileNodeService.createDirectory(
@@ -171,7 +171,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void createDirectoryThrowsFolderNameRequiredForBlankName() {
+    void shouldThrowFolderNameRequiredWhenCreatingDirectoryWithBlankName() {
         seedUser();
 
         final var businessException = assertThrows(
@@ -185,7 +185,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void createDirectoryThrowsFolderNameNotUniqueForDuplicate() {
+    void shouldThrowFolderNameNotUniqueWhenCreatingDirectoryWithDuplicateName() {
         seedUser();
 
         final var businessException = assertThrows(
@@ -199,7 +199,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void createDirectoryThrowsDirectoryNotFoundForUnknownParent() {
+    void shouldThrowDirectoryNotFoundWhenCreatingDirectoryUnderUnknownParent() {
         seedUser();
 
         final var businessException = assertThrows(
@@ -213,7 +213,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void renameDirectoryUpdatesNameAndKeepsParent() {
+    void shouldUpdateNameAndKeepParentWhenRenamingDirectory() {
         seedUser();
         final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
 
@@ -235,7 +235,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void renameDirectoryThrowsRootFolderDeletionNotAllowedForRoot() {
+    void shouldThrowRootFolderDeletionNotAllowedWhenRenamingRoot() {
         seedUser();
 
         final var businessException = assertThrows(
@@ -250,7 +250,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void renameDirectoryThrowsFolderNameRequiredForBlankName() {
+    void shouldThrowFolderNameRequiredWhenRenamingDirectoryWithBlankName() {
         seedUser();
         final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
 
@@ -266,7 +266,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void renameDirectoryThrowsFolderNameNotUniqueForSiblingCollision() {
+    void shouldThrowFolderNameNotUniqueWhenRenamingDirectoryCollidesWithSibling() {
         seedUser();
         final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
 
@@ -282,7 +282,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void deleteDirectoryRemovesEmptyChildFolder() {
+    void shouldRemoveEmptyChildFolderWhenDeletingDirectory() {
         seedUser();
         final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
 
@@ -296,7 +296,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void deleteDirectoryRemovesNestedChildFolderHierarchy() {
+    void shouldRemoveNestedChildFolderHierarchyWhenDeletingDirectory() {
         seedUser();
         final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
         final var subfolderUuid = createDirectory(workspaceUuid, "Subfolder");
@@ -318,7 +318,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void deleteDirectoryThrowsRootFolderDeletionNotAllowedForRoot() {
+    void shouldThrowRootFolderDeletionNotAllowedWhenDeletingRoot() {
         seedUser();
 
         final var businessException = assertThrows(
@@ -329,7 +329,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void deleteDirectoryThrowsDirectoryNotFoundForUnknownUuid() {
+    void shouldThrowDirectoryNotFoundWhenDeletingDirectoryByUnknownUuid() {
         seedUser();
 
         final var businessException = assertThrows(
@@ -340,7 +340,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void uploadFilePersistsFileWithCorrectMetadata() {
+    void shouldPersistFileWithCorrectMetadataWhenUploading() {
         seedUser();
         final var content = "the quick brown fox".getBytes(StandardCharsets.UTF_8);
 
@@ -363,7 +363,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void uploadFileThrowsFileNameRequiredForBlankName() {
+    void shouldThrowFileNameRequiredWhenUploadingWithBlankName() {
         seedUser();
 
         final var businessException = assertThrows(
@@ -380,7 +380,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void uploadFileThrowsDirectoryNotFoundForUnknownParent() {
+    void shouldThrowDirectoryNotFoundWhenUploadingUnderUnknownParent() {
         seedUser();
 
         final var businessException = assertThrows(
@@ -397,7 +397,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void uploadFileThrowsFileNameNotUniqueForDuplicate() {
+    void shouldThrowFileNameNotUniqueWhenUploadingDuplicateName() {
         seedUser();
         final var content = "first".getBytes(StandardCharsets.UTF_8);
         uploadFile(rootDirectoryUuid, "report.txt", TEXT_MIME_TYPE, content);
@@ -416,7 +416,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void uploadFileThrowsFileSizeExceededWhenStreamBytesPastLimit() {
+    void shouldThrowFileSizeExceededWhenStreamBytesPastLimit() {
         seedUser(DEFAULT_MAX_STORAGE_BYTES, 32L);
 
         final var businessException = assertThrows(
@@ -433,7 +433,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void uploadFileThrowsFileQuotaExceededWhenTotalSizePastLimit() {
+    void shouldThrowFileQuotaExceededWhenTotalSizePastLimit() {
         seedUser(80L, 80L);
         final var fortyBytes = new byte[40];
         uploadFile(rootDirectoryUuid, "first.txt", TEXT_MIME_TYPE, fortyBytes);
@@ -452,7 +452,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void getFileDownloadViewResolverReturnsResolverWithCorrectIdentifiers() {
+    void shouldReturnResolverWithCorrectIdentifiersWhenGettingFileDownloadView() {
         seedUser();
         final var fileUuid = uploadFile(
                 rootDirectoryUuid,
@@ -469,7 +469,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void fileDownloadViewExposesDecryptedContentStream() {
+    void shouldExposeDecryptedContentStreamFromFileDownloadView() {
         seedUser();
         final var content = "decrypt me".getBytes(StandardCharsets.UTF_8);
         final var fileUuid = uploadFile(rootDirectoryUuid, "decrypt.txt", TEXT_MIME_TYPE, content);
@@ -495,7 +495,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void renameFileUpdatesName() {
+    void shouldUpdateNameWhenRenamingFile() {
         seedUser();
         final var fileUuid = uploadFile(
                 rootDirectoryUuid,
@@ -517,7 +517,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void renameFileThrowsFileNameRequiredForBlankName() {
+    void shouldThrowFileNameRequiredWhenRenamingFileWithBlankName() {
         seedUser();
         final var fileUuid = uploadFile(
                 rootDirectoryUuid,
@@ -538,7 +538,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void renameFileThrowsFileNotFoundForUnknownUuid() {
+    void shouldThrowFileNotFoundWhenRenamingFileByUnknownUuid() {
         seedUser();
 
         final var businessException = assertThrows(
@@ -553,7 +553,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void renameFileThrowsFileNameNotUniqueWhenSiblingExistsWithSameNameAndMimeType() {
+    void shouldThrowFileNameNotUniqueWhenSiblingExistsWithSameNameAndMimeType() {
         seedUser();
         uploadFile(rootDirectoryUuid, "alpha.txt", TEXT_MIME_TYPE, "a".getBytes(StandardCharsets.UTF_8));
         final var betaUuid = uploadFile(rootDirectoryUuid, "beta.txt", TEXT_MIME_TYPE, "b".getBytes(StandardCharsets.UTF_8));
@@ -570,7 +570,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void deleteFileRemovesIt() {
+    void shouldRemoveFileWhenDeleting() {
         seedUser();
         final var fileUuid = uploadFile(
                 rootDirectoryUuid,
@@ -588,7 +588,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void deleteFileThrowsFileNotFoundForUnknownUuid() {
+    void shouldThrowFileNotFoundWhenDeletingByUnknownUuid() {
         seedUser();
 
         final var businessException = assertThrows(
@@ -599,7 +599,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void getFilePropertiesReturnsMetadata() {
+    void shouldReturnMetadataWhenGettingFileProperties() {
         seedUser();
         final var content = "abcdefghij".getBytes(StandardCharsets.UTF_8);
         final var fileUuid = uploadFile(rootDirectoryUuid, "info.txt", TEXT_MIME_TYPE, content);
@@ -617,7 +617,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void getFilePropertiesThrowsFileNotFoundForUnknownUuid() {
+    void shouldThrowFileNotFoundWhenGettingFilePropertiesByUnknownUuid() {
         seedUser();
 
         final var businessException = assertThrows(
@@ -628,7 +628,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void renameFileNodeDispatchesToRenameDirectoryWhenTargetIsDirectory() {
+    void shouldDispatchToRenameDirectoryWhenRenamingFileNodeTargetingDirectory() {
         seedUser();
         final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
 
@@ -645,7 +645,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void renameFileNodeDispatchesToRenameFileWhenTargetIsFile() {
+    void shouldDispatchToRenameFileWhenRenamingFileNodeTargetingFile() {
         seedUser();
         final var fileUuid = uploadFile(
                 rootDirectoryUuid,
@@ -667,7 +667,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void renameFileNodeThrowsDirectoryNotFoundForUnknownUuid() {
+    void shouldThrowDirectoryNotFoundWhenRenamingFileNodeByUnknownUuid() {
         seedUser();
 
         final var businessException = assertThrows(
@@ -682,7 +682,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void deleteFileNodeDispatchesToDeleteDirectoryWhenTargetIsDirectory() {
+    void shouldDispatchToDeleteDirectoryWhenDeletingFileNodeTargetingDirectory() {
         seedUser();
         final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
 
@@ -695,7 +695,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void deleteFileNodeDispatchesToDeleteFileWhenTargetIsFile() {
+    void shouldDispatchToDeleteFileWhenDeletingFileNodeTargetingFile() {
         seedUser();
         final var fileUuid = uploadFile(
                 rootDirectoryUuid,
@@ -713,7 +713,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void deleteFileNodeThrowsDirectoryNotFoundForUnknownUuid() {
+    void shouldThrowDirectoryNotFoundWhenDeletingFileNodeByUnknownUuid() {
         seedUser();
 
         final var businessException = assertThrows(
@@ -724,7 +724,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void getFileNodePropertiesViewDispatchesToDirectoryPropertiesForDirectory() {
+    void shouldDispatchToDirectoryPropertiesWhenGettingFileNodePropertiesForDirectory() {
         seedUser();
         final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
 
@@ -735,7 +735,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void getFileNodePropertiesViewDispatchesToFilePropertiesForFile() {
+    void shouldDispatchToFilePropertiesWhenGettingFileNodePropertiesForFile() {
         seedUser();
         final var fileUuid = uploadFile(
                 rootDirectoryUuid,
@@ -750,7 +750,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void breadcrumbReflectsAncestorChain() {
+    void shouldReflectAncestorChainInBreadcrumbs() {
         seedUser();
         final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
         final var subfolderUuid = createDirectory(workspaceUuid, "Subfolder");
@@ -766,7 +766,7 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void uploadedFilesAccumulateTowardsTotalSize() {
+    void shouldAccumulateTowardsTotalSizeWhenUploadingFiles() {
         seedUser();
         uploadFile(rootDirectoryUuid, "one.txt", TEXT_MIME_TYPE, new byte[100]);
         uploadFile(rootDirectoryUuid, "two.txt", TEXT_MIME_TYPE, new byte[200]);
