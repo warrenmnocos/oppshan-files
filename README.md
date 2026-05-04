@@ -78,13 +78,14 @@
     - [Upload progress](#upload-progress-us-13-us-14)
     - [Profile dropdown](#profile-dropdown-us-03-us-04-us-23)
     - [Error states and notifications](#error-states-and-notifications-us-15-us-24)
-- [Continuous Integration](#continuous-integration)
-    - [`maven.yml`](#mavenyml--java-ci-with-maven)
-    - [`qodana_code_quality.yml`](#qodana_code_qualityyml--jetbrains-qodana)
-- [Build and Deployment](#build-and-deployment)
-    - [Build pipeline](#build-pipeline)
-    - [Deployment target](#deployment-target)
-    - [Source-driven build automation](#source-driven-build-automation)
+- [CI/CD](#cicd)
+    - [Continuous Integration](#continuous-integration)
+        - [Build, test, and coverage](#build-test-and-coverage)
+        - [Static analysis](#static-analysis)
+    - [Continuous Deployment](#continuous-deployment)
+        - [Build pipeline](#build-pipeline)
+        - [Deployment target](#deployment-target)
+        - [Deployment automation](#deployment-automation)
 - [Development Setup](#development-setup)
     - [Prerequisites](#prerequisites)
     - [Environment variables](#environment-variables)
@@ -128,7 +129,7 @@ branch, and **Done** for stories whose pull request has merged and whose issue h
 with `is:issue` to exclude pull requests from the view, preventing visual duplication since each PR is already linked
 to its corresponding issue.
 
-<img src="docs/misc/project-board.png" style="width: 75%;">
+<img alt="Project Board" src="docs/misc/project-board.png" style="width: 75%;">
 
 ### Branch and pull request convention
 
@@ -305,7 +306,7 @@ Full acceptance criteria for each story live on the linked GitHub issue.
 
 ## Tech Stack
 
-The backend is built with **Quarkus 3.34.3** on **Java 25** (GraalVM Community Edition). The framework's advanced
+The backend is built with **Quarkus 3.34.3** on **Java 25** (Oracle GraalVM). The framework's advanced
 capabilities are exercised throughout: classic JAX-RS endpoints run on the **Undertow** servlet container, whose
 worker pool is replaced at deployment time by the custom `VirtualThreadServletExtension` so every request handler
 executes on a **virtual thread** — blocking JDBC and `InputStream` reads are free of platform-thread cost without
@@ -969,13 +970,18 @@ successes (folder created, file renamed, file deleted) appear as info-severity t
 
 ---
 
-## Continuous Integration
+## CI/CD
 
-Two GitHub Actions workflows run automatically on every push and pull request to `main`.
+Three GitHub Actions workflows automate the path from pull request to production. Two gate every pull request — one
+builds and tests, the other runs static analysis — and the third deploys every merge to `main`.
 
-### `maven.yml` — Java CI with Maven
+### Continuous Integration
 
-On every `push` and `pull_request` to `main`:
+Every push and pull request to `main` triggers two workflows that together gate merge.
+
+#### Build, test, and coverage
+
+`.github/workflows/maven.yml` runs on every `push` and `pull_request` to `main`:
 
 1. Check out the repository.
 2. Install JDK 25 (GraalVM distribution) with Maven dependency caching.
@@ -991,9 +997,10 @@ On every `push` and `pull_request` to `main`:
 The badge at the top of this README is the live coverage produced by this workflow. Test failures, missing
 coverage thresholds, or compile errors fail the workflow and block merge.
 
-### `qodana_code_quality.yml` — JetBrains Qodana
+#### Static analysis
 
-On every `push` to `main` or `releases/*`, every `pull_request`, and on manual `workflow_dispatch`:
+`.github/workflows/qodana_code_quality.yml` runs on every `push` to `main` or `releases/*`, every `pull_request`, and
+on manual `workflow_dispatch`:
 
 1. Check out the actual PR commit (not the merge commit) with full history.
 2. Run **Qodana JVM** static analysis ([JetBrains/qodana-action@v2025.3](https://github.com/JetBrains/qodana-action))
@@ -1002,11 +1009,12 @@ On every `push` to `main` or `releases/*`, every `pull_request`, and on manual `
 
 Findings are surfaced as PR check annotations.
 
----
+### Continuous Deployment
 
-## Build and Deployment
+Production deployment is fully automated: the Maven build emits a GraalVM native binary, and a GitHub Actions workflow
+rolls it out to the EC2 instance on every push to `main`.
 
-### Build pipeline
+#### Build pipeline
 
 The Maven build is the single source of truth for both the API and the Angular app. The `frontend-maven-plugin` is bound
 to
@@ -1018,7 +1026,7 @@ For production, the same project compiles to a **GraalVM native image** targetin
 `./mvnw -Pnative-release package` (Oracle GraalVM 25, `-march=armv8-a+aes+lse`, G1 GC). The native binary is ~70-90 MB,
 starts in under 100 ms, and runs with `-Xmx512m` heap on the deployment target.
 
-### Deployment target
+#### Deployment target
 
 Production runs on a single **AWS EC2 t4g.small** (Graviton 2 ARM, 2 vCPU, 2 GB RAM) on **Amazon Linux 2023**, with *
 *PostgreSQL 18 on the same instance** (not RDS — keeps cost predictable and removes cross-host network hops for a
@@ -1031,14 +1039,14 @@ A single EIP gives the instance a stable public IP. Route 53 holds an A record `
 record restricting cert issuance to Let's Encrypt. SSM Session Manager replaces SSH for operator access — no port 22
 exposed, no key-pair management.
 
-### Source-driven build automation
+#### Deployment automation
 
-Every push to `main` (and manual `workflow_dispatch`) triggers `.github/workflows/deploy.yml`: builds the native binary
-on a `ubuntu-24.04-arm` GitHub-hosted runner, uploads to S3 keyed by short commit SHA, then issues an SSM Run Command on
-the EC2 instance to `systemctl stop`, `aws s3 cp` the new binary, `chmod +x` + `chown`, and `systemctl start`.
-Authentication uses **OIDC federation** — GitHub mints a short-lived JWT, AWS STS exchanges it for temporary credentials
-based on a trust policy scoped to `repo:OWNER/REPO:ref:refs/heads/main`. No long-lived AWS keys live in repository
-secrets.
+`.github/workflows/deploy.yml` runs on every push to `main` (and manual `workflow_dispatch`): it builds the native
+binary on a `ubuntu-24.04-arm` GitHub-hosted runner, uploads to S3 keyed by short commit SHA, then issues an SSM Run
+Command on the EC2 instance to `systemctl stop`, `aws s3 cp` the new binary, `chmod +x` + `chown`, and
+`systemctl start`. Authentication uses **OIDC federation** — GitHub mints a short-lived JWT, AWS STS exchanges it for
+temporary credentials based on a trust policy scoped to `repo:OWNER/REPO:ref:refs/heads/main`. No long-lived AWS keys
+live in repository secrets.
 
 Three deployment guides at `docs/aws-deployment-{manual,cli,terraform}.md` walk through the AWS-side setup at three
 levels of automation. See `docs/aws-deployment-recovery.md` and `docs/recovery-*.txt` for per-scenario recovery scripts.
@@ -1049,7 +1057,7 @@ levels of automation. See `docs/aws-deployment-recovery.md` and `docs/recovery-*
 
 ### Prerequisites
 
-- **Java 25** (Oracle GraalVM 25 required for production native builds — uses `--gc=G1` which is Oracle-only; Community
+- **Java 25** (Oracle GraalVM 25 required for production native builds — uses `--gc=G1` which is Oracle-only;
   Edition is fine for `quarkus:dev` JVM mode)
 - **Maven 3.9+** (the included `./mvnw` wrapper works without a global install)
 - **Node.js 20+** and **npm** (provisioned automatically by the `frontend-maven-plugin` during the Maven build)
