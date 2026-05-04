@@ -23,14 +23,14 @@ class FileContentCipherServiceTest {
     @Test
     void shouldRoundTripPlaintextWhenEncryptingThenDecrypting() throws Exception {
         final var iv = fileContentCipherService.generateIv();
-        final var encryptCipher = fileContentCipherService.encryptCipher(iv);
+        final var encryptCipher = fileContentCipherService.getEncryptCipher(iv);
         final var plaintext = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.".getBytes();
 
         final var ciphertext = encryptCipher.doFinal(plaintext);
         assertThat(ciphertext, is(notNullValue()));
         assertThat(ciphertext.length, is(greaterThan(0)));
 
-        final var decryptCipher = fileContentCipherService.decryptCipher(iv);
+        final var decryptCipher = fileContentCipherService.getDecryptCipher(iv);
         final var decrypted = decryptCipher.doFinal(ciphertext);
         assertThat(decrypted, equalTo(plaintext));
     }
@@ -54,7 +54,7 @@ class FileContentCipherServiceTest {
     @Test
     void shouldInitializeEncryptCipherInEncryptMode() throws Exception {
         final var iv = fileContentCipherService.generateIv();
-        final var encryptCipher = fileContentCipherService.encryptCipher(iv);
+        final var encryptCipher = fileContentCipherService.getEncryptCipher(iv);
         assertThat(encryptCipher.getAlgorithm(), is("AES/CTR/NoPadding"));
         assertCipherCanProcess(encryptCipher);
     }
@@ -62,7 +62,7 @@ class FileContentCipherServiceTest {
     @Test
     void shouldInitializeDecryptCipherInDecryptMode() throws Exception {
         final var iv = fileContentCipherService.generateIv();
-        final var decryptCipher = fileContentCipherService.decryptCipher(iv);
+        final var decryptCipher = fileContentCipherService.getDecryptCipher(iv);
         assertThat(decryptCipher.getAlgorithm(), is("AES/CTR/NoPadding"));
         assertCipherCanProcess(decryptCipher);
     }
@@ -73,8 +73,8 @@ class FileContentCipherServiceTest {
         final var secondIv = fileContentCipherService.generateIv();
         final var plaintext = "shared plaintext".getBytes();
 
-        final var firstCiphertext = fileContentCipherService.encryptCipher(firstIv).doFinal(plaintext);
-        final var secondCiphertext = fileContentCipherService.encryptCipher(secondIv).doFinal(plaintext);
+        final var firstCiphertext = fileContentCipherService.getEncryptCipher(firstIv).doFinal(plaintext);
+        final var secondCiphertext = fileContentCipherService.getEncryptCipher(secondIv).doFinal(plaintext);
 
         assertThat(java.util.Arrays.equals(firstCiphertext, secondCiphertext), is(false));
     }

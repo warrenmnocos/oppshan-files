@@ -1,0 +1,32 @@
+@if (bottomSheet()) {
+  <div class="ctx-backdrop" (click)="onBackdropClick($event)"></div>
+  <div #host class="ctx-sheet" [class.ctx-visible]="visible()">
+    <div class="ctx-grab"></div>
+    @for (item of items(); track $index) {
+      @if (item.id === ContextMenuItemId.Divider) {
+        <hr class="ctx-divider"/>
+      } @else {
+        <button class="ctx-item" [class.ctx-danger]="item.danger" (click)="select(item)">
+          <img class="ctx-icon" [src]="item.iconSrc" alt=""/>
+          <span class="ctx-label">{{ item.labelKey! | translate }}</span>
+        </button>
+      }
+    }
+  </div>
+} @else {
+  <div #host class="ctx-menu"
+       [class.ctx-visible]="visible()"
+       [style.left.px]="clampedPosition()?.x ?? rawPositionFallback().x"
+       [style.top.px]="clampedPosition()?.y ?? rawPositionFallback().y">
+    @for (item of items(); track $index) {
+      @if (item.id === ContextMenuItemId.Divider) {
+        <hr class="ctx-divider"/>
+      } @else {
+        <button class="ctx-item" [class.ctx-danger]="item.danger" (click)="select(item)">
+          <img class="ctx-icon" [src]="item.iconSrc" alt=""/>
+          <span class="ctx-label">{{ item.labelKey! | translate }}</span>
+        </button>
+      }
+    }
+  </div>
+}

@@ -33,5 +33,8 @@
 @if (messageBusService.applicationEvenTypeSignal() === ApplicationEventType.FilePropertiesShown) {
   <app-file-properties-dialog/>
 }
+@if (messageBusService.applicationEvenTypeSignal() === ApplicationEventType.ContextMenuShown) {
+  <app-file-context-menu/>
+}
 <app-notification-center/>
 <app-footer/>

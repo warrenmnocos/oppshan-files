@@ -23,7 +23,18 @@
     "columnModified": "Modified",
     "columnSize": "Size",
     "emptyTitle": "Drag files here to upload",
-    "emptySubtitle": "or click to browse your device"
+    "emptySubtitle": "or click to browse your device",
+    "contextMenu": {
+      "actions": "Actions",
+      "open": "Open",
+      "download": "Download",
+      "rename": "Rename",
+      "properties": "Properties",
+      "delete": "Delete",
+      "newFolder": "New folder",
+      "uploadFile": "Upload file",
+      "refresh": "Refresh"
+    }
   },
   "dialog": {
     "createDirectory": {

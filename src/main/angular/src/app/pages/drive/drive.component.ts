@@ -17,6 +17,7 @@ import {NotificationCenter} from '../../components/notification-center/notificat
 import {FileRenameDialog} from '../../components/file-rename-dialog/file-rename-dialog.component';
 import {FileDeletionDialog} from '../../components/file-deletion-dialog/file-deletion-dialog.component';
 import {FilePropertiesDialog} from '../../components/file-properties-dialog/file-properties-dialog.component';
+import {FileContextMenu} from '../../components/file-context-menu/file-context-menu.component';
 import {Footer} from '../../components/footer/footer.component';
 import {Subscription} from 'rxjs';
 import {DirectoryContentsView} from '../../models/directory-contents-view';
@@ -46,6 +47,7 @@ import {map} from 'rxjs/operators';
     FileRenameDialog,
     FileDeletionDialog,
     FilePropertiesDialog,
+    FileContextMenu,
     NotificationCenter,
     Footer,
   ],
@@ -86,12 +88,7 @@ export class Drive implements AfterViewInit, OnDestroy {
     this.applicationEventSubscription = this.messageBusService.applicationEventStream
       .subscribe(event => this.handleApplicationEvent(event));
     this.userSubscription = this.authService.getCurrentUser()
-      .subscribe(userAccountView => {
-        this.userAccountView.set(userAccountView);
-        if (userAccountView) {
-          this.subscribeToUrlChanges();
-        }
-      });
+      .subscribe(userAccountView => this.setCurrentUser(userAccountView));
   }
 
   ngOnDestroy(): void {
@@ -99,6 +96,14 @@ export class Drive implements AfterViewInit, OnDestroy {
     this.urlSubscription?.unsubscribe();
     this.applicationEventSubscription?.unsubscribe();
     this.refreshSubscription?.unsubscribe();
+  }
+
+  private setCurrentUser(userAccountView: UserAccountView | null): void {
+    this.userAccountView.set(userAccountView);
+
+    if (userAccountView) {
+      this.subscribeToUrlChanges();
+    }
   }
 
   private handleApplicationEvent(event: ApplicationEvent): void {
@@ -118,6 +123,12 @@ export class Drive implements AfterViewInit, OnDestroy {
       case ApplicationEventType.DirectoryNavigationFailed:
         this.handleDirectoryNavigationFailure(event.payload as DirectoryNavigationFailed);
         break;
+      case ApplicationEventType.DirectoryRefreshInitiated:
+        this.loadDirectoryByPathForcibly(this.currentPath);
+        break;
+      case ApplicationEventType.DirectoryNavigationInitiated:
+        this.showLoading();
+        break;
     }
   }
 
@@ -130,8 +141,6 @@ export class Drive implements AfterViewInit, OnDestroy {
   }
 
   private loadDirectoryByPathForcibly(path: string | null | undefined): void {
-    this.loading.set(true);
-    this.errorMessageCode.set(null);
     this.messageBusService.fireApplicationEvent(new ApplicationEvent(
       ApplicationEventType.DirectoryNavigationInitiated,
       {
@@ -170,5 +179,10 @@ export class Drive implements AfterViewInit, OnDestroy {
     this.refreshSubscription?.unsubscribe();
     this.refreshSubscription = this.authService.getCurrentUser()
       .subscribe(userAccountView => this.userAccountView.set(userAccountView));
+  }
+
+  private showLoading(): void {
+    this.loading.set(true);
+    this.errorMessageCode.set(null);
   }
 }

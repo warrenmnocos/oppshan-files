@@ -10,9 +10,14 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -452,6 +457,61 @@ class FileNodeServiceTest {
     }
 
     @Test
+    void shouldIncludeSiblingCommittedDuringUploadInDirectoryView() throws Exception {
+        seedUser();
+
+        final var slowDelayMillis = 1200L;
+        final var fastContent = "fast".getBytes(StandardCharsets.UTF_8);
+        final var slowContent = "slow".getBytes(StandardCharsets.UTF_8);
+        final var executor = Executors.newVirtualThreadPerTaskExecutor();
+        try {
+            // The slow upload pauses on the first read of its body stream, stalling its
+            // transaction inside flushWithSession (mid-INSERT) AFTER it has loaded the parent
+            // directory but BEFORE it has committed.
+            final var slowFuture = CompletableFuture.supplyAsync(
+                    () -> fileNodeService.uploadFile(
+                            userAccountUuid,
+                            rootDirectoryUuid,
+                            "slow.txt",
+                            TEXT_MIME_TYPE,
+                            new InitialDelayInputStream(new ByteArrayInputStream(slowContent), slowDelayMillis)
+                    ),
+                    executor
+            );
+
+            // Give the slow upload time to begin its transaction and load the parent (sees only
+            // the 4 default folders) before the fast upload starts on the main thread.
+            Thread.sleep(250);
+
+            final var fastView = fileNodeService.uploadFile(
+                    userAccountUuid,
+                    rootDirectoryUuid,
+                    "fast.txt",
+                    TEXT_MIME_TYPE,
+                    new ByteArrayInputStream(fastContent)
+            );
+
+            final var slowView = slowFuture.get(5, TimeUnit.SECONDS);
+
+            // Slow's response includes fast.txt only because refreshWithSession re-reads the
+            // children collection from a post-fast-commit READ COMMITTED snapshot. Without the
+            // refresh, slowView would carry only the 4 defaults + slow.txt.
+            assertThat(
+                    slowView.childrenFileNodeViews().stream().map(FileNodeView::name).toList(),
+                    containsInAnyOrder("Audio", "Documents", "Photos", "Videos", "slow.txt", "fast.txt")
+            );
+            // Fast's response was built while slow tx was still in-flight, so it correctly
+            // omits slow.txt — confirming slow had not yet committed when fast ran.
+            assertThat(
+                    fastView.childrenFileNodeViews().stream().map(FileNodeView::name).toList(),
+                    containsInAnyOrder("Audio", "Documents", "Photos", "Videos", "fast.txt")
+            );
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
     void shouldReturnResolverWithCorrectIdentifiersWhenGettingFileDownloadView() {
         seedUser();
         final var fileUuid = uploadFile(
@@ -766,6 +826,27 @@ class FileNodeServiceTest {
     }
 
     @Test
+    void shouldOrderChildrenByDefaultComparatorWhenGettingDirectoryContents() {
+        seedUser();
+        final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
+
+        uploadFile(workspaceUuid, "delta.txt", TEXT_MIME_TYPE, "d".getBytes(StandardCharsets.UTF_8));
+        createDirectory(workspaceUuid, "Beta");
+        uploadFile(workspaceUuid, "alpha.txt", TEXT_MIME_TYPE, "a".getBytes(StandardCharsets.UTF_8));
+        createDirectory(workspaceUuid, "Alpha");
+        uploadFile(workspaceUuid, "bravo.txt", TEXT_MIME_TYPE, "b".getBytes(StandardCharsets.UTF_8));
+        createDirectory(workspaceUuid, "beta");
+        uploadFile(workspaceUuid, "BRAVO.txt", TEXT_MIME_TYPE, "b".getBytes(StandardCharsets.UTF_8));
+
+        final var view = fileNodeService.getDirectoryContents(userAccountUuid, workspaceUuid);
+
+        assertThat(
+                view.childrenFileNodeViews().stream().map(FileNodeView::name).toList(),
+                contains("Alpha", "Beta", "beta", "BRAVO.txt", "alpha.txt", "bravo.txt", "delta.txt")
+        );
+    }
+
+    @Test
     void shouldAccumulateTowardsTotalSizeWhenUploadingFiles() {
         seedUser();
         uploadFile(rootDirectoryUuid, "one.txt", TEXT_MIME_TYPE, new byte[100]);
@@ -842,5 +923,43 @@ class FileNodeServiceTest {
                 .orElse(null);
         assertThat(uuid, is(notNullValue()));
         return uuid;
+    }
+
+    private static final class InitialDelayInputStream extends InputStream {
+
+        private final InputStream delegate;
+        private final long initialDelayMillis;
+        private boolean delayed;
+
+        InitialDelayInputStream(InputStream delegate, long initialDelayMillis) {
+            this.delegate = delegate;
+            this.initialDelayMillis = initialDelayMillis;
+            this.delayed = false;
+        }
+
+        @Override
+        public int read() throws IOException {
+            applyDelayOnce();
+            return delegate.read();
+        }
+
+        @Override
+        public int read(byte[] buffer, int offset, int length) throws IOException {
+            applyDelayOnce();
+            return delegate.read(buffer, offset, length);
+        }
+
+        private void applyDelayOnce() throws IOException {
+            if (delayed) {
+                return;
+            }
+            delayed = true;
+            try {
+                Thread.sleep(initialDelayMillis);
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                throw new IOException("interrupted", ex);
+            }
+        }
     }
 }

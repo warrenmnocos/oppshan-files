@@ -147,24 +147,25 @@ public class FileNodeService {
                                             @NotNull UUID parentUuid,
                                             @NotNull String filename,
                                             @NotNull String mimeType,
-                                            @NotNull InputStream bodyStream) {
+                                            @NotNull InputStream contentInputStream) {
         final var name = filename.trim();
         if (name.isEmpty()) {
             throw BusinessException.fileNameRequired();
         }
 
         final var parentFileNode = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, parentUuid)
+                .map(fileNodeRepository::attachWithSession)
                 .orElseThrow(BusinessException::directoryNotFound);
         if (fileNodeRepository.isFilePresent(userAccountUuid, parentUuid, name, mimeType)) {
             throw BusinessException.fileNameNotUnique();
         }
 
-        final var countingInputStream = new CountingInputStream(bodyStream);
+        final var countingInputStream = new CountingInputStream(contentInputStream);
         final var fileNode = new FileNode()
                 .setName(name)
                 .setMimeType(mimeType)
                 .setDirectory(false)
-                .setContent(new IncomingBlob(countingInputStream))
+                .setContent(countingInputStream)
                 .setParentFileNode(parentFileNode)
                 .setUserAccount(parentFileNode.getUserAccount());
         fileNodeRepository.insertWithSession(fileNode);
@@ -299,6 +300,8 @@ public class FileNodeService {
     @NonNull
     private DirectoryContentsView toDirectoryContentsView(@NonNull UUID userAccountUuid,
                                                           @NonNull FileNode directoryFileNode) {
-        return directoryFileNode.toDirectoryContentsView(fileNodeRepository.getAncestors(userAccountUuid, directoryFileNode.getUuid()));
+        return directoryFileNode.toDirectoryContentsView(
+                fileNodeRepository.getAncestors(userAccountUuid, directoryFileNode.getUuid())
+        );
     }
 }

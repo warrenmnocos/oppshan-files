@@ -33,6 +33,8 @@ export enum ApplicationEventType {
   DirectoryNavigationConfirmed = 'directoryNavigationConfirmed',
   DirectoryNavigationCancelled = 'directoryNavigationCancelled',
 
+  DirectoryRefreshInitiated = 'directoryRefreshInitiated',
+
   DirectoryPropertiesShown = 'directoryPropertiesShown',
   DirectoryPropertiesHidden = 'directoryPropertiesHidden',
 
@@ -67,4 +69,9 @@ export enum ApplicationEventType {
   FileDownloadProgressUpdated = 'fileDownloadProgressUpdated',
   FileDownloadSucceeded = 'fileDownloadSucceeded',
   FileDownloadFailed = 'fileDownloadFailed',
+
+  ContextMenuShown = 'contextMenuShown',
+  ContextMenuHidden = 'contextMenuHidden',
+
+  FileUploadPickerShown = 'fileUploadPickerShown',
 }

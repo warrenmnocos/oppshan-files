@@ -25,7 +25,7 @@ public class OutgoingBlob implements Blob {
         try {
             final var raw = delegate.getBinaryStream();
             final var iv = raw.readNBytes(fileContentCipherService.getIvLength());
-            final var cipher = fileContentCipherService.decryptCipher(iv);
+            final var cipher = fileContentCipherService.getDecryptCipher(iv);
             return new CipherInputStream(raw, cipher);
         } catch (Exception ex) {
             throw new SQLException("Decryption failed", ex);

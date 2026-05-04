@@ -5,6 +5,9 @@ import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -20,8 +23,7 @@ import java.security.SecureRandom;
 @ApplicationScoped
 public class FileContentCipherService {
 
-    @Inject
-    ApplicationStorage applicationStorage;
+    private final ApplicationStorage applicationStorage;
 
     private String cipherAlgorithm;
 
@@ -29,8 +31,13 @@ public class FileContentCipherService {
 
     private SecureRandom secureRandom;
 
+    @Inject
+    public FileContentCipherService(ApplicationStorage applicationStorage) {
+        this.applicationStorage = applicationStorage;
+    }
+
     @PostConstruct
-    void initialize() throws GeneralSecurityException {
+    protected void initialize() throws GeneralSecurityException {
         this.cipherAlgorithm = applicationStorage.encryptionCipherAlgorithm();
 
         final var masterKey = applicationStorage.encryptionPassphrase().toCharArray();
@@ -45,25 +52,31 @@ public class FileContentCipherService {
         secureRandom = new SecureRandom();
     }
 
-    public Cipher encryptCipher(byte[] iv) throws GeneralSecurityException {
+    @NotNull
+    public Cipher getEncryptCipher(@NotEmpty
+                                   byte[] iv) throws GeneralSecurityException {
         final var cipher = Cipher.getInstance(cipherAlgorithm);
         cipher.init(Cipher.ENCRYPT_MODE, derivedKey, new IvParameterSpec(iv));
         return cipher;
     }
 
-    public Cipher decryptCipher(byte[] iv) throws GeneralSecurityException {
+    @NotNull
+    public Cipher getDecryptCipher(@NotEmpty
+                                   byte[] iv) throws GeneralSecurityException {
         final var cipher = Cipher.getInstance(cipherAlgorithm);
         cipher.init(Cipher.DECRYPT_MODE, derivedKey, new IvParameterSpec(iv));
         return cipher;
     }
 
+    @Positive
+    public int getIvLength() {
+        return applicationStorage.encryptionIvLength();
+    }
+
+    @NotEmpty
     public byte[] generateIv() {
         final var iv = new byte[applicationStorage.encryptionIvLength()];
         secureRandom.nextBytes(iv);
         return iv;
-    }
-
-    public int getIvLength() {
-        return applicationStorage.encryptionIvLength();
     }
 }
