@@ -36,7 +36,7 @@ public class IncomingBlob implements Blob {
         consumed = true;
 
         try {
-            final var cipher = fileContentCipherService.encryptCipher(iv);
+            final var cipher = fileContentCipherService.getEncryptCipher(iv);
             final var ivStream = new ByteArrayInputStream(iv);
             final var encrypted = new CipherInputStream(sourceStream, cipher);
             return new SequenceInputStream(ivStream, encrypted);

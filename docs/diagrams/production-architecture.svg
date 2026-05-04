@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 590" width="820" height="590"
+     font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="12">
+    <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 1.5 L8.5 5 L0 8.5 z" fill="#546E7A"/>
+        </marker>
+        <marker id="arr-dash" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 1.5 L8.5 5 L0 8.5 z" fill="#9E9E9E"/>
+        </marker>
+    </defs>
+
+    <rect width="820" height="590" fill="#FAFAFA"/>
+
+    <!-- ── Outside cloud: User + DNS + CDN ─────────────────────── -->
+    <rect x="20" y="18" width="100" height="46" rx="8" fill="#F5F5F5" stroke="#BDBDBD" stroke-width="1.5"/>
+    <text x="70" y="38" text-anchor="middle" font-weight="600" fill="#424242">User</text>
+    <text x="70" y="54" text-anchor="middle" font-size="10" fill="#757575">browser</text>
+
+    <rect x="160" y="18" width="140" height="46" rx="8" fill="#D6EAF8" stroke="#2980B9" stroke-width="1.5"/>
+    <text x="230" y="38" text-anchor="middle" font-weight="600" fill="#1A5276">Route 53</text>
+    <text x="230" y="54" text-anchor="middle" font-size="10" fill="#2980B9">DNS · health-check routing</text>
+
+    <rect x="352" y="18" width="206" height="46" rx="8" fill="#D5F5E3" stroke="#1E8449" stroke-width="1.5"/>
+    <text x="455" y="38" text-anchor="middle" font-weight="600" fill="#145A32">CloudFront + WAF</text>
+    <text x="455" y="54" text-anchor="middle" font-size="10" fill="#1E8449">CDN edge · DDoS · OWASP rules</text>
+
+    <!-- Arrows outside -->
+    <line x1="120" y1="41" x2="160" y2="41" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+    <line x1="300" y1="41" x2="352" y2="41" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <!-- ── VPC boundary ─────────────────────────────────────────── -->
+    <rect x="10" y="86" width="800" height="464" rx="12"
+          fill="#EBF5FB" stroke="#5DADE2" stroke-width="1.5" stroke-dasharray="7 4"/>
+    <text x="26" y="104" font-size="10" font-weight="700" fill="#2980B9" letter-spacing="0.5">
+        VPC · 2 Availability Zones · Public + Private subnets
+    </text>
+
+    <!-- ── AZ labels ───────────────────────────────────────────── -->
+    <text x="185" y="120" text-anchor="middle" font-size="10" font-weight="600" fill="#5DADE2">AZ 1a</text>
+    <text x="605" y="120" text-anchor="middle" font-size="10" font-weight="600" fill="#5DADE2">AZ 1b</text>
+    <line x1="395" y1="108" x2="395" y2="540" stroke="#B3D4E8" stroke-width="1" stroke-dasharray="4 3"/>
+
+    <!-- ── Public subnet ───────────────────────────────────────── -->
+    <rect x="22" y="125" width="776" height="66" rx="8" fill="#D6EAF8" stroke="#2980B9" stroke-width="1"/>
+    <text x="38" y="141" font-size="9" font-weight="700" fill="#2980B9" letter-spacing="0.3">PUBLIC SUBNETS</text>
+
+    <!-- ALB -->
+    <rect x="38" y="146" width="744" height="36" rx="6" fill="#ABEBC6" stroke="#1E8449" stroke-width="1.5"/>
+    <text x="410" y="161" text-anchor="middle" font-size="11" font-weight="700" fill="#145A32">
+        Application Load Balancer
+    </text>
+    <text x="410" y="175" text-anchor="middle" font-size="10" fill="#1E8449">
+        HTTPS :443 · ACM wildcard cert · HTTP→HTTPS redirect · health checks
+    </text>
+
+    <!-- ── Private app subnet ──────────────────────────────────── -->
+    <rect x="22" y="204" width="776" height="106" rx="8" fill="#FEF9E7" stroke="#D4AC0D" stroke-width="1"/>
+    <text x="38" y="220" font-size="9" font-weight="700" fill="#D4AC0D" letter-spacing="0.3">PRIVATE SUBNETS —
+        APPLICATION TIER
+    </text>
+
+    <!-- EC2 AZ-1a -->
+    <rect x="38" y="228" width="340" height="72" rx="6" fill="#FDEBD0" stroke="#E67E22" stroke-width="1.5"/>
+    <text x="208" y="248" text-anchor="middle" font-size="11" font-weight="700" fill="#784212">EC2 Auto Scaling Group
+    </text>
+    <text x="208" y="263" text-anchor="middle" font-size="10" fill="#A04000">Quarkus 3 native binary (ARM64)</text>
+    <text x="208" y="278" text-anchor="middle" font-size="10" fill="#A04000">Virtual threads · target-tracking scaling
+    </text>
+    <text x="208" y="291" text-anchor="middle" font-size="10" fill="#A04000">CodeDeploy / SSM agent</text>
+
+    <!-- EC2 AZ-1b -->
+    <rect x="420" y="228" width="360" height="72" rx="6" fill="#FDEBD0" stroke="#E67E22" stroke-width="1.5"/>
+    <text x="600" y="248" text-anchor="middle" font-size="11" font-weight="700" fill="#784212">EC2 Auto Scaling Group
+    </text>
+    <text x="600" y="263" text-anchor="middle" font-size="10" fill="#A04000">Quarkus 3 native binary (ARM64)</text>
+    <text x="600" y="278" text-anchor="middle" font-size="10" fill="#A04000">Virtual threads · target-tracking scaling
+    </text>
+    <text x="600" y="291" text-anchor="middle" font-size="10" fill="#A04000">CodeDeploy / SSM agent</text>
+
+    <!-- ── Private DB subnet ────────────────────────────────────── -->
+    <rect x="22" y="323" width="776" height="100" rx="8" fill="#F4ECF7" stroke="#7D3C98" stroke-width="1"/>
+    <text x="38" y="339" font-size="9" font-weight="700" fill="#7D3C98" letter-spacing="0.3">PRIVATE SUBNETS — DATABASE
+        TIER
+    </text>
+
+    <!-- RDS Primary -->
+    <rect x="38" y="347" width="226" height="66" rx="6" fill="#E8DAEF" stroke="#7D3C98" stroke-width="1.5"/>
+    <text x="151" y="367" text-anchor="middle" font-size="11" font-weight="700" fill="#512E5F">RDS PostgreSQL 18</text>
+    <text x="151" y="383" text-anchor="middle" font-size="10" fill="#7D3C98">Primary · Multi-AZ</text>
+    <text x="151" y="398" text-anchor="middle" font-size="10" fill="#7D3C98">automated backups · PITR</text>
+
+    <!-- RDS Standby -->
+    <rect x="278" y="347" width="226" height="66" rx="6" fill="#F4ECF7" stroke="#9B59B6" stroke-width="1.5"
+          stroke-dasharray="5 3"/>
+    <text x="391" y="367" text-anchor="middle" font-size="11" font-weight="700" fill="#6C3483">RDS Standby</text>
+    <text x="391" y="383" text-anchor="middle" font-size="10" fill="#9B59B6">synchronous replica</text>
+    <text x="391" y="398" text-anchor="middle" font-size="10" fill="#9B59B6">auto failover (&lt; 60 s)</text>
+
+    <!-- RDS Read Replica -->
+    <rect x="518" y="347" width="262" height="66" rx="6" fill="#F4ECF7" stroke="#9B59B6" stroke-width="1.5"
+          stroke-dasharray="5 3"/>
+    <text x="649" y="367" text-anchor="middle" font-size="11" font-weight="700" fill="#6C3483">RDS Read Replica</text>
+    <text x="649" y="383" text-anchor="middle" font-size="10" fill="#9B59B6">async replication</text>
+    <text x="649" y="398" text-anchor="middle" font-size="10" fill="#9B59B6">analytics · reporting · offload</text>
+
+    <!-- ── Supporting services ─────────────────────────────────── -->
+    <rect x="22" y="436" width="776" height="100" rx="8" fill="#F0F3F4" stroke="#717D7E" stroke-width="1"/>
+    <text x="38" y="452" font-size="9" font-weight="700" fill="#5D6D7E" letter-spacing="0.3">SUPPORTING SERVICES</text>
+
+    <rect x="38" y="460" width="168" height="64" rx="6" fill="#FDFEFE" stroke="#AAB7B8" stroke-width="1"/>
+    <text x="122" y="478" text-anchor="middle" font-size="10" font-weight="600" fill="#2C3E50">Secrets Manager</text>
+    <text x="122" y="493" text-anchor="middle" font-size="9" fill="#717D7E">DB creds · encryption key</text>
+    <text x="122" y="507" text-anchor="middle" font-size="9" fill="#717D7E">OIDC secrets · auto-rotate</text>
+
+    <rect x="218" y="460" width="140" height="64" rx="6" fill="#FDFEFE" stroke="#AAB7B8" stroke-width="1"/>
+    <text x="288" y="478" text-anchor="middle" font-size="10" font-weight="600" fill="#2C3E50">CloudWatch</text>
+    <text x="288" y="493" text-anchor="middle" font-size="9" fill="#717D7E">metrics · logs · alarms</text>
+    <text x="288" y="507" text-anchor="middle" font-size="9" fill="#717D7E">ASG scaling triggers</text>
+
+    <rect x="370" y="460" width="140" height="64" rx="6" fill="#FDFEFE" stroke="#AAB7B8" stroke-width="1"/>
+    <text x="440" y="478" text-anchor="middle" font-size="10" font-weight="600" fill="#2C3E50">S3</text>
+    <text x="440" y="493" text-anchor="middle" font-size="9" fill="#717D7E">build artifacts</text>
+    <text x="440" y="507" text-anchor="middle" font-size="9" fill="#717D7E">static asset offload</text>
+
+    <rect x="522" y="460" width="140" height="64" rx="6" fill="#FDFEFE" stroke="#AAB7B8" stroke-width="1"/>
+    <text x="592" y="478" text-anchor="middle" font-size="10" font-weight="600" fill="#2C3E50">GitHub Actions</text>
+    <text x="592" y="493" text-anchor="middle" font-size="9" fill="#717D7E">OIDC → AWS STS</text>
+    <text x="592" y="507" text-anchor="middle" font-size="9" fill="#717D7E">build · deploy pipeline</text>
+
+    <rect x="674" y="460" width="112" height="64" rx="6" fill="#FDFEFE" stroke="#AAB7B8" stroke-width="1"/>
+    <text x="730" y="478" text-anchor="middle" font-size="10" font-weight="600" fill="#2C3E50">ACM</text>
+    <text x="730" y="493" text-anchor="middle" font-size="9" fill="#717D7E">managed TLS cert</text>
+    <text x="730" y="507" text-anchor="middle" font-size="9" fill="#717D7E">auto-renew</text>
+
+    <!-- ── Arrows ────────────────────────────────────────────────── -->
+    <!-- CloudFront → ALB (HTTPS) -->
+    <line x1="455" y1="64" x2="410" y2="146" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+    <text x="462" y="115" font-size="9" fill="#546E7A">HTTPS</text>
+
+    <!-- ALB → EC2 AZ-1a -->
+    <line x1="208" y1="182" x2="208" y2="228" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <!-- ALB → EC2 AZ-1b -->
+    <line x1="600" y1="182" x2="600" y2="228" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+    <text x="620" y="210" font-size="9" fill="#546E7A">round-robin</text>
+
+    <!-- EC2 AZ-1a → RDS Primary (JDBC) -->
+    <line x1="151" y1="300" x2="151" y2="347" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+    <text x="155" y="328" font-size="9" fill="#546E7A">JDBC</text>
+
+    <!-- EC2 AZ-1b → RDS Primary (JDBC, cross-AZ) -->
+    <path d="M 590 300 Q 590 325 391 325 Q 280 325 200 347" stroke="#546E7A" stroke-width="1.5" fill="none"
+          marker-end="url(#arr)"/>
+
+    <!-- RDS Primary → Standby (sync replication) -->
+    <line x1="264" y1="380" x2="278" y2="380" stroke="#7D3C98" stroke-width="1.5" marker-end="url(#arr)"/>
+    <text x="269" y="374" font-size="8" fill="#7D3C98">sync</text>
+
+    <!-- RDS Primary → Read Replica (async) -->
+    <path d="M 151 413 Q 151 430 649 430 Q 649 430 649 413" stroke="#9B59B6" stroke-width="1.5" fill="none"
+          stroke-dasharray="4 3" marker-end="url(#arr-dash)"/>
+    <text x="360" y="442" font-size="8" fill="#9B59B6">async replication</text>
+</svg>

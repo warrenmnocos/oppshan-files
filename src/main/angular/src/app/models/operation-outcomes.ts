@@ -1,5 +1,6 @@
 import {MessageCode} from './message-code';
 import {DirectoryContentsView} from './directory-contents-view';
+import {FileNodeView} from './file-node-view';
 
 export type OperationOutcome =
   SignInSucceeded
@@ -137,4 +138,10 @@ export interface FileDownloadSucceeded {
 export interface FileDownloadFailed {
   readonly id: string;
   readonly messageCode: MessageCode;
+}
+
+export interface ContextMenuShown {
+  target: FileNodeView | null;
+  position: { x: number; y: number };
+  parentUuid: string | null;
 }

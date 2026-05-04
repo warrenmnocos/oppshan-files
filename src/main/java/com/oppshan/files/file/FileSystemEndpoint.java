@@ -126,13 +126,13 @@ public class FileSystemEndpoint {
                                @BeanParam
                                FileUploadRequest request,
 
-                               InputStream bodyStream) {
+                               InputStream contentInputStream) {
         final var directoryContentsView = fileNodeService.uploadFile(
                 userSessionManager.getSessionUserAccount().uuid(),
                 request.getParentFileNodeUuid(),
                 request.getContentFilename(),
                 request.getContentType(),
-                bodyStream
+                contentInputStream
         );
         userSessionManager.refreshSessionUserAccount();
         return Response.status(Status.CREATED)

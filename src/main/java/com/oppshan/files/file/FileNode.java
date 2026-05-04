@@ -33,6 +33,7 @@ import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.annotations.UuidGenerator.Style;
 
+import java.io.InputStream;
 import java.io.Serial;
 import java.io.Serializable;
 import java.sql.Blob;
@@ -356,6 +357,10 @@ public class FileNode
         return this;
     }
 
+    public FileNode setContent(InputStream content) {
+        return setContent(new IncomingBlob(content));
+    }
+
     public Optional<FileNode> getParentFileNode() {
         return Optional.ofNullable(parentFileNode);
     }
@@ -454,7 +459,12 @@ public class FileNode
     }
 
     public List<FileNodeView> toChildFileNodeViews() {
+        return toChildFileNodeViews(FileNodeComparator.NAME);
+    }
+
+    public List<FileNodeView> toChildFileNodeViews(FileNodeComparator fileNodeComparator) {
         return childFileNodes.stream()
+                .sorted(fileNodeComparator)
                 .map(FileNode::toFileNodeView)
                 .collect(Collectors.toList());
     }
@@ -470,6 +480,11 @@ public class FileNode
     }
 
     public DirectoryContentsView toDirectoryContentsView(List<BreadcrumbView> breadcrumbs) {
+        return toDirectoryContentsView(breadcrumbs, FileNodeComparator.NAME);
+    }
+
+    public DirectoryContentsView toDirectoryContentsView(List<BreadcrumbView> breadcrumbs,
+                                                         FileNodeComparator fileNodeComparator) {
         final var parentUuid = breadcrumbs.size() >= 2
                 ? breadcrumbs.get(breadcrumbs.size() - 2).uuid()
                 : null;
@@ -478,7 +493,7 @@ public class FileNode
                 name,
                 parentUuid,
                 breadcrumbs,
-                toChildFileNodeViews()
+                toChildFileNodeViews(fileNodeComparator)
         );
     }
 
@@ -556,7 +571,7 @@ public class FileNode
     public enum FileNodeComparator implements Comparator<FileNode> {
         NAME(Comparator.comparing(FileNode::getUserAccount, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(fileNode -> fileNode.parentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))))
-                .thenComparing(FileNode::isDirectory)
+                .thenComparing(FileNode::isDirectory, Comparator.reverseOrder())
                 .thenComparing(FileNode::getName, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(FileNode::getMimeType, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(FileNode::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
@@ -565,7 +580,7 @@ public class FileNode
                 .thenComparing(FileNode::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))),
         LAST_MODIFIED_AT(Comparator.comparing(FileNode::getUserAccount, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(fileNode -> fileNode.parentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))))
-                .thenComparing(FileNode::isDirectory)
+                .thenComparing(FileNode::isDirectory, Comparator.reverseOrder())
                 .thenComparing(FileNode::getLastModifiedAt, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(FileNode::getName, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(FileNode::getMimeType, Comparator.nullsLast(Comparator.naturalOrder()))
@@ -574,7 +589,7 @@ public class FileNode
                 .thenComparing(FileNode::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))),
         SIZE_BYTES(Comparator.comparing(FileNode::getUserAccount, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(fileNode -> fileNode.parentFileNode, Comparator.nullsLast(Comparator.comparing(FileNode::getUuid, Comparator.nullsLast(Comparator.naturalOrder()))))
-                .thenComparing(FileNode::isDirectory)
+                .thenComparing(FileNode::isDirectory, Comparator.reverseOrder())
                 .thenComparingLong(FileNode::getSizeBytes)
                 .thenComparing(FileNode::getName, Comparator.nullsLast(Comparator.naturalOrder()))
                 .thenComparing(FileNode::getMimeType, Comparator.nullsLast(Comparator.naturalOrder()))

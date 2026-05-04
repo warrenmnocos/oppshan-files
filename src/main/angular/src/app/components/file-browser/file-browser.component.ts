@@ -1,5 +1,6 @@
-import {AfterViewInit, Component, ElementRef, input, signal, ViewChild, WritableSignal} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, input, OnDestroy, signal, ViewChild, WritableSignal} from '@angular/core';
 import {TranslatePipe} from '@ngx-translate/core';
+import {Subscription} from 'rxjs';
 import {FileNodeView} from '../../models/file-node-view';
 import {FileSizePipe} from '../../misc/file-size.pipe';
 import {DateTimePipe} from '../../misc/date-time.pipe';
@@ -7,8 +8,8 @@ import {VIEW_MODE_KEY, ViewMode} from '../../models/view-mode';
 import {MessageBusService} from '../../services/message-bus-service';
 import {ApplicationEvent} from '../../models/application-event';
 import {ApplicationEventType} from '../../models/application-event-type';
-import {DirectoryNavigationCommand, FileCreateCommand, FileDownloadCommand} from '../../models/operation-commands';
-import {FileCreateFailed} from '../../models/operation-outcomes';
+import {DirectoryNavigationCommand, FileCreateCommand} from '../../models/operation-commands';
+import {ContextMenuShown, FileCreateFailed} from '../../models/operation-outcomes';
 import {MessageCode} from '../../models/message-code';
 import {resolveFileIcon} from '../../misc/utils';
 import {UserAccountView} from '../../models/user-account-view';
@@ -19,7 +20,7 @@ import {UserAccountView} from '../../models/user-account-view';
   styleUrl: './file-browser.component.scss',
   imports: [TranslatePipe, FileSizePipe, DateTimePipe],
 })
-export class FileBrowser implements AfterViewInit {
+export class FileBrowser implements AfterViewInit, OnDestroy {
 
   readonly userAccountView = input<UserAccountView | null>();
 
@@ -35,11 +36,20 @@ export class FileBrowser implements AfterViewInit {
 
   protected readonly ViewMode = ViewMode;
 
-  @ViewChild('fileInput') private fileInputRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('fileInput')
+  private fileInputRef!: ElementRef<HTMLInputElement>;
+
+  private longPressTimer: number | null;
+
+  private longPressTouch: { x: number; y: number; target: FileNodeView } | null;
+
+  private applicationEventSubscription?: Subscription;
 
   constructor(private readonly messageBusService: MessageBusService) {
     this.viewMode = signal<ViewMode>(ViewMode.List);
     this.dropTarget = signal(false);
+    this.longPressTimer = null;
+    this.longPressTouch = null;
   }
 
   ngAfterViewInit(): void {
@@ -47,9 +57,29 @@ export class FileBrowser implements AfterViewInit {
     if (saved === ViewMode.Grid || saved === ViewMode.List) {
       this.viewMode.set(saved);
     }
+
+    this.applicationEventSubscription = this.messageBusService.applicationEventStream
+      .subscribe(event => {
+        if (event.type === ApplicationEventType.FileUploadPickerShown) {
+          this.fileInputRef.nativeElement.click();
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.applicationEventSubscription?.unsubscribe();
+    if (this.longPressTimer === null) {
+      return;
+    }
+
+    window.clearTimeout(this.longPressTimer);
   }
 
   setViewMode(mode: ViewMode): void {
+    if (this.messageBusService.applicationEvenTypeSignal() === ApplicationEventType.ContextMenuShown) {
+      this.messageBusService.fireApplicationEventOfType(ApplicationEventType.ContextMenuHidden);
+    }
+
     this.viewMode.set(mode);
     localStorage.setItem(VIEW_MODE_KEY, mode);
   }
@@ -61,6 +91,42 @@ export class FileBrowser implements AfterViewInit {
         {uuid: item.uuid} as DirectoryNavigationCommand
       ));
     }
+  }
+
+  onItemRightClick(event: MouseEvent, target: FileNodeView): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.openContextMenu(target, {x: event.clientX, y: event.clientY});
+  }
+
+  onItemKebabClick(event: MouseEvent, target: FileNodeView): void {
+    event.stopPropagation();
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+    this.openContextMenu(target, {x: rect.right, y: rect.bottom});
+  }
+
+  onEmptyAreaRightClick(event: MouseEvent): void {
+    if (this.loading()) {
+      return;
+    }
+
+    event.preventDefault();
+    this.openContextMenu(null, {x: event.clientX, y: event.clientY});
+  }
+
+  onItemTouchStart(event: TouchEvent, target: FileNodeView): void {
+    const touch = event.touches[0];
+    this.longPressTouch = {x: touch.clientX, y: touch.clientY, target};
+    this.longPressTimer = window.setTimeout(() => this.fireLongPress(), 500);
+  }
+
+  onItemTouchEnd(): void {
+    if (this.longPressTimer === null) {
+      return;
+    }
+
+    window.clearTimeout(this.longPressTimer);
+    this.longPressTimer = null;
   }
 
   onDirectoryCreationRequested(): void {
@@ -121,15 +187,6 @@ export class FileBrowser implements AfterViewInit {
     this.fileInputRef.nativeElement.value = '';
   }
 
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-    this.dropTarget.set(true);
-  }
-
-  onDragLeave(): void {
-    this.dropTarget.set(false);
-  }
-
   onDrop(event: DragEvent): void {
     event.preventDefault();
     this.dropTarget.set(false);
@@ -161,49 +218,17 @@ export class FileBrowser implements AfterViewInit {
     }
   }
 
-  onDirectoryRenameRequested(fileNodeView: FileNodeView): void {
-    this.messageBusService.fireApplicationEvent(
-      new ApplicationEvent(ApplicationEventType.DirectoryRenameInitiated, fileNodeView)
-    );
+  onFileSelectionStarted(event: MouseEvent): void {
+    if (event.button !== 0 || event.buttons !== 1) {
+      return;
+    }
+
+    event.preventDefault();
+    this.dropTarget.set(true);
   }
 
-  onDirectoryDeletionRequested(fileNodeView: FileNodeView): void {
-    this.messageBusService.fireApplicationEvent(
-      new ApplicationEvent(ApplicationEventType.DirectoryDeletionInitiated, fileNodeView)
-    );
-  }
-
-  onDirectoryPropertiesRequested(fileNodeView: FileNodeView): void {
-    this.messageBusService.fireApplicationEvent(
-      new ApplicationEvent(ApplicationEventType.DirectoryPropertiesShown, fileNodeView)
-    );
-  }
-
-  onFileDownloadRequested(fileNodeView: FileNodeView): void {
-    this.messageBusService.fireApplicationEvent(
-      new ApplicationEvent(ApplicationEventType.FileDownloadConfirmed, {
-        uuid: fileNodeView.uuid,
-        name: fileNodeView.name,
-      } as FileDownloadCommand)
-    );
-  }
-
-  onFileRenameRequested(fileNodeView: FileNodeView): void {
-    this.messageBusService.fireApplicationEvent(
-      new ApplicationEvent(ApplicationEventType.FileRenameInitiated, fileNodeView)
-    );
-  }
-
-  onFileDeletionRequested(fileNodeView: FileNodeView): void {
-    this.messageBusService.fireApplicationEvent(
-      new ApplicationEvent(ApplicationEventType.FileDeletionInitiated, fileNodeView)
-    );
-  }
-
-  onFilePropertiesRequested(fileNodeView: FileNodeView): void {
-    this.messageBusService.fireApplicationEvent(
-      new ApplicationEvent(ApplicationEventType.FilePropertiesShown, fileNodeView)
-    );
+  onFileSelectionCompleted(): void {
+    this.dropTarget.set(false);
   }
 
   getIcon(item: FileNodeView): string {
@@ -213,5 +238,27 @@ export class FileBrowser implements AfterViewInit {
 
     const kind = resolveFileIcon(item.name);
     return kind ? `/icons/file-${kind}.svg` : '/icons/file.svg';
+  }
+
+  private fireLongPress(): void {
+    const touch = this.longPressTouch;
+    if (touch === null) {
+      return;
+    }
+
+    this.openContextMenu(touch.target, {x: touch.x, y: touch.y});
+    this.longPressTimer = null;
+  }
+
+  private openContextMenu(target: FileNodeView | null,
+                          position: { x: number; y: number }): void {
+    this.messageBusService.fireApplicationEvent(new ApplicationEvent(
+      ApplicationEventType.ContextMenuShown,
+      {
+        target,
+        position,
+        parentUuid: this.parentDirectoryUuid(),
+      } as ContextMenuShown
+    ));
   }
 }

@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 600" width="820" height="600"
+     font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="12">
+    <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 1.5 L8.5 5 L0 8.5 z" fill="#546E7A"/>
+        </marker>
+    </defs>
+
+    <rect width="820" height="600" fill="#FAFAFA"/>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         FRONTEND — Angular 21 SPA
+         ═══════════════════════════════════════════════════════════ -->
+    <rect x="10" y="10" width="800" height="248" rx="12"
+          fill="#E8F8F5" stroke="#1ABC9C" stroke-width="2"/>
+    <text x="26" y="32" font-size="11" font-weight="700" fill="#0E6655" letter-spacing="0.4">
+        Frontend · Angular 21 SPA (browser)
+    </text>
+
+    <!-- Components -->
+    <rect x="24" y="42" width="228" height="96" rx="7" fill="#D5F5E3" stroke="#27AE60" stroke-width="1.5"/>
+    <text x="138" y="61" text-anchor="middle" font-size="11" font-weight="700" fill="#145A32">Components</text>
+    <text x="138" y="79" text-anchor="middle" font-size="10" fill="#1E8449">FileBrowser · Toolbar</text>
+    <text x="138" y="94" text-anchor="middle" font-size="10" fill="#1E8449">NotificationCenter · Breadcrumb</text>
+    <text x="138" y="109" text-anchor="middle" font-size="10" fill="#1E8449">Dialogs (create · rename · delete</text>
+    <text x="138" y="124" text-anchor="middle" font-size="10" fill="#1E8449">· properties) × files + folders</text>
+
+    <!-- MessageBusService -->
+    <rect x="276" y="42" width="180" height="96" rx="7" fill="#D5F5E3" stroke="#27AE60" stroke-width="1.5"/>
+    <text x="366" y="64" text-anchor="middle" font-size="11" font-weight="700" fill="#145A32">MessageBusService</text>
+    <text x="366" y="82" text-anchor="middle" font-size="10" fill="#1E8449">Subject&lt;ApplicationEvent&gt;</text>
+    <text x="366" y="98" text-anchor="middle" font-size="10" fill="#1E8449">ApplicationEventType</text>
+    <text x="366" y="113" text-anchor="middle" font-size="10" fill="#1E8449">(55 event types)</text>
+    <text x="366" y="128" text-anchor="middle" font-size="10" fill="#1E8449">CQRS event bus</text>
+
+    <!-- Listeners -->
+    <rect x="480" y="42" width="180" height="96" rx="7" fill="#D5F5E3" stroke="#27AE60" stroke-width="1.5"/>
+    <text x="570" y="64" text-anchor="middle" font-size="11" font-weight="700" fill="#145A32">Listeners (13)</text>
+    <text x="570" y="82" text-anchor="middle" font-size="10" fill="#1E8449">directory-create/rename/delete</text>
+    <text x="570" y="97" text-anchor="middle" font-size="10" fill="#1E8449">file-create/rename/delete</text>
+    <text x="570" y="112" text-anchor="middle" font-size="10" fill="#1E8449">file-download · navigation</text>
+    <text x="570" y="127" text-anchor="middle" font-size="10" fill="#1E8449">notification · progress · auth</text>
+
+    <!-- Services -->
+    <rect x="680" y="42" width="120" height="96" rx="7" fill="#D5F5E3" stroke="#27AE60" stroke-width="1.5"/>
+    <text x="740" y="64" text-anchor="middle" font-size="11" font-weight="700" fill="#145A32">Services</text>
+    <text x="740" y="82" text-anchor="middle" font-size="10" fill="#1E8449">AuthService</text>
+    <text x="740" y="97" text-anchor="middle" font-size="10" fill="#1E8449">FileService</text>
+    <text x="740" y="112" text-anchor="middle" font-size="10" fill="#1E8449">NotificationService</text>
+    <text x="740" y="127" text-anchor="middle" font-size="10" fill="#1E8449">MessageReactorService</text>
+
+    <!-- Router -->
+    <rect x="24" y="158" width="776" height="48" rx="6" fill="#A9DFBF" stroke="#1E8449" stroke-width="1"/>
+    <text x="412" y="177" text-anchor="middle" font-size="11" font-weight="700" fill="#145A32">Angular Router</text>
+    <text x="412" y="193" text-anchor="middle" font-size="10" fill="#1E8449">
+        /sso/sign-in · /sso/sign-out · /drive/** (lazy-loaded DriveComponent)
+        · authGuard · SessionHttpInterceptor
+    </text>
+
+    <!-- Arrows within frontend -->
+    <!-- Components ↔ Bus -->
+    <line x1="252" y1="90" x2="276" y2="90" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+    <!-- Bus ↔ Listeners -->
+    <line x1="456" y1="90" x2="480" y2="90" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+    <!-- Listeners ↔ Services -->
+    <line x1="660" y1="90" x2="680" y2="90" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         HTTP boundary label
+         ═══════════════════════════════════════════════════════════ -->
+    <line x1="10" y1="268" x2="810" y2="268" stroke="#90A4AE" stroke-width="1" stroke-dasharray="6 4"/>
+    <text x="360" y="282" font-size="10" fill="#90A4AE">HTTPS · HTTP-only OIDC cookie · /api/** · /sso/**</text>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         BACKEND — Quarkus 3
+         ═══════════════════════════════════════════════════════════ -->
+    <rect x="10" y="290" width="800" height="218" rx="12"
+          fill="#FEF9E7" stroke="#D4AC0D" stroke-width="2"/>
+    <text x="26" y="312" font-size="11" font-weight="700" fill="#9A7D0A" letter-spacing="0.4">
+        Backend · Quarkus 3 native binary · EC2 localhost:8080
+    </text>
+
+    <!-- Endpoints -->
+    <rect x="24" y="322" width="228" height="88" rx="7" fill="#FDEBD0" stroke="#E67E22" stroke-width="1.5"/>
+    <text x="138" y="342" text-anchor="middle" font-size="11" font-weight="700" fill="#784212">JAX-RS Endpoints</text>
+    <text x="138" y="360" text-anchor="middle" font-size="10" fill="#A04000">FileSystemEndpoint /api/files</text>
+    <text x="138" y="375" text-anchor="middle" font-size="10" fill="#A04000">AuthEndpoint /api/auth/me</text>
+    <text x="138" y="390" text-anchor="middle" font-size="10" fill="#A04000">SsoEndpoint /sso/**</text>
+    <text x="138" y="405" text-anchor="middle" font-size="10" fill="#A04000">Virtual threads · @Authenticated</text>
+
+    <!-- Services -->
+    <rect x="276" y="322" width="180" height="88" rx="7" fill="#FDEBD0" stroke="#E67E22" stroke-width="1.5"/>
+    <text x="366" y="342" text-anchor="middle" font-size="11" font-weight="700" fill="#784212">Services</text>
+    <text x="366" y="360" text-anchor="middle" font-size="10" fill="#A04000">FileNodeService</text>
+    <text x="366" y="375" text-anchor="middle" font-size="10" fill="#A04000">UserAccountService</text>
+    <text x="366" y="390" text-anchor="middle" font-size="10" fill="#A04000">UserSessionManager</text>
+    <text x="366" y="405" text-anchor="middle" font-size="10" fill="#A04000">@Transactional · @SessionScoped</text>
+
+    <!-- Repositories -->
+    <rect x="480" y="322" width="180" height="88" rx="7" fill="#FDEBD0" stroke="#E67E22" stroke-width="1.5"/>
+    <text x="570" y="342" text-anchor="middle" font-size="11" font-weight="700" fill="#784212">Repositories</text>
+    <text x="570" y="360" text-anchor="middle" font-size="10" fill="#A04000">FileNodeRepository</text>
+    <text x="570" y="375" text-anchor="middle" font-size="10" fill="#A04000">UserAccountRepository</text>
+    <text x="570" y="390" text-anchor="middle" font-size="10" fill="#A04000">UserStorageRepository</text>
+    <text x="570" y="405" text-anchor="middle" font-size="10" fill="#A04000">Jakarta Data · @Query JPQL</text>
+
+    <!-- Encryption -->
+    <rect x="680" y="322" width="120" height="88" rx="7" fill="#FDEBD0" stroke="#E67E22" stroke-width="1.5"/>
+    <text x="740" y="342" text-anchor="middle" font-size="11" font-weight="700" fill="#784212">Encryption</text>
+    <text x="740" y="360" text-anchor="middle" font-size="10" fill="#A04000">EncryptedBlob</text>
+    <text x="740" y="375" text-anchor="middle" font-size="10" fill="#A04000">UserType</text>
+    <text x="740" y="390" text-anchor="middle" font-size="10" fill="#A04000">AES/CTR/NoPadding</text>
+    <text x="740" y="405" text-anchor="middle" font-size="10" fill="#A04000">PBKDF2 · 1M itr</text>
+
+    <!-- Entities strip -->
+    <rect x="24" y="428" width="776" height="46" rx="6" fill="#FAD7A0" stroke="#E59866" stroke-width="1"/>
+    <text x="412" y="447" text-anchor="middle" font-size="11" font-weight="700" fill="#784212">JPA Entities</text>
+    <text x="412" y="463" text-anchor="middle" font-size="10" fill="#A04000">
+        FileNode (inode · directory boolean · UUID v7 PK) · UserAccount · IdpAccount → GoogleAccount · UserStorage
+    </text>
+
+    <!-- Arrows within backend -->
+    <line x1="252" y1="366" x2="276" y2="366" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+    <line x1="456" y1="366" x2="480" y2="366" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+    <line x1="660" y1="366" x2="680" y2="366" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         JDBC boundary label
+         ═══════════════════════════════════════════════════════════ -->
+    <line x1="10" y1="517" x2="810" y2="517" stroke="#90A4AE" stroke-width="1" stroke-dasharray="6 4"/>
+    <text x="384" y="531" font-size="10" fill="#90A4AE">JDBC · Flyway migrations · Hibernate validate</text>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         DATABASE — PostgreSQL 18
+         ═══════════════════════════════════════════════════════════ -->
+    <rect x="10" y="540" width="800" height="50" rx="12"
+          fill="#F4ECF7" stroke="#7D3C98" stroke-width="2"/>
+    <text x="26" y="560" font-size="11" font-weight="700" fill="#512E5F" letter-spacing="0.4">
+        Database · PostgreSQL 18 · localhost:5432
+    </text>
+    <text x="412" y="578" text-anchor="middle" font-size="10" fill="#7D3C98">
+        file_node · user_account · idp_account · google_account · user_storage
+        · Large Objects (lo_) · Flyway V1–V6 · ON DELETE CASCADE triggers
+    </text>
+</svg>
