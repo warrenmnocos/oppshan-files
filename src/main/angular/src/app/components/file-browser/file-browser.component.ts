@@ -85,12 +85,14 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
   }
 
   onItemClick(item: FileNodeView): void {
-    if (item.directory) {
-      this.messageBusService.fireApplicationEvent(new ApplicationEvent(
-        ApplicationEventType.DirectoryNavigationInitiated,
-        {uuid: item.uuid} as DirectoryNavigationCommand
-      ));
+    if (!item.directory) {
+      return;
     }
+
+    this.messageBusService.fireApplicationEvent(new ApplicationEvent(
+      ApplicationEventType.DirectoryNavigationInitiated,
+      {uuid: item.uuid} as DirectoryNavigationCommand
+    ));
   }
 
   onItemRightClick(event: MouseEvent, target: FileNodeView): void {

@@ -92,7 +92,7 @@
         <span class="list-col-kebab" aria-hidden="true"></span>
       </div>
       @for (fileNodeView of fileNodeViews(); track fileNodeView.uuid) {
-        <div [class.clickable]="fileNodeView.directory" class="list-row"
+        <div class="list-row clickable"
              (click)="onItemClick(fileNodeView)"
              (contextmenu)="onItemRightClick($event, fileNodeView)"
              (touchstart)="onItemTouchStart($event, fileNodeView)"
@@ -115,7 +115,7 @@
   } @else {
     <div class="grid-view">
       @for (fileNodeView of fileNodeViews(); track fileNodeView.uuid) {
-        <div [class.clickable]="fileNodeView.directory" class="grid-item"
+        <div class="grid-item clickable"
              (click)="onItemClick(fileNodeView)"
              (contextmenu)="onItemRightClick($event, fileNodeView)"
              (touchstart)="onItemTouchStart($event, fileNodeView)"

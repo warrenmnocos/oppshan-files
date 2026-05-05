@@ -2,6 +2,7 @@ import {
   afterNextRender,
   Component,
   computed,
+  effect,
   ElementRef,
   HostListener,
   OnDestroy,
@@ -41,7 +42,7 @@ export class FileContextMenu implements OnInit, OnDestroy {
   protected readonly clampedPosition: WritableSignal<{ x: number; y: number } | null>;
   protected readonly visible: WritableSignal<boolean>;
 
-  protected readonly ContextMenuItemId: typeof ContextMenuItemId;
+  protected readonly ContextMenuItemId = ContextMenuItemId;
 
   private readonly mediaQuery: MediaQueryList;
   private readonly mediaListener: (event: MediaQueryListEvent) => void;
@@ -63,9 +64,11 @@ export class FileContextMenu implements OnInit, OnDestroy {
     this.clampedPosition = signal<{ x: number; y: number } | null>(null);
     this.visible = signal<boolean>(false);
 
-    this.ContextMenuItemId = ContextMenuItemId;
-
     afterNextRender(() => this.measureAndShow());
+    effect(() => {
+      this.target();
+      this.measureAndShow();
+    });
   }
 
   ngOnInit(): void {
@@ -81,6 +84,7 @@ export class FileContextMenu implements OnInit, OnDestroy {
     if (this.hostRef.nativeElement.contains(event.target as Node)) {
       return;
     }
+
     this.dismiss();
   }
 
@@ -263,7 +267,7 @@ export class FileContextMenu implements OnInit, OnDestroy {
     }
 
     const raw = this.rawPosition();
-    const host = this.hostRef.nativeElement;
+    const host = this.hostRef?.nativeElement;
     if (!raw || !host) {
       this.visible.set(true);
       return;
