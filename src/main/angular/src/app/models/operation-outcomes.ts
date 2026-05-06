@@ -19,7 +19,9 @@ export type OperationOutcome =
   | FileDeletionSucceeded
   | FileDeletionFailed
   | FileDownloadSucceeded
-  | FileDownloadFailed;
+  | FileDownloadFailed
+  | ContextMenuShown
+  | FileNodeSelectionChanged;
 
 export interface SignInSucceeded {
   readonly messageCode: MessageCode;
@@ -141,7 +143,13 @@ export interface FileDownloadFailed {
 }
 
 export interface ContextMenuShown {
-  target: FileNodeView | null;
-  position: { x: number; y: number };
-  parentUuid: string | null;
+  readonly target: FileNodeView | null;
+  readonly position: { x: number; y: number };
+  readonly parentUuid: string | null;
+  readonly quotaExceeded: boolean;
+}
+
+export interface FileNodeSelectionChanged {
+  readonly selectedItems: readonly FileNodeView[];
+  readonly deselectedItems: readonly FileNodeView[];
 }

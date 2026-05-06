@@ -1,12 +1,11 @@
-import {Component, computed, OnInit, Signal, signal, WritableSignal} from '@angular/core';
+import {Component, computed, Signal} from '@angular/core';
 import {TranslatePipe} from '@ngx-translate/core';
 import {FileSizePipe} from '../../misc/file-size.pipe';
 import {DateTimePipe} from '../../misc/date-time.pipe';
 import {MessageBusService} from '../../services/message-bus-service';
 import {ApplicationEventType} from '../../models/application-event-type';
-import {FileService} from '../../services/file-service.service';
 import {FileNodeView} from '../../models/file-node-view';
-import {FilePropertiesView} from '../../models/file-properties-view';
+import {ActivatedRoute} from '@angular/router';
 
 @Component({
   selector: 'app-file-properties-dialog',
@@ -14,27 +13,37 @@ import {FilePropertiesView} from '../../models/file-properties-view';
   styleUrl: './file-properties-dialog.component.scss',
   imports: [TranslatePipe, FileSizePipe, DateTimePipe],
 })
-export class FilePropertiesDialog implements OnInit {
+export class FilePropertiesDialog {
 
-  protected readonly properties: WritableSignal<FilePropertiesView | null>;
+  protected readonly selectedFile: Signal<FileNodeView | null>;
 
-  private readonly selectedFile: Signal<FileNodeView | null>;
+  protected readonly fileName: Signal<string>;
+
+  protected readonly mimeType: Signal<string>;
+
+  protected readonly sizeBytes: Signal<number>;
+
+  protected readonly location: Signal<string>;
+
+  protected readonly fileUrl: Signal<string>;
 
   constructor(private readonly messageBusService: MessageBusService,
-              private readonly fileService: FileService) {
-    this.properties = signal<FilePropertiesView | null>(null);
+              private readonly route: ActivatedRoute) {
     this.selectedFile = computed(
       () => this.messageBusService.applicationEventSignal().payload as FileNodeView | null
     );
-  }
-
-  ngOnInit(): void {
-    const file = this.selectedFile();
-    if (!file) {
-      return;
-    }
-    this.fileService.getFileProperties(file.uuid).subscribe({
-      next: properties => this.properties.set(properties),
+    this.fileName = computed(() => this.selectedFile()?.name ?? '');
+    this.mimeType = computed(() => this.selectedFile()?.mimeType ?? '');
+    this.sizeBytes = computed(() => this.selectedFile()?.sizeBytes ?? 0);
+    this.location = computed(() => {
+      const segments = this.route.snapshot.url.map(segment => decodeURIComponent(segment.path));
+      return segments.length > 0
+        ? 'My files / ' + segments.join(' / ')
+        : 'My files';
+    });
+    this.fileUrl = computed(() => {
+      const uuid = this.selectedFile()?.uuid ?? '';
+      return `${window.location.origin}/drive/${uuid}`;
     });
   }
 

@@ -235,9 +235,16 @@ const FileIcons: Readonly<Record<string, string>> = {
   kra: 'design',
 };
 
-export function resolveFileIcon(filename: string): string {
-  const dotIndex = filename.lastIndexOf('.');
-  const extension = dotIndex >= 0 ? filename.slice(dotIndex + 1).toLowerCase() : '';
+export function resolveFileIcon(name: string,
+                                mimeType: string): string {
+  let slashIndex = mimeType.lastIndexOf('/');
+  let extension = slashIndex >= 0 ? mimeType.slice(slashIndex + 1).toLowerCase() : '';
+  let fileIcon = FileIcons[extension];
+  if (!fileIcon) {
+    slashIndex = name.lastIndexOf('.');
+    extension = slashIndex >= 0 ? name.slice(slashIndex + 1).toLowerCase() : '';
+  }
+
   return FileIcons[extension] ?? 'file';
 }
 

@@ -6,7 +6,11 @@
       @if (item.id === ContextMenuItemId.Divider) {
         <hr class="ctx-divider"/>
       } @else {
-        <button class="ctx-item" [class.ctx-danger]="item.danger" (click)="select(item)">
+        <button class="ctx-item"
+                [class.ctx-danger]="item.danger"
+                [class.ctx-disabled]="item.disabled"
+                [disabled]="item.disabled"
+                (click)="select(item)">
           <img class="ctx-icon" [src]="item.iconSrc" alt=""/>
           <span class="ctx-label">{{ item.labelKey! | translate }}</span>
         </button>
@@ -22,7 +26,11 @@
       @if (item.id === ContextMenuItemId.Divider) {
         <hr class="ctx-divider"/>
       } @else {
-        <button class="ctx-item" [class.ctx-danger]="item.danger" (click)="select(item)">
+        <button class="ctx-item"
+                [class.ctx-danger]="item.danger"
+                [class.ctx-disabled]="item.disabled"
+                [disabled]="item.disabled"
+                (click)="select(item)">
           <img class="ctx-icon" [src]="item.iconSrc" alt=""/>
           <span class="ctx-label">{{ item.labelKey! | translate }}</span>
         </button>

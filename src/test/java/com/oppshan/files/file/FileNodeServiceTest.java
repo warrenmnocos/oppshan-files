@@ -55,11 +55,11 @@ class FileNodeServiceTest {
 
         final var view = fileNodeService.getRootDirectoryContents(userAccountUuid);
 
-        assertThat(view.uuid(), is(rootDirectoryUuid));
-        assertThat(view.parentUuid(), is(nullValue()));
-        assertThat(view.childrenFileNodeViews(), hasSize(4));
+        assertThat(view.getUuid(), is(rootDirectoryUuid));
+        assertThat(view.getParentUuid().orElse(null), is(nullValue()));
+        assertThat(view.getChildrenFileNodeViews(), hasSize(4));
         assertThat(
-                view.childrenFileNodeViews().stream().map(FileNodeView::name).toList(),
+                view.getChildrenFileNodeViews().stream().map(FileNodeView::name).toList(),
                 containsInAnyOrder("Audio", "Documents", "Photos", "Videos")
         );
     }
@@ -70,9 +70,9 @@ class FileNodeServiceTest {
 
         final var view = fileNodeService.getDirectoryContents(userAccountUuid, rootDirectoryUuid);
 
-        assertThat(view.uuid(), is(rootDirectoryUuid));
-        assertThat(view.breadcrumbViews(), hasSize(1));
-        assertThat(view.breadcrumbViews().get(0).name(), is("Root"));
+        assertThat(view.getUuid(), is(rootDirectoryUuid));
+        assertThat(view.getBreadcrumbViews(), hasSize(1));
+        assertThat(view.getBreadcrumbViews().get(0).name(), is("Root"));
     }
 
     @Test
@@ -92,18 +92,18 @@ class FileNodeServiceTest {
 
         final var view = fileNodeService.getDirectoryContents(userAccountUuid, "");
 
-        assertThat(view.uuid(), is(rootDirectoryUuid));
+        assertThat(view.getUuid(), is(rootDirectoryUuid));
     }
 
     @Test
     void shouldResolveNestedSegmentsWhenGettingContentsByPath() {
         seedUser();
-        createDirectory(rootDirectoryUuid, "Projects");
+        createDirectoryFileNode(rootDirectoryUuid, "Projects");
 
         final var view = fileNodeService.getDirectoryContents(userAccountUuid, "Projects");
 
-        assertThat(view.name(), is("Projects"));
-        assertThat(view.parentUuid(), is(rootDirectoryUuid));
+        assertThat(view.getName(), is("Projects"));
+        assertThat(view.getParentUuid().orElse(null), is(rootDirectoryUuid));
     }
 
     @Test
@@ -120,11 +120,11 @@ class FileNodeServiceTest {
     @Test
     void shouldAggregateNestedFolderAndFileCountsWhenGettingDirectoryProperties() {
         seedUser();
-        final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
-        createDirectory(workspaceUuid, "Subfolder");
-        uploadFile(workspaceUuid, "notes.txt", TEXT_MIME_TYPE, "hello world".getBytes(StandardCharsets.UTF_8));
+        final var workspaceUuid = createDirectoryFileNode(rootDirectoryUuid, "Workspace");
+        createDirectoryFileNode(workspaceUuid, "Subfolder");
+        createRegularFileNode(workspaceUuid, "notes.txt", TEXT_MIME_TYPE, "hello world".getBytes(StandardCharsets.UTF_8));
 
-        final var properties = fileNodeService.getDirectoryProperties(userAccountUuid, workspaceUuid);
+        final var properties = (DirectoryPropertiesView) fileNodeService.getFileNodeProperties(userAccountUuid, workspaceUuid);
 
         assertThat(properties.uuid(), is(workspaceUuid));
         assertThat(properties.name(), is("Workspace"));
@@ -134,28 +134,28 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void shouldThrowWhenGettingDirectoryPropertiesByUnknownUuid() {
+    void shouldThrowFileNotFoundWhenGettingFileNodePropertiesByUnknownUuid() {
         seedUser();
 
         final var businessException = assertThrows(
                 BusinessException.class,
-                () -> fileNodeService.getDirectoryProperties(userAccountUuid, UUID.randomUUID())
+                () -> fileNodeService.getFileNodeProperties(userAccountUuid, UUID.randomUUID())
         );
-        assertThat(businessException.getErrorCode(), is(MessageCode.DIRECTORY_NOT_FOUND));
+        assertThat(businessException.getErrorCode(), is(MessageCode.FILE_NOT_FOUND));
     }
 
     @Test
     void shouldAddChildToParentWhenCreatingDirectory() {
         seedUser();
 
-        final var view = fileNodeService.createDirectory(
+        final var view = fileNodeService.createDirectoryFileNode(
                 userAccountUuid,
                 new CreateDirectoryRequest("Reports", rootDirectoryUuid)
         );
 
-        assertThat(view.uuid(), is(rootDirectoryUuid));
+        assertThat(view.getUuid(), is(rootDirectoryUuid));
         assertThat(
-                view.childrenFileNodeViews().stream().map(FileNodeView::name).toList(),
+                view.getChildrenFileNodeViews().stream().map(FileNodeView::name).toList(),
                 containsInAnyOrder("Audio", "Documents", "Photos", "Videos", "Reports")
         );
     }
@@ -164,13 +164,13 @@ class FileNodeServiceTest {
     void shouldTrimLeadingAndTrailingWhitespaceWhenCreatingDirectory() {
         seedUser();
 
-        final var view = fileNodeService.createDirectory(
+        final var view = fileNodeService.createDirectoryFileNode(
                 userAccountUuid,
                 new CreateDirectoryRequest("  Reports  ", rootDirectoryUuid)
         );
 
         assertThat(
-                view.childrenFileNodeViews().stream().anyMatch(child -> child.name().equals("Reports")),
+                view.getChildrenFileNodeViews().stream().anyMatch(child -> child.name().equals("Reports")),
                 is(true)
         );
     }
@@ -181,7 +181,7 @@ class FileNodeServiceTest {
 
         final var businessException = assertThrows(
                 BusinessException.class,
-                () -> fileNodeService.createDirectory(
+                () -> fileNodeService.createDirectoryFileNode(
                         userAccountUuid,
                         new CreateDirectoryRequest("    ", rootDirectoryUuid)
                 )
@@ -195,7 +195,7 @@ class FileNodeServiceTest {
 
         final var businessException = assertThrows(
                 BusinessException.class,
-                () -> fileNodeService.createDirectory(
+                () -> fileNodeService.createDirectoryFileNode(
                         userAccountUuid,
                         new CreateDirectoryRequest("Documents", rootDirectoryUuid)
                 )
@@ -209,7 +209,7 @@ class FileNodeServiceTest {
 
         final var businessException = assertThrows(
                 BusinessException.class,
-                () -> fileNodeService.createDirectory(
+                () -> fileNodeService.createDirectoryFileNode(
                         userAccountUuid,
                         new CreateDirectoryRequest("Orphan", UUID.randomUUID())
                 )
@@ -220,48 +220,48 @@ class FileNodeServiceTest {
     @Test
     void shouldUpdateNameAndKeepParentWhenRenamingDirectory() {
         seedUser();
-        final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
+        final var workspaceUuid = createDirectoryFileNode(rootDirectoryUuid, "Workspace");
 
-        final var view = fileNodeService.renameDirectory(
+        final var view = fileNodeService.renameFileNode(
                 userAccountUuid,
                 workspaceUuid,
                 new RenameFileNodeRequest("Workspace2")
         );
 
-        assertThat(view.uuid(), is(rootDirectoryUuid));
+        assertThat(view.getUuid(), is(rootDirectoryUuid));
         assertThat(
-                view.childrenFileNodeViews().stream().anyMatch(child -> child.name().equals("Workspace2")),
+                view.getChildrenFileNodeViews().stream().anyMatch(child -> child.name().equals("Workspace2")),
                 is(true)
         );
         assertThat(
-                view.childrenFileNodeViews().stream().noneMatch(child -> child.name().equals("Workspace")),
+                view.getChildrenFileNodeViews().stream().noneMatch(child -> child.name().equals("Workspace")),
                 is(true)
         );
     }
 
     @Test
-    void shouldThrowRootFolderDeletionNotAllowedWhenRenamingRoot() {
+    void shouldThrowRootFolderModificationNotAllowedWhenRenamingRoot() {
         seedUser();
 
         final var businessException = assertThrows(
                 BusinessException.class,
-                () -> fileNodeService.renameDirectory(
+                () -> fileNodeService.renameFileNode(
                         userAccountUuid,
                         rootDirectoryUuid,
                         new RenameFileNodeRequest("Renamed")
                 )
         );
-        assertThat(businessException.getErrorCode(), is(MessageCode.ROOT_FOLDER_DELETION_NOT_ALLOWED));
+        assertThat(businessException.getErrorCode(), is(MessageCode.ROOT_FOLDER_MODIFICATION_NOT_ALLOWED));
     }
 
     @Test
     void shouldThrowFolderNameRequiredWhenRenamingDirectoryWithBlankName() {
         seedUser();
-        final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
+        final var workspaceUuid = createDirectoryFileNode(rootDirectoryUuid, "Workspace");
 
         final var businessException = assertThrows(
                 BusinessException.class,
-                () -> fileNodeService.renameDirectory(
+                () -> fileNodeService.renameFileNode(
                         userAccountUuid,
                         workspaceUuid,
                         new RenameFileNodeRequest("   ")
@@ -273,11 +273,11 @@ class FileNodeServiceTest {
     @Test
     void shouldThrowFolderNameNotUniqueWhenRenamingDirectoryCollidesWithSibling() {
         seedUser();
-        final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
+        final var workspaceUuid = createDirectoryFileNode(rootDirectoryUuid, "Workspace");
 
         final var businessException = assertThrows(
                 BusinessException.class,
-                () -> fileNodeService.renameDirectory(
+                () -> fileNodeService.renameFileNode(
                         userAccountUuid,
                         workspaceUuid,
                         new RenameFileNodeRequest("Documents")
@@ -289,13 +289,13 @@ class FileNodeServiceTest {
     @Test
     void shouldRemoveEmptyChildFolderWhenDeletingDirectory() {
         seedUser();
-        final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
+        final var workspaceUuid = createDirectoryFileNode(rootDirectoryUuid, "Workspace");
 
-        final var view = fileNodeService.deleteDirectory(userAccountUuid, workspaceUuid);
+        final var view = fileNodeService.deleteFileNode(userAccountUuid, workspaceUuid);
 
-        assertThat(view.uuid(), is(rootDirectoryUuid));
+        assertThat(view.getUuid(), is(rootDirectoryUuid));
         assertThat(
-                view.childrenFileNodeViews().stream().noneMatch(child -> child.name().equals("Workspace")),
+                view.getChildrenFileNodeViews().stream().noneMatch(child -> child.name().equals("Workspace")),
                 is(true)
         );
     }
@@ -303,15 +303,15 @@ class FileNodeServiceTest {
     @Test
     void shouldRemoveNestedChildFolderHierarchyWhenDeletingDirectory() {
         seedUser();
-        final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
-        final var subfolderUuid = createDirectory(workspaceUuid, "Subfolder");
-        createDirectory(subfolderUuid, "DeepSubfolder");
-        uploadFile(workspaceUuid, "notes.txt", TEXT_MIME_TYPE, "abc".getBytes(StandardCharsets.UTF_8));
+        final var workspaceUuid = createDirectoryFileNode(rootDirectoryUuid, "Workspace");
+        final var subfolderUuid = createDirectoryFileNode(workspaceUuid, "Subfolder");
+        createDirectoryFileNode(subfolderUuid, "DeepSubfolder");
+        createRegularFileNode(workspaceUuid, "notes.txt", TEXT_MIME_TYPE, "abc".getBytes(StandardCharsets.UTF_8));
 
-        final var view = fileNodeService.deleteDirectory(userAccountUuid, workspaceUuid);
+        final var view = fileNodeService.deleteFileNode(userAccountUuid, workspaceUuid);
 
         assertThat(
-                view.childrenFileNodeViews().stream().noneMatch(child -> child.name().equals("Workspace")),
+                view.getChildrenFileNodeViews().stream().noneMatch(child -> child.name().equals("Workspace")),
                 is(true)
         );
         // Re-fetching the deleted directory should now fail
@@ -328,20 +328,9 @@ class FileNodeServiceTest {
 
         final var businessException = assertThrows(
                 BusinessException.class,
-                () -> fileNodeService.deleteDirectory(userAccountUuid, rootDirectoryUuid)
+                () -> fileNodeService.deleteFileNode(userAccountUuid, rootDirectoryUuid)
         );
         assertThat(businessException.getErrorCode(), is(MessageCode.ROOT_FOLDER_DELETION_NOT_ALLOWED));
-    }
-
-    @Test
-    void shouldThrowDirectoryNotFoundWhenDeletingDirectoryByUnknownUuid() {
-        seedUser();
-
-        final var businessException = assertThrows(
-                BusinessException.class,
-                () -> fileNodeService.deleteDirectory(userAccountUuid, UUID.randomUUID())
-        );
-        assertThat(businessException.getErrorCode(), is(MessageCode.DIRECTORY_NOT_FOUND));
     }
 
     @Test
@@ -349,7 +338,7 @@ class FileNodeServiceTest {
         seedUser();
         final var content = "the quick brown fox".getBytes(StandardCharsets.UTF_8);
 
-        final var view = fileNodeService.uploadFile(
+        final var view = fileNodeService.createRegularFileNode(
                 userAccountUuid,
                 rootDirectoryUuid,
                 "fox.txt",
@@ -357,7 +346,7 @@ class FileNodeServiceTest {
                 new ByteArrayInputStream(content)
         );
 
-        final var uploadedFile = view.childrenFileNodeViews().stream()
+        final var uploadedFile = view.getChildrenFileNodeViews().stream()
                 .filter(child -> child.name().equals("fox.txt"))
                 .findFirst()
                 .orElseThrow();
@@ -373,7 +362,7 @@ class FileNodeServiceTest {
 
         final var businessException = assertThrows(
                 BusinessException.class,
-                () -> fileNodeService.uploadFile(
+                () -> fileNodeService.createRegularFileNode(
                         userAccountUuid,
                         rootDirectoryUuid,
                         "   ",
@@ -390,7 +379,7 @@ class FileNodeServiceTest {
 
         final var businessException = assertThrows(
                 BusinessException.class,
-                () -> fileNodeService.uploadFile(
+                () -> fileNodeService.createRegularFileNode(
                         userAccountUuid,
                         UUID.randomUUID(),
                         "fox.txt",
@@ -405,11 +394,11 @@ class FileNodeServiceTest {
     void shouldThrowFileNameNotUniqueWhenUploadingDuplicateName() {
         seedUser();
         final var content = "first".getBytes(StandardCharsets.UTF_8);
-        uploadFile(rootDirectoryUuid, "report.txt", TEXT_MIME_TYPE, content);
+        createRegularFileNode(rootDirectoryUuid, "report.txt", TEXT_MIME_TYPE, content);
 
         final var businessException = assertThrows(
                 BusinessException.class,
-                () -> fileNodeService.uploadFile(
+                () -> fileNodeService.createRegularFileNode(
                         userAccountUuid,
                         rootDirectoryUuid,
                         "report.txt",
@@ -426,7 +415,7 @@ class FileNodeServiceTest {
 
         final var businessException = assertThrows(
                 BusinessException.class,
-                () -> fileNodeService.uploadFile(
+                () -> fileNodeService.createRegularFileNode(
                         userAccountUuid,
                         rootDirectoryUuid,
                         "huge.txt",
@@ -441,11 +430,11 @@ class FileNodeServiceTest {
     void shouldThrowFileQuotaExceededWhenTotalSizePastLimit() {
         seedUser(80L, 80L);
         final var fortyBytes = new byte[40];
-        uploadFile(rootDirectoryUuid, "first.txt", TEXT_MIME_TYPE, fortyBytes);
+        createRegularFileNode(rootDirectoryUuid, "first.txt", TEXT_MIME_TYPE, fortyBytes);
 
         final var businessException = assertThrows(
                 BusinessException.class,
-                () -> fileNodeService.uploadFile(
+                () -> fileNodeService.createRegularFileNode(
                         userAccountUuid,
                         rootDirectoryUuid,
                         "second.txt",
@@ -469,7 +458,7 @@ class FileNodeServiceTest {
             // transaction inside flushWithSession (mid-INSERT) AFTER it has loaded the parent
             // directory but BEFORE it has committed.
             final var slowFuture = CompletableFuture.supplyAsync(
-                    () -> fileNodeService.uploadFile(
+                    () -> fileNodeService.createRegularFileNode(
                             userAccountUuid,
                             rootDirectoryUuid,
                             "slow.txt",
@@ -483,7 +472,7 @@ class FileNodeServiceTest {
             // the 4 default folders) before the fast upload starts on the main thread.
             Thread.sleep(250);
 
-            final var fastView = fileNodeService.uploadFile(
+            final var fastView = fileNodeService.createRegularFileNode(
                     userAccountUuid,
                     rootDirectoryUuid,
                     "fast.txt",
@@ -497,13 +486,13 @@ class FileNodeServiceTest {
             // children collection from a post-fast-commit READ COMMITTED snapshot. Without the
             // refresh, slowView would carry only the 4 defaults + slow.txt.
             assertThat(
-                    slowView.childrenFileNodeViews().stream().map(FileNodeView::name).toList(),
+                    slowView.getChildrenFileNodeViews().stream().map(FileNodeView::name).toList(),
                     containsInAnyOrder("Audio", "Documents", "Photos", "Videos", "slow.txt", "fast.txt")
             );
             // Fast's response was built while slow tx was still in-flight, so it correctly
             // omits slow.txt — confirming slow had not yet committed when fast ran.
             assertThat(
-                    fastView.childrenFileNodeViews().stream().map(FileNodeView::name).toList(),
+                    fastView.getChildrenFileNodeViews().stream().map(FileNodeView::name).toList(),
                     containsInAnyOrder("Audio", "Documents", "Photos", "Videos", "fast.txt")
             );
         } finally {
@@ -514,7 +503,7 @@ class FileNodeServiceTest {
     @Test
     void shouldReturnResolverWithCorrectIdentifiersWhenGettingFileDownloadView() {
         seedUser();
-        final var fileUuid = uploadFile(
+        final var fileUuid = createRegularFileNode(
                 rootDirectoryUuid,
                 "report.txt",
                 TEXT_MIME_TYPE,
@@ -532,7 +521,7 @@ class FileNodeServiceTest {
     void shouldExposeDecryptedContentStreamFromFileDownloadView() {
         seedUser();
         final var content = "decrypt me".getBytes(StandardCharsets.UTF_8);
-        final var fileUuid = uploadFile(rootDirectoryUuid, "decrypt.txt", TEXT_MIME_TYPE, content);
+        final var fileUuid = createRegularFileNode(rootDirectoryUuid, "decrypt.txt", TEXT_MIME_TYPE, content);
         final var resolver = fileNodeService.getFileDownloadViewResolver(userAccountUuid, fileUuid);
 
         // FileDownloadViewMessageBodyWriter is what opens a transaction in production. The resolver
@@ -557,21 +546,21 @@ class FileNodeServiceTest {
     @Test
     void shouldUpdateNameWhenRenamingFile() {
         seedUser();
-        final var fileUuid = uploadFile(
+        final var fileUuid = createRegularFileNode(
                 rootDirectoryUuid,
                 "old.txt",
                 TEXT_MIME_TYPE,
                 "old contents".getBytes(StandardCharsets.UTF_8)
         );
 
-        final var view = fileNodeService.renameFile(
+        final var view = fileNodeService.renameFileNode(
                 userAccountUuid,
                 fileUuid,
                 new RenameFileNodeRequest("renamed.txt")
         );
 
         assertThat(
-                view.childrenFileNodeViews().stream().anyMatch(child -> child.name().equals("renamed.txt") && !child.directory()),
+                view.getChildrenFileNodeViews().stream().anyMatch(child -> child.name().equals("renamed.txt") && !child.directory()),
                 is(true)
         );
     }
@@ -579,7 +568,7 @@ class FileNodeServiceTest {
     @Test
     void shouldThrowFileNameRequiredWhenRenamingFileWithBlankName() {
         seedUser();
-        final var fileUuid = uploadFile(
+        final var fileUuid = createRegularFileNode(
                 rootDirectoryUuid,
                 "old.txt",
                 TEXT_MIME_TYPE,
@@ -588,7 +577,7 @@ class FileNodeServiceTest {
 
         final var businessException = assertThrows(
                 BusinessException.class,
-                () -> fileNodeService.renameFile(
+                () -> fileNodeService.renameFileNode(
                         userAccountUuid,
                         fileUuid,
                         new RenameFileNodeRequest("    ")
@@ -598,29 +587,14 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void shouldThrowFileNotFoundWhenRenamingFileByUnknownUuid() {
-        seedUser();
-
-        final var businessException = assertThrows(
-                BusinessException.class,
-                () -> fileNodeService.renameFile(
-                        userAccountUuid,
-                        UUID.randomUUID(),
-                        new RenameFileNodeRequest("renamed.txt")
-                )
-        );
-        assertThat(businessException.getErrorCode(), is(MessageCode.FILE_NOT_FOUND));
-    }
-
-    @Test
     void shouldThrowFileNameNotUniqueWhenSiblingExistsWithSameNameAndMimeType() {
         seedUser();
-        uploadFile(rootDirectoryUuid, "alpha.txt", TEXT_MIME_TYPE, "a".getBytes(StandardCharsets.UTF_8));
-        final var betaUuid = uploadFile(rootDirectoryUuid, "beta.txt", TEXT_MIME_TYPE, "b".getBytes(StandardCharsets.UTF_8));
+        createRegularFileNode(rootDirectoryUuid, "alpha.txt", TEXT_MIME_TYPE, "a".getBytes(StandardCharsets.UTF_8));
+        final var betaUuid = createRegularFileNode(rootDirectoryUuid, "beta.txt", TEXT_MIME_TYPE, "b".getBytes(StandardCharsets.UTF_8));
 
         final var businessException = assertThrows(
                 BusinessException.class,
-                () -> fileNodeService.renameFile(
+                () -> fileNodeService.renameFileNode(
                         userAccountUuid,
                         betaUuid,
                         new RenameFileNodeRequest("alpha.txt")
@@ -632,39 +606,28 @@ class FileNodeServiceTest {
     @Test
     void shouldRemoveFileWhenDeleting() {
         seedUser();
-        final var fileUuid = uploadFile(
+        final var fileUuid = createRegularFileNode(
                 rootDirectoryUuid,
                 "trash.txt",
                 TEXT_MIME_TYPE,
                 "x".getBytes(StandardCharsets.UTF_8)
         );
 
-        final var view = fileNodeService.deleteFile(userAccountUuid, fileUuid);
+        final var view = fileNodeService.deleteFileNode(userAccountUuid, fileUuid);
 
         assertThat(
-                view.childrenFileNodeViews().stream().noneMatch(child -> child.name().equals("trash.txt")),
+                view.getChildrenFileNodeViews().stream().noneMatch(child -> child.name().equals("trash.txt")),
                 is(true)
         );
-    }
-
-    @Test
-    void shouldThrowFileNotFoundWhenDeletingByUnknownUuid() {
-        seedUser();
-
-        final var businessException = assertThrows(
-                BusinessException.class,
-                () -> fileNodeService.deleteFile(userAccountUuid, UUID.randomUUID())
-        );
-        assertThat(businessException.getErrorCode(), is(MessageCode.FILE_NOT_FOUND));
     }
 
     @Test
     void shouldReturnMetadataWhenGettingFileProperties() {
         seedUser();
         final var content = "abcdefghij".getBytes(StandardCharsets.UTF_8);
-        final var fileUuid = uploadFile(rootDirectoryUuid, "info.txt", TEXT_MIME_TYPE, content);
+        final var fileUuid = createRegularFileNode(rootDirectoryUuid, "info.txt", TEXT_MIME_TYPE, content);
 
-        final var properties = fileNodeService.getFileProperties(userAccountUuid, fileUuid);
+        final var properties = (FilePropertiesView) fileNodeService.getFileNodeProperties(userAccountUuid, fileUuid);
 
         assertThat(properties.uuid(), is(fileUuid));
         assertThat(properties.name(), is("info.txt"));
@@ -677,182 +640,130 @@ class FileNodeServiceTest {
     }
 
     @Test
-    void shouldThrowFileNotFoundWhenGettingFilePropertiesByUnknownUuid() {
-        seedUser();
-
-        final var businessException = assertThrows(
-                BusinessException.class,
-                () -> fileNodeService.getFileProperties(userAccountUuid, UUID.randomUUID())
-        );
-        assertThat(businessException.getErrorCode(), is(MessageCode.FILE_NOT_FOUND));
-    }
-
-    @Test
-    void shouldDispatchToRenameDirectoryWhenRenamingFileNodeTargetingDirectory() {
-        seedUser();
-        final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
-
-        final var view = fileNodeService.renameFileNode(
-                userAccountUuid,
-                workspaceUuid,
-                new RenameFileNodeRequest("WorkspaceRenamed")
-        );
-
-        assertThat(
-                view.childrenFileNodeViews().stream().anyMatch(child -> child.name().equals("WorkspaceRenamed") && child.directory()),
-                is(true)
-        );
-    }
-
-    @Test
-    void shouldDispatchToRenameFileWhenRenamingFileNodeTargetingFile() {
-        seedUser();
-        final var fileUuid = uploadFile(
-                rootDirectoryUuid,
-                "old.txt",
-                TEXT_MIME_TYPE,
-                "x".getBytes(StandardCharsets.UTF_8)
-        );
-
-        final var view = fileNodeService.renameFileNode(
-                userAccountUuid,
-                fileUuid,
-                new RenameFileNodeRequest("renamed.txt")
-        );
-
-        assertThat(
-                view.childrenFileNodeViews().stream().anyMatch(child -> child.name().equals("renamed.txt") && !child.directory()),
-                is(true)
-        );
-    }
-
-    @Test
-    void shouldThrowDirectoryNotFoundWhenRenamingFileNodeByUnknownUuid() {
-        seedUser();
-
-        final var businessException = assertThrows(
-                BusinessException.class,
-                () -> fileNodeService.renameFileNode(
-                        userAccountUuid,
-                        UUID.randomUUID(),
-                        new RenameFileNodeRequest("anything")
-                )
-        );
-        assertThat(businessException.getErrorCode(), is(MessageCode.DIRECTORY_NOT_FOUND));
-    }
-
-    @Test
-    void shouldDispatchToDeleteDirectoryWhenDeletingFileNodeTargetingDirectory() {
-        seedUser();
-        final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
-
-        final var view = fileNodeService.deleteFileNode(userAccountUuid, workspaceUuid);
-
-        assertThat(
-                view.childrenFileNodeViews().stream().noneMatch(child -> child.name().equals("Workspace")),
-                is(true)
-        );
-    }
-
-    @Test
-    void shouldDispatchToDeleteFileWhenDeletingFileNodeTargetingFile() {
-        seedUser();
-        final var fileUuid = uploadFile(
-                rootDirectoryUuid,
-                "doomed.txt",
-                TEXT_MIME_TYPE,
-                "x".getBytes(StandardCharsets.UTF_8)
-        );
-
-        final var view = fileNodeService.deleteFileNode(userAccountUuid, fileUuid);
-
-        assertThat(
-                view.childrenFileNodeViews().stream().noneMatch(child -> child.name().equals("doomed.txt")),
-                is(true)
-        );
-    }
-
-    @Test
-    void shouldThrowDirectoryNotFoundWhenDeletingFileNodeByUnknownUuid() {
-        seedUser();
-
-        final var businessException = assertThrows(
-                BusinessException.class,
-                () -> fileNodeService.deleteFileNode(userAccountUuid, UUID.randomUUID())
-        );
-        assertThat(businessException.getErrorCode(), is(MessageCode.DIRECTORY_NOT_FOUND));
-    }
-
-    @Test
-    void shouldDispatchToDirectoryPropertiesWhenGettingFileNodePropertiesForDirectory() {
-        seedUser();
-        final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
-
-        final var properties = fileNodeService.getFileNodePropertiesView(userAccountUuid, workspaceUuid);
-
-        assertThat(properties, is(notNullValue()));
-        assertThat(properties, is(org.hamcrest.Matchers.instanceOf(DirectoryPropertiesView.class)));
-    }
-
-    @Test
-    void shouldDispatchToFilePropertiesWhenGettingFileNodePropertiesForFile() {
-        seedUser();
-        final var fileUuid = uploadFile(
-                rootDirectoryUuid,
-                "props.txt",
-                TEXT_MIME_TYPE,
-                "x".getBytes(StandardCharsets.UTF_8)
-        );
-
-        final var properties = fileNodeService.getFileNodePropertiesView(userAccountUuid, fileUuid);
-
-        assertThat(properties, is(org.hamcrest.Matchers.instanceOf(FilePropertiesView.class)));
-    }
-
-    @Test
     void shouldReflectAncestorChainInBreadcrumbs() {
         seedUser();
-        final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
-        final var subfolderUuid = createDirectory(workspaceUuid, "Subfolder");
+        final var workspaceUuid = createDirectoryFileNode(rootDirectoryUuid, "Workspace");
+        final var subfolderUuid = createDirectoryFileNode(workspaceUuid, "Subfolder");
 
         final var view = fileNodeService.getDirectoryContents(userAccountUuid, subfolderUuid);
 
-        assertThat(view.breadcrumbViews(), hasSize(3));
+        assertThat(view.getBreadcrumbViews(), hasSize(3));
         assertThat(
-                view.breadcrumbViews().stream().map(BreadcrumbView::name).toList(),
+                view.getBreadcrumbViews().stream().map(BreadcrumbView::name).toList(),
                 contains("Root", "Workspace", "Subfolder")
         );
-        assertThat(view.parentUuid(), is(workspaceUuid));
+        assertThat(view.getParentUuid().orElse(null), is(workspaceUuid));
     }
 
     @Test
     void shouldOrderChildrenByDefaultComparatorWhenGettingDirectoryContents() {
         seedUser();
-        final var workspaceUuid = createDirectory(rootDirectoryUuid, "Workspace");
+        final var workspaceUuid = createDirectoryFileNode(rootDirectoryUuid, "Workspace");
 
-        uploadFile(workspaceUuid, "delta.txt", TEXT_MIME_TYPE, "d".getBytes(StandardCharsets.UTF_8));
-        createDirectory(workspaceUuid, "Beta");
-        uploadFile(workspaceUuid, "alpha.txt", TEXT_MIME_TYPE, "a".getBytes(StandardCharsets.UTF_8));
-        createDirectory(workspaceUuid, "Alpha");
-        uploadFile(workspaceUuid, "bravo.txt", TEXT_MIME_TYPE, "b".getBytes(StandardCharsets.UTF_8));
-        createDirectory(workspaceUuid, "beta");
-        uploadFile(workspaceUuid, "BRAVO.txt", TEXT_MIME_TYPE, "b".getBytes(StandardCharsets.UTF_8));
+        createRegularFileNode(workspaceUuid, "delta.txt", TEXT_MIME_TYPE, "d".getBytes(StandardCharsets.UTF_8));
+        createDirectoryFileNode(workspaceUuid, "Beta");
+        createRegularFileNode(workspaceUuid, "alpha.txt", TEXT_MIME_TYPE, "a".getBytes(StandardCharsets.UTF_8));
+        createDirectoryFileNode(workspaceUuid, "Alpha");
+        createRegularFileNode(workspaceUuid, "bravo.txt", TEXT_MIME_TYPE, "b".getBytes(StandardCharsets.UTF_8));
+        createDirectoryFileNode(workspaceUuid, "beta");
+        createRegularFileNode(workspaceUuid, "BRAVO.txt", TEXT_MIME_TYPE, "b".getBytes(StandardCharsets.UTF_8));
 
         final var view = fileNodeService.getDirectoryContents(userAccountUuid, workspaceUuid);
 
         assertThat(
-                view.childrenFileNodeViews().stream().map(FileNodeView::name).toList(),
+                view.getChildrenFileNodeViews().stream().map(FileNodeView::name).toList(),
                 contains("Alpha", "Beta", "beta", "BRAVO.txt", "alpha.txt", "bravo.txt", "delta.txt")
         );
     }
 
     @Test
+    void shouldResolveDeepNestedDirectoryPathWhenGettingContentsByPath() {
+        seedUser();
+        final var projectsUuid = createDirectoryFileNode(rootDirectoryUuid, "Projects");
+        final var javaUuid = createDirectoryFileNode(projectsUuid, "Java");
+        createDirectoryFileNode(javaUuid, "src");
+
+        final var view = fileNodeService.getDirectoryContents(userAccountUuid, "Projects/Java/src");
+
+        assertThat(view.getName(), is("src"));
+        assertThat(view.getParentUuid().orElse(null), is(javaUuid));
+        assertThat(view.getBreadcrumbViews(), hasSize(4));
+        assertThat(
+                view.getBreadcrumbViews().stream().map(BreadcrumbView::name).toList(),
+                contains("Root", "Projects", "Java", "src")
+        );
+        assertThat(
+                view.getBreadcrumbViews().stream().allMatch(BreadcrumbView::directory),
+                is(true)
+        );
+    }
+
+    @Test
+    void shouldResolveFilePathAndReturnParentContentsWhenGettingContentsByPath() {
+        seedUser();
+        final var projectsUuid = createDirectoryFileNode(rootDirectoryUuid, "Projects");
+        final var fileUuid = createRegularFileNode(projectsUuid, "readme.txt", TEXT_MIME_TYPE, "hello".getBytes(StandardCharsets.UTF_8));
+
+        final var view = fileNodeService.getDirectoryContents(userAccountUuid, "Projects/readme.txt");
+
+        assertThat(view.getUuid(), is(projectsUuid));
+        assertThat(view.getTargetFileUuid().orElse(null), is(fileUuid));
+        assertThat(view.getBreadcrumbViews(), hasSize(2));
+        assertThat(
+                view.getBreadcrumbViews().stream().map(BreadcrumbView::name).toList(),
+                contains("Root", "Projects")
+        );
+    }
+
+    @Test
+    void shouldReturnParentContentsWithTargetFileWhenGettingContentsByFileUuid() {
+        seedUser();
+        final var projectsUuid = createDirectoryFileNode(rootDirectoryUuid, "Projects");
+        final var fileUuid = createRegularFileNode(projectsUuid, "notes.txt", TEXT_MIME_TYPE, "data".getBytes(StandardCharsets.UTF_8));
+
+        final var view = fileNodeService.getDirectoryContents(userAccountUuid, fileUuid);
+
+        assertThat(view.getUuid(), is(projectsUuid));
+        assertThat(view.getTargetFileUuid().orElse(null), is(fileUuid));
+        assertThat(
+                view.getChildrenFileNodeViews().stream().anyMatch(child -> child.name().equals("notes.txt")),
+                is(true)
+        );
+    }
+
+    @Test
+    void shouldReturnBreadcrumbsWithDirectoryFlagWhenGettingContentsByUuid() {
+        seedUser();
+        final var workspaceUuid = createDirectoryFileNode(rootDirectoryUuid, "Workspace");
+        final var subfolderUuid = createDirectoryFileNode(workspaceUuid, "Subfolder");
+
+        final var view = fileNodeService.getDirectoryContents(userAccountUuid, subfolderUuid);
+
+        assertThat(view.getBreadcrumbViews(), hasSize(3));
+        for (final var breadcrumb : view.getBreadcrumbViews()) {
+            assertThat(breadcrumb.directory(), is(true));
+        }
+    }
+
+    @Test
+    void shouldThrowDirectoryNotFoundWhenPathPartiallyMatches() {
+        seedUser();
+        createDirectoryFileNode(rootDirectoryUuid, "Projects");
+
+        final var businessException = assertThrows(
+                BusinessException.class,
+                () -> fileNodeService.getDirectoryContents(userAccountUuid, "Projects/Nonexistent/Deep")
+        );
+        assertThat(businessException.getErrorCode(), is(MessageCode.DIRECTORY_NOT_FOUND));
+    }
+
+    @Test
     void shouldAccumulateTowardsTotalSizeWhenUploadingFiles() {
         seedUser();
-        uploadFile(rootDirectoryUuid, "one.txt", TEXT_MIME_TYPE, new byte[100]);
-        uploadFile(rootDirectoryUuid, "two.txt", TEXT_MIME_TYPE, new byte[200]);
+        createRegularFileNode(rootDirectoryUuid, "one.txt", TEXT_MIME_TYPE, new byte[100]);
+        createRegularFileNode(rootDirectoryUuid, "two.txt", TEXT_MIME_TYPE, new byte[200]);
 
-        final var properties = fileNodeService.getDirectoryProperties(userAccountUuid, rootDirectoryUuid);
+        final var properties = (DirectoryPropertiesView) fileNodeService.getFileNodeProperties(userAccountUuid, rootDirectoryUuid);
 
         assertThat(properties.fileCount(), is(greaterThanOrEqualTo(2L)));
         assertThat(properties.totalSizeBytes(), is(greaterThanOrEqualTo(300L)));
@@ -884,38 +795,38 @@ class FileNodeServiceTest {
             rootDirectoryUuid = rootFileNode.getUuid();
         });
         for (final var defaultName : new String[] {"Audio", "Documents", "Photos", "Videos"}) {
-            fileNodeService.createDirectory(
+            fileNodeService.createDirectoryFileNode(
                     userAccountUuid,
                     new CreateDirectoryRequest(defaultName, rootDirectoryUuid)
             );
         }
     }
 
-    private UUID createDirectory(UUID parentUuid,
-                                 String name) {
-        final var view = fileNodeService.createDirectory(
+    private UUID createDirectoryFileNode(UUID parentUuid,
+                                         String name) {
+        final var view = fileNodeService.createDirectoryFileNode(
                 userAccountUuid,
                 new CreateDirectoryRequest(name, parentUuid)
         );
-        return view.childrenFileNodeViews().stream()
+        return view.getChildrenFileNodeViews().stream()
                 .filter(child -> child.name().equals(name) && child.directory())
                 .map(FileNodeView::uuid)
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("created directory not found: " + name));
     }
 
-    private UUID uploadFile(UUID parentUuid,
-                            String name,
-                            String mimeType,
-                            byte[] content) {
-        final var view = fileNodeService.uploadFile(
+    private UUID createRegularFileNode(UUID parentUuid,
+                                       String name,
+                                       String mimeType,
+                                       byte[] content) {
+        final var view = fileNodeService.createRegularFileNode(
                 userAccountUuid,
                 parentUuid,
                 name,
                 mimeType,
                 new ByteArrayInputStream(content)
         );
-        final var uuid = view.childrenFileNodeViews()
+        final var uuid = view.getChildrenFileNodeViews()
                 .stream()
                 .filter(child -> child.name().equals(name) && !child.directory())
                 .map(FileNodeView::uuid)

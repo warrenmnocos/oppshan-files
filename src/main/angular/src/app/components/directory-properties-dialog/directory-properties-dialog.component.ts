@@ -18,6 +18,8 @@ export class DirectoryPropertiesDialog implements OnInit {
 
   protected readonly properties: WritableSignal<DirectoryPropertiesView | null>;
 
+  protected readonly directoryUrl: Signal<string>;
+
   private readonly selectedDirectory: Signal<FileNodeView | null>;
 
   constructor(private readonly messageBusService: MessageBusService,
@@ -26,6 +28,10 @@ export class DirectoryPropertiesDialog implements OnInit {
     this.selectedDirectory = computed(
       () => this.messageBusService.applicationEventSignal().payload as FileNodeView | null
     );
+    this.directoryUrl = computed(() => {
+      const uuid = this.selectedDirectory()?.uuid ?? '';
+      return `${window.location.origin}/drive/${uuid}`;
+    });
   }
 
   ngOnInit(): void {

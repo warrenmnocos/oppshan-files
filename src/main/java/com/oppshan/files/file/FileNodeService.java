@@ -8,9 +8,9 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import java.io.InputStream;
+import java.util.List;
 import java.util.UUID;
 
 @Transactional
@@ -27,42 +27,30 @@ public class FileNodeService {
     @Valid
     @NotNull
     public DirectoryContentsView getDirectoryContents(@NotNull UUID userAccountUuid,
-                                                      @NotNull UUID directoryFileNodeUuid) {
-        return fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, directoryFileNodeUuid)
-                .map(directoryFileNode -> toDirectoryContentsView(userAccountUuid, directoryFileNode))
-                .orElseThrow(BusinessException::directoryNotFound);
+                                                      @NotNull UUID fileNodeUuid) {
+        final var breadcrumbs = fileNodeRepository.getBreadcrumbs(userAccountUuid, fileNodeUuid);
+        if (breadcrumbs.isEmpty()) {
+            throw BusinessException.directoryNotFound();
+        }
+
+        return toDirectoryContentsView(userAccountUuid, breadcrumbs);
     }
 
     @Valid
     @NotNull
     public DirectoryContentsView getDirectoryContents(@NotNull UUID userAccountUuid,
                                                       @NotNull String path) {
-        if (path.isBlank()) {
+        path = path.trim();
+        if (path.isBlank() || path.equals("/")) {
             return getRootDirectoryContents(userAccountUuid);
         }
 
-        final var targetUuid = fileNodeRepository.resolveDirectoryPath(userAccountUuid, path)
-                .orElseThrow(BusinessException::directoryNotFound);
-        return getDirectoryContents(userAccountUuid, targetUuid);
-    }
+        final var breadcrumbs = fileNodeRepository.getBreadcrumbs(userAccountUuid, path);
+        if (breadcrumbs.isEmpty()) {
+            throw BusinessException.directoryNotFound();
+        }
 
-    @Valid
-    @NotNull
-    public DirectoryPropertiesView getDirectoryProperties(@NotNull UUID userAccountUuid,
-                                                          @NotNull UUID directoryFileNodeUuid) {
-        final var directoryFileNode = fileNodeRepository.findDirectoryFileNode(userAccountUuid, directoryFileNodeUuid)
-                .orElseThrow(BusinessException::directoryNotFound);
-        final var directoryStatistics = fileNodeRepository.getDirectoryStatistics(userAccountUuid, directoryFileNodeUuid)
-                .orElse(DirectoryStatistics.empty());
-        return new DirectoryPropertiesView(
-                directoryFileNode.getUuid(),
-                directoryFileNode.getName(),
-                directoryFileNode.getCreatedAt(),
-                directoryFileNode.getLastModifiedAt(),
-                directoryStatistics.folderCount(),
-                directoryStatistics.fileCount(),
-                directoryStatistics.totalSizeBytes()
-        );
+        return toDirectoryContentsView(userAccountUuid, breadcrumbs);
     }
 
     @Valid
@@ -75,8 +63,8 @@ public class FileNodeService {
 
     @Valid
     @NotNull
-    public DirectoryContentsView createDirectory(@NotNull UUID userAccountUuid,
-                                                 @NotNull CreateDirectoryRequest request) {
+    public DirectoryContentsView createDirectoryFileNode(@NotNull UUID userAccountUuid,
+                                                         @NotNull CreateDirectoryRequest request) {
         final var name = request.name().trim();
         if (name.isEmpty()) {
             throw BusinessException.folderNameRequired();
@@ -96,58 +84,12 @@ public class FileNodeService {
 
     @Valid
     @NotNull
-    public DirectoryContentsView renameDirectory(@NotNull UUID userAccountUuid,
-                                                 @NotNull UUID parentFileNodeUuid,
-                                                 @NotNull RenameFileNodeRequest renameFileNodeRequest) {
-        final var name = renameFileNodeRequest.name().trim();
-        if (name.isEmpty()) {
-            throw BusinessException.folderNameRequired();
-        }
-
-        final var directoryFileNode = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, parentFileNodeUuid)
-                .map(fileNodeRepository::attachWithSession)
-                .orElseThrow(BusinessException::directoryNotFound);
-        final var parentDirectoryFileNode = directoryFileNode.getParentFileNode()
-                .orElseThrow(BusinessException::rootFolderDeletionNotAllowed);
-        if (fileNodeRepository.isDirectoryPresent(userAccountUuid, parentDirectoryFileNode.getUuid(), name, parentFileNodeUuid)) {
-            throw BusinessException.folderNameNotUnique();
-        }
-
-        final var parentDirectoryFileNodeWithContents = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, parentDirectoryFileNode.getUuid())
-                .orElseThrow(BusinessException::directoryNotFound);
-        final var childFileNodes = parentDirectoryFileNodeWithContents.getChildFileNodes();
-        childFileNodes.remove(directoryFileNode);
-        directoryFileNode.setName(name);
-        childFileNodes.add(directoryFileNode);
-        fileNodeRepository.updateWithSession(directoryFileNode);
-        return toDirectoryContentsView(userAccountUuid, parentDirectoryFileNodeWithContents);
-    }
-
-    @Valid
-    @NotNull
-    public DirectoryContentsView deleteDirectory(@NotNull UUID userAccountUuid,
-                                                 @NotNull UUID directoryFileNodeUuid) {
-        final var directoryFileNode = fileNodeRepository.findDirectoryFileNode(userAccountUuid, directoryFileNodeUuid)
-                .orElseThrow(BusinessException::directoryNotFound);
-        final var parentDirectoryFileNodeUuid = directoryFileNode.getParentFileNode()
-                .orElseThrow(BusinessException::rootFolderDeletionNotAllowed)
-                .getUuid();
-        final var parentDirectoryFileNodeWithContents = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, parentDirectoryFileNodeUuid)
-                .map(fileNodeRepository::attachWithSession)
-                .orElseThrow(BusinessException::directoryNotFound);
-        parentDirectoryFileNodeWithContents.getChildFileNodes()
-                .removeIf(childFileNode -> childFileNode.getUuid().equals(directoryFileNodeUuid));
-        return toDirectoryContentsView(userAccountUuid, parentDirectoryFileNodeWithContents);
-    }
-
-    @Valid
-    @NotNull
     @TransactionConfiguration(timeout = 12_000)
-    public DirectoryContentsView uploadFile(@NotNull UUID userAccountUuid,
-                                            @NotNull UUID parentUuid,
-                                            @NotNull String filename,
-                                            @NotNull String mimeType,
-                                            @NotNull InputStream contentInputStream) {
+    public DirectoryContentsView createRegularFileNode(@NotNull UUID userAccountUuid,
+                                                       @NotNull UUID parentUuid,
+                                                       @NotNull String filename,
+                                                       @NotNull String mimeType,
+                                                       @NotNull InputStream contentInputStream) {
         final var name = filename.trim();
         if (name.isEmpty()) {
             throw BusinessException.fileNameRequired();
@@ -173,11 +115,13 @@ public class FileNodeService {
         fileNodeRepository.flushWithSession();
 
         final long counted = countingInputStream.getCount();
-        if (counted > fileNodeRepository.getMaxFileUploadBytes(userAccountUuid)) {
+        final var userStorageView = fileNodeRepository.getUserStorageView(userAccountUuid)
+                .orElseThrow(BusinessException::userNotFound);
+        if (counted > userStorageView.maxFileUploadBytes()) {
             throw BusinessException.fileSizeExceeded();
         }
 
-        if (fileNodeRepository.getTotalSizeBytes(userAccountUuid) + counted > fileNodeRepository.getMaxStorageBytes(userAccountUuid)) {
+        if (userStorageView.totalSizeBytes() + counted > userStorageView.maxStorageBytes()) {
             throw BusinessException.fileQuotaExceeded();
         }
 
@@ -187,38 +131,35 @@ public class FileNodeService {
         return toDirectoryContentsView(userAccountUuid, refreshedParentFileNode);
     }
 
-    @NotNull
-    public FileDownloadViewResolver getFileDownloadViewResolver(@NotNull UUID userAccountUuid,
-                                                                @NotNull UUID fileUuid) {
-        return new FileDownloadViewResolver(
-                userAccountUuid,
-                fileUuid,
-                () -> fileNodeRepository.findFileNode(userAccountUuid, fileUuid)
-                        .map(fileNodeRepository::attachWithSession)
-                        .orElseThrow(BusinessException::fileNotFound)
-        );
-    }
-
     @Valid
     @NotNull
-    public DirectoryContentsView renameFile(@NotNull UUID userAccountUuid,
-                                            @NotNull UUID parentFileNodeUuid,
-                                            @NotNull RenameFileNodeRequest renameFileNodeRequest) {
+    public DirectoryContentsView renameFileNode(@NotNull UUID userAccountUuid,
+                                                @NotNull UUID fileNodeUuid,
+                                                @NotNull RenameFileNodeRequest renameFileNodeRequest) {
+        final var fileNode = fileNodeRepository.findFileNode(userAccountUuid, fileNodeUuid)
+                .map(fileNodeRepository::attachWithSession)
+                .orElseThrow(BusinessException::directoryNotFound);
         final var name = renameFileNodeRequest.name().trim();
         if (name.isEmpty()) {
-            throw BusinessException.fileNameRequired();
+            throw fileNode.isDirectory()
+                    ? BusinessException.folderNameRequired()
+                    : BusinessException.fileNameRequired();
         }
 
-        final var fileNode = fileNodeRepository.findFileNode(userAccountUuid, parentFileNodeUuid)
-                .map(fileNodeRepository::attachWithSession)
-                .orElseThrow(BusinessException::fileNotFound);
-        final var parentDirectoryFileNode = fileNode.getParentFileNode()
-                .orElseThrow(BusinessException::directoryNotFound);
-        if (fileNodeRepository.isFilePresent(userAccountUuid, parentDirectoryFileNode.getUuid(), name, fileNode.getMimeType(), parentFileNodeUuid)) {
-            throw BusinessException.fileNameNotUnique();
+        final var parentDirectoryFileNodeUuid = fileNode.getParentFileNode()
+                .orElseThrow(BusinessException::rootFolderModificationNotAllowed)
+                .getUuid();
+        if (fileNode.isDirectory()) {
+            if (fileNodeRepository.isDirectoryPresent(userAccountUuid, parentDirectoryFileNodeUuid, name, fileNodeUuid)) {
+                throw BusinessException.folderNameNotUnique();
+            }
+        } else {
+            if (fileNodeRepository.isFilePresent(userAccountUuid, parentDirectoryFileNodeUuid, name, fileNode.getMimeType(), fileNodeUuid)) {
+                throw BusinessException.fileNameNotUnique();
+            }
         }
 
-        final var parentDirectoryFileNodeWithContents = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, parentDirectoryFileNode.getUuid())
+        final var parentDirectoryFileNodeWithContents = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, parentDirectoryFileNodeUuid)
                 .orElseThrow(BusinessException::directoryNotFound);
         final var childFileNodes = parentDirectoryFileNodeWithContents.getChildFileNodes();
         childFileNodes.remove(fileNode);
@@ -230,78 +171,84 @@ public class FileNodeService {
 
     @Valid
     @NotNull
-    public DirectoryContentsView deleteFile(@NotNull UUID userAccountUuid,
-                                            @NotNull UUID fileUuid) {
-        final var fileNode = fileNodeRepository.findFileNode(userAccountUuid, fileUuid)
+    public DirectoryContentsView deleteFileNode(@NotNull UUID userAccountUuid,
+                                                @NotNull UUID fileNodeUuid) {
+        final var fileNode = fileNodeRepository.findFileNode(userAccountUuid, fileNodeUuid)
+                .orElseThrow(BusinessException::directoryNotFound);
+        final var parentDirectoryFileNodeUuid = fileNode.getParentFileNode()
+                .orElseThrow(BusinessException::rootFolderDeletionNotAllowed)
+                .getUuid();
+        final var parentDirectoryFileNodeWithContents = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, parentDirectoryFileNodeUuid)
                 .map(fileNodeRepository::attachWithSession)
-                .orElseThrow(BusinessException::fileNotFound);
-        final var parentDirectoryFileNode = fileNode.getParentFileNode()
                 .orElseThrow(BusinessException::directoryNotFound);
-        fileNodeRepository.deleteWithSession(fileNode);
-
-        final var parentDirectoryFileNodeWithContents = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, parentDirectoryFileNode.getUuid())
-                .orElseThrow(BusinessException::directoryNotFound);
-        parentDirectoryFileNodeWithContents.getChildFileNodes().remove(fileNode);
+        parentDirectoryFileNodeWithContents.getChildFileNodes()
+                .removeIf(childFileNode -> childFileNode.getUuid().equals(fileNodeUuid));
         return toDirectoryContentsView(userAccountUuid, parentDirectoryFileNodeWithContents);
     }
 
-    @Valid
     @NotNull
-    public FilePropertiesView getFileProperties(@NotNull UUID userAccountUuid,
-                                                @NotNull UUID fileUuid) {
-        final var fileNode = fileNodeRepository.findFileNode(userAccountUuid, fileUuid)
+    public FileDownloadViewResolver getFileDownloadViewResolver(@NotNull UUID userAccountUuid,
+                                                                @NotNull UUID fileUuid) {
+        return new FileDownloadViewResolver(
+                userAccountUuid,
+                fileUuid,
+                () -> fileNodeRepository.findRegularFileNode(userAccountUuid, fileUuid)
+                        .map(fileNodeRepository::attachWithSession)
+                        .orElseThrow(BusinessException::fileNotFound)
+        );
+    }
+
+    @NotNull
+    public FileNodePropertiesView getFileNodeProperties(@NotNull UUID userAccountUuid,
+                                                        @NotNull UUID fileNodeUuid) {
+        final var fileNode = fileNodeRepository.findFileNode(userAccountUuid, fileNodeUuid)
                 .orElseThrow(BusinessException::fileNotFound);
-        final var parent = fileNode.getParentFileNode().orElse(null);
+        if (fileNode.isDirectory()) {
+            final var directoryStatistics = fileNodeRepository.getDirectoryStatistics(userAccountUuid, fileNodeUuid)
+                    .orElse(DirectoryStatistics.empty());
+            return new DirectoryPropertiesView(
+                    fileNode.getUuid(),
+                    fileNode.getName(),
+                    fileNode.getCreatedAt(),
+                    fileNode.getLastModifiedAt(),
+                    directoryStatistics.folderCount(),
+                    directoryStatistics.fileCount(),
+                    directoryStatistics.totalSizeBytes()
+            );
+        }
+
+        final var parentDirectoryFileNode = fileNode.getParentFileNode();
         return new FilePropertiesView(
                 fileNode.getUuid(),
                 fileNode.getName(),
                 fileNode.getMimeType(),
                 fileNode.getSizeBytes(),
-                parent != null ? parent.getUuid() : null,
-                parent != null ? parent.getName() : null,
+                parentDirectoryFileNode.map(FileNode::getUuid).orElse(null),
+                parentDirectoryFileNode.map(FileNode::getName).orElse(null),
                 fileNode.getCreatedAt(),
                 fileNode.getLastModifiedAt()
         );
     }
 
-    @Valid
-    @NotNull
-    public DirectoryContentsView renameFileNode(@NotNull UUID userAccountUuid,
-                                                @NotNull UUID parentFileNodeUuid,
-                                                @NotNull RenameFileNodeRequest renameFileNodeRequest) {
-        final var fileNode = fileNodeRepository.findNode(userAccountUuid, parentFileNodeUuid)
-                .orElseThrow(BusinessException::directoryNotFound);
-        return fileNode.isDirectory()
-                ? renameDirectory(userAccountUuid, parentFileNodeUuid, renameFileNodeRequest)
-                : renameFile(userAccountUuid, parentFileNodeUuid, renameFileNodeRequest);
-    }
-
-    @Valid
-    @NotNull
-    public DirectoryContentsView deleteFileNode(@NotNull UUID userAccountUuid,
-                                                @NotNull UUID fileNodeUuid) {
-        final var fileNode = fileNodeRepository.findNode(userAccountUuid, fileNodeUuid)
-                .orElseThrow(BusinessException::directoryNotFound);
-        return fileNode.isDirectory()
-                ? deleteDirectory(userAccountUuid, fileNodeUuid)
-                : deleteFile(userAccountUuid, fileNodeUuid);
-    }
-
-    @NotNull
-    public FileNodePropertiesView getFileNodePropertiesView(@NotNull UUID userAccountUuid,
-                                                            @NotNull UUID fileNodeUuid) {
-        final var fileNode = fileNodeRepository.findNode(userAccountUuid, fileNodeUuid)
-                .orElseThrow(BusinessException::directoryNotFound);
-        return fileNode.isDirectory()
-                ? getDirectoryProperties(userAccountUuid, fileNodeUuid)
-                : getFileProperties(userAccountUuid, fileNodeUuid);
-    }
-
-    @NonNull
-    private DirectoryContentsView toDirectoryContentsView(@NonNull UUID userAccountUuid,
-                                                          @NonNull FileNode directoryFileNode) {
+    private DirectoryContentsView toDirectoryContentsView(UUID userAccountUuid,
+                                                          FileNode directoryFileNode) {
         return directoryFileNode.toDirectoryContentsView(
-                fileNodeRepository.getAncestors(userAccountUuid, directoryFileNode.getUuid())
+                fileNodeRepository.getBreadcrumbs(userAccountUuid, directoryFileNode.getUuid())
         );
+    }
+
+    private DirectoryContentsView toDirectoryContentsView(UUID userAccountUuid,
+                                                          List<BreadcrumbView> breadcrumbs) {
+        final var targetBreadcrumb = breadcrumbs.getLast();
+        if (targetBreadcrumb.directory()) {
+            return fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, targetBreadcrumb.uuid())
+                    .orElseThrow(BusinessException::directoryNotFound)
+                    .toDirectoryContentsView(breadcrumbs);
+        }
+
+        final var parentBreadcrumbs = breadcrumbs.subList(0, breadcrumbs.size() - 1);
+        return fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, parentBreadcrumbs.getLast().uuid())
+                .orElseThrow(BusinessException::directoryNotFound)
+                .toDirectoryContentsView(parentBreadcrumbs, targetBreadcrumb.uuid());
     }
 }

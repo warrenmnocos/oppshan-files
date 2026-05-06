@@ -117,6 +117,46 @@
   }
 }
 
+// Quota banner
+.quota-banner {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 14px 16px;
+  background: #fef7e0;
+  border-bottom: 1px solid #f5e6b8;
+  flex-shrink: 0;
+
+  @media (min-width: 600px) {
+    padding: 14px 24px;
+  }
+}
+
+.quota-banner-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  filter: brightness(0) saturate(100%) invert(32%) sepia(98%) saturate(1200%) hue-rotate(18deg) brightness(96%) contrast(90%);
+}
+
+.quota-banner-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quota-banner-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.quota-banner-description {
+  font-size: 13px;
+  color: #a16207;
+}
+
 // Empty state
 .empty-state {
   display: flex;
@@ -203,8 +243,9 @@
   gap: 16px;
   padding: 10px 16px;
   border-bottom: 1px solid #f0eeea;
+  outline: 1px solid transparent;
   background: #fff;
-  transition: background-color 0.1s ease;
+  transition: background-color 0.1s ease, outline 0.1s ease;
 
   @media (min-width: 600px) {
     padding: 10px 24px;
@@ -214,8 +255,14 @@
     cursor: pointer;
 
     &:hover {
+      outline: 1px solid #009688;
       background: #f5f5f5;
     }
+  }
+
+  &.selected {
+    outline: 1px solid #009688;
+    background: #f5f5f5;
   }
 }
 
@@ -289,17 +336,25 @@
   min-height: 144px;
   padding: 16px 8px;
   border-radius: 12px;
+  outline: 1px solid transparent;
   background: #fff;
   border: 1px solid #e0e0e0;
-  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  transition: background-color 0.15s ease, outline 0.15s ease, box-shadow 0.15s ease;
 
   &.clickable {
     cursor: pointer;
 
     &:hover {
+      outline: 1px solid #009688;
       background: #f5f5f5;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
     }
+  }
+
+  &.selected {
+    outline: 1px solid #009688;
+    background: #f5f5f5;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   }
 }
 

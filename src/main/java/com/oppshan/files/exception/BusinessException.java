@@ -47,6 +47,10 @@ public class BusinessException extends RuntimeException {
         return new BusinessException(MessageCode.ROOT_FOLDER_DELETION_NOT_ALLOWED);
     }
 
+    public static BusinessException rootFolderModificationNotAllowed() {
+        return new BusinessException(MessageCode.ROOT_FOLDER_MODIFICATION_NOT_ALLOWED);
+    }
+
     public static BusinessException fileNotFound() {
         return new BusinessException(MessageCode.FILE_NOT_FOUND);
     }

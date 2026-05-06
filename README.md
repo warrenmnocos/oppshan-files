@@ -34,6 +34,7 @@
     - [CQRS split](#cqrs-split)
     - [Notification system](#notification-system)
     - [Dialog pattern](#dialog-pattern)
+  - [Context menu pattern](#context-menu-pattern)
     - [Standalone components and signals](#standalone-components-and-signals)
     - [File layout](#file-layout)
 - [Backend Architecture](#backend-architecture)
@@ -62,7 +63,6 @@
     - [Database role](#database-role)
 - [Database](#database)
     - [Migrations](#migrations)
-    - [Sequence allocation](#sequence-allocation)
 - [User Experience Design](#user-experience-design)
     - [Sign in](#sign-in-us-01)
     - [Empty drive](#empty-drive-us-02-us-05)
@@ -99,9 +99,18 @@
 
 **Files** is a full-stack personal cloud file manager. Authenticated users can upload, organize, download, rename,
 delete, and inspect files and folders through a browser-based interface. It supports nested directory hierarchies,
-drag-and-drop streaming uploads with per-file progress tracking, switchable list and grid view modes, and a
-notification center that surfaces operation outcomes in real time. All uploaded file content is encrypted at rest
-using AES/CTR with per-file initialization vectors and a key derived via PBKDF2.
+**drag-and-drop streaming uploads with per-file progress tracking**, switchable list and grid view modes, and a
+notification center that surfaces operation outcomes in real time. All uploaded file content is **encrypted at
+rest** using **AES/CTR** with **per-file initialization vectors** and a key derived via **PBKDF2**.
+
+The work behind it covers the full stack. **Six sprints** on a **GitHub Projects** board, **24 user stories**
+tracked end-to-end, and a **wireframe mockup** for every user-facing screen state. The Quarkus 3 backend runs
+every request on a **virtual thread** (via a custom Undertow extension), encrypts file content transparently
+through a **Hibernate `UserType`**, and walks the directory tree with **recursive CTE named native queries**. The
+Angular 21 frontend is **signals-first** and uses a **custom event bus** to keep mutations and reads on separate
+paths (**CQRS**), with **two-way data binding** wired by hand where it's actually needed. Pushing to `main`
+**builds and deploys automatically** — a **GraalVM native ARM binary**, uploaded to S3, rolled out to EC2 via
+SSM. No SSH, no long-lived AWS keys, no human in the loop.
 
 This project is developed as the final exam for **ITMD 504 — Programming and Application Foundations** at
 **Illinois Institute of Technology**.
@@ -116,10 +125,11 @@ This project is developed as the final exam for **ITMD 504 — Programming and A
 
 ## Project Management
 
-This project follows an Agile workflow using **GitHub Projects** as the Kanban board, **GitHub Issues** as the backlog,
-and **GitHub Milestones** as sprint containers. Every user story is a tracked issue, every implementation lives on a
-named feature branch, and every merge to `main` is gated by a reviewed pull request that auto-closes the originating
-issue. The board is available at
+The whole project runs on a **web-based Agile workflow** hosted on GitHub: **GitHub Projects** is the Kanban
+board, **GitHub Issues** is the backlog, and **GitHub Milestones** are the sprint containers. Every user story
+is a tracked issue, every implementation lives on a named feature branch, and every merge to `main` goes through
+a reviewed pull request that auto-closes the originating issue. Same web platform for code, board, and reviews —
+that's the **Agile iteration loop**, end to end. The board is available at
 [github.com/users/warrenmnocos/projects/1](https://github.com/users/warrenmnocos/projects/1).
 
 ### Board structure
@@ -306,26 +316,30 @@ Full acceptance criteria for each story live on the linked GitHub issue.
 
 ## Tech Stack
 
-The backend is built with **Quarkus 3.34.3** on **Java 25** (Oracle GraalVM). The framework's advanced
-capabilities are exercised throughout: classic JAX-RS endpoints run on the **Undertow** servlet container, whose
-worker pool is replaced at deployment time by the custom `VirtualThreadServletExtension` so every request handler
-executes on a **virtual thread** — blocking JDBC and `InputStream` reads are free of platform-thread cost without
-giving up scalability; **Hibernate ORM** validates the Flyway-managed schema on startup and uses named native
-queries with recursive CTEs for breadcrumb resolution and directory aggregates; **a custom Hibernate `UserType`**
-(`EncryptedBlobUserType`) transparently encrypts and decrypts file content at the persistence boundary; the
-**Quarkus OIDC extension** delegates Google sign-in entirely; and **Quarkus Dev Services** provisions ephemeral
-PostgreSQL and Keycloak containers for the test profile.
+The backend is **Quarkus 3.34.3** on **Java 25** (Oracle GraalVM). Wherever a framework offers something
+interesting beyond the surface API, the project uses it. JAX-RS endpoints run on the **Undertow** servlet
+container, but the worker pool is swapped out at deployment time by `VirtualThreadServletExtension`, so every
+request handler runs on a **virtual thread** — blocking JDBC and `InputStream` reads cost nothing in
+platform-thread terms. **Hibernate ORM** validates the Flyway-managed schema at startup; breadcrumb walks and
+directory totals are served by `@NamedNativeQuery` with **recursive CTEs** rather than row-by-row navigation. A
+**custom Hibernate `UserType`** (`EncryptedBlobUserType`) sits at the persistence boundary and encrypts/decrypts
+file content **transparently** — the service and endpoint layers never see ciphertext. Google sign-in goes
+through the **Quarkus OIDC extension**, and **Quarkus Dev Services** spins up ephemeral PostgreSQL and Keycloak
+containers for the test profile.
 
-The frontend is built with **Angular 21** as standalone components, signals-first. **Two-way data binding** flows
-through `signal()`, `model()`, `input()`, and `output()` primitives; reactive lists, dialog visibility, and
-notifications all use `@if`/`@for` control flow rather than the legacy structural directives; route loading uses
-`loadComponent` for code splitting; class-transformer hydrates DTOs with strong typing; and a **custom
-`MessageBusService` event bus** provides cross-cutting CQRS coordination across 13 dedicated listeners.
+The frontend is **Angular 21**, **standalone-components only**, **signals-first**. State lives in `signal()`
+and `computed()`; component boundaries use `input()` and `output()`. **Two-way data binding** is wired
+explicitly via `[ngModel]` / `(ngModelChange)` against a writable signal — `model()` is avoided on purpose, since
+the input/output pair it generates costs you whether or not the parent ever two-way binds. Reactive lists, dialog
+visibility, and notifications all use the new `@if` / `@for` control flow instead of `*ngIf` / `*ngFor`; routes
+are **lazy-loaded** with `loadComponent`; and `class-transformer` hydrates DTOs with type information preserved.
+The heart of the app is a **custom `MessageBusService` event bus** — 13 single-responsibility listeners react to
+typed events, keeping mutation paths separate from read paths (**CQRS**).
 
-The build pipeline uses **Maven** as the top-level orchestrator, with the **frontend-maven-plugin** compiling the
-Angular project and emitting the bundle into `src/main/resources/META-INF/resources/`, where Quarkus serves it as
-static content. Production targets a **GraalVM native image** for ARM64. Code quality is monitored with **JaCoCo**
-test coverage and **JetBrains Qodana** static analysis.
+The build is driven by **Maven**. The **frontend-maven-plugin** compiles the Angular project and drops the bundle
+into `src/main/resources/META-INF/resources/`, where Quarkus picks it up and serves it as static content. The
+production target is a **GraalVM native image** for ARM64. **JaCoCo** tracks test coverage and **JetBrains
+Qodana** runs static analysis on every PR.
 
 The application is deployed on a single **AWS EC2 t4g.small** (Graviton 2 ARM64) instance running **Amazon Linux 2023**,
 with **PostgreSQL 18 on the same instance**. **Caddy** terminates TLS and proxies to Quarkus on localhost. DNS is
@@ -335,8 +349,9 @@ managed through **AWS Route 53** with an A record pointing to a static EIP.
 
 ## Architecture
 
-Files uses a **single-origin deployment model**: the Angular SPA and the Quarkus REST API are served from the same
-domain (`files.oppshan.com`), eliminating CORS and the need for a separate CDN or frontend hosting service.
+Files runs as a **single origin**: the Angular SPA and the Quarkus REST API are served from the same domain
+(`files.oppshan.com`). That removes CORS from the picture entirely and means there's no separate CDN or frontend
+host to manage.
 
 ### Component architecture
 
@@ -344,20 +359,21 @@ The component diagram below shows the internal layers of the application.
 
 ![Component architecture](docs/diagrams/component-architecture.svg)
 
-The **frontend** is an Angular 21 SPA structured around a central `MessageBusService` event bus. User actions fire
-`*Initiated` events; dialogs escalate them to `*Confirmed` commands; 13 single-responsibility listeners receive those
-commands, call the relevant service, and emit `*Succeeded` or `*Failed` outcomes. `AuthService` and `FileService`
-make the HTTP calls; `NotificationService` drives the `NotificationCenter` component. The `SessionHttpInterceptor`
-handles 499 session-expiry responses by redirecting to sign-in.
+The **frontend** is an Angular 21 SPA structured around a **central `MessageBusService` event bus**. User actions
+fire `*Initiated` events; dialogs escalate them to `*Confirmed` commands; **13 single-responsibility listeners**
+receive those commands, call the relevant service, and emit `*Succeeded` or `*Failed` outcomes. `AuthService` and
+`FileService` make the HTTP calls; `NotificationService` drives the `NotificationCenter` component. The
+`SessionHttpInterceptor` handles 499 session-expiry responses by redirecting to sign-in.
 
-The **backend** is a Quarkus 3 native binary whose three JAX-RS endpoint classes delegate to two services:
-`FileNodeService` owns all file-system mutations under a single `@Transactional` boundary, and
-`UserSessionManager` caches the authenticated user per HTTP session with read/write locking.
-Both services depend only on their respective Jakarta Data repositories, which issue JPQL queries and named native
-queries (recursive CTEs for breadcrumbs and directory statistics). The `EncryptedBlobUserType` intercepts all Hibernate
-Blob reads and writes, transparently applying AES/CTR encryption with a per-file IV prepended to each Large Object.
-Every JAX-RS handler runs on a virtual thread supplied by `VirtualThreadServletExtension`, so blocking JDBC and
-streaming I/O carry no platform-thread cost.
+The **backend** is a Quarkus 3 native binary. Three JAX-RS endpoint classes delegate to three services:
+`FileNodeService` does all file-system mutations inside a single `@Transactional` boundary, `UserAccountService`
+provisions users on the OIDC callback, and `UserSessionManager` caches the authenticated user for the duration of
+the HTTP session (with read/write locking around the cache). Both services lean on a pair of Jakarta Data
+repositories — `FileNodeRepository` and `UserAccountRepository` — that mix JPQL queries with **named native
+queries for recursive CTEs** (breadcrumbs and directory statistics). `EncryptedBlobUserType` sits underneath all
+of this and quietly encrypts and decrypts file content as it crosses the Hibernate boundary, prepending a
+**per-file IV** to each Large Object. Every JAX-RS handler runs on a **virtual thread** courtesy of
+`VirtualThreadServletExtension`, so blocking JDBC and streaming I/O cost nothing on the platform-thread side.
 
 **PostgreSQL 18** holds all state: the unified `file_node` inode table (directories and files share one schema,
 distinguished by a `directory` boolean), the user domain tables, and PostgreSQL Large Objects for encrypted file
@@ -370,7 +386,7 @@ deleted. Flyway manages schema migrations; Hibernate validates the schema on sta
 
 The deployment diagram below shows the full request path through the AWS infrastructure.
 
-![Deployment architecture](docs/diagrams/deployment-architecture.svg)
+![Deployment architecture](docs/diagrams/deployment-architecture-minimal.svg)
 
 The application runs on a single **EC2 t4g.small** (Graviton 2 ARM64) instance. **Caddy** terminates TLS on port 443
 using a wildcard `*.oppshan.com` certificate obtained automatically from Let's Encrypt via DNS-01 challenge against
@@ -388,7 +404,7 @@ The current deployment is intentionally minimal — a single EC2 instance with o
 and cost-effective for a university project. A production-grade deployment serving real traffic would replace
 each single point of failure with a managed, multi-AZ equivalent.
 
-![Production architecture](docs/diagrams/production-architecture.svg)
+![Production architecture](docs/diagrams/deployment-architecture-production.svg)
 
 **Networking.** The VPC spans two Availability Zones with separate public and private subnets in each. Only the
 ALB sits in the public subnets; the application and database tiers are fully isolated in private subnets with no
@@ -407,33 +423,37 @@ The ALB performs health checks against the Quarkus health endpoint and routes ar
 or rolling deployments via **CodeDeploy** replace instances without downtime; the GitHub Actions pipeline uploads
 the native binary to S3, then triggers the deployment group.
 
-**Database tier.** **Amazon RDS** for PostgreSQL 18 in Multi-AZ mode synchronously replicates every write to a standby
-in the second AZ. On primary failure, RDS automatically promotes the standby and updates the cluster endpoint — typical
-failover is under 60 seconds with no application change. An asynchronous **read replica** can offload analytics or
-reporting queries, or serve as a warm promotion target if eventual-consistency reads are acceptable. Automated backups
-with point-in-time recovery, storage auto-scaling, and Performance Insights replace all manual DBA work that on-instance
-PostgreSQL requires. **RDS Proxy** sits between the application tier and RDS, multiplexing database connections across
-ASG instances to avoid connection exhaustion during scale-out events and reducing failover time by maintaining a warm
-connection pool through Multi-AZ promotions.
+**Database tier.** **Amazon Aurora** for PostgreSQL 18 runs as a cluster: one writer plus readers in the second
+AZ, all connected to a single **distributed storage volume** that is **replicated six ways across three AZs** at
+the storage layer. A write is durable as soon as four of those six storage nodes acknowledge, which is what lets
+Aurora skip instance-to-instance synchronous replication entirely. If the writer dies, **a reader gets promoted
+in about 30 seconds** and the cluster endpoint flips over — the application never has to know. Extra readers in the
+same cluster soak up analytics and reporting traffic through the read endpoint (round-robin across healthy
+readers), and because every reader is reading from the same shared storage, replica lag is sub-second instead of
+"however long it takes to catch up to a primary". Automated backups, continuous incremental backup to S3 with
+point-in-time recovery, storage auto-scaling, and Performance Insights take care of everything that on-instance
+PostgreSQL would force you to do by hand. **RDS Proxy** sits between the ASG and the cluster: it multiplexes
+database connections so a sudden scale-out doesn't exhaust the connection pool, and it shortens failover time by
+keeping warm connections through promotions.
 
 **Secrets.** **AWS Secrets Manager** stores the database password, OIDC client credentials, and the encryption
 passphrase. Secrets are fetched at startup via the Quarkus AWS Secrets extension and rotated automatically;
 nothing sensitive lives in environment files or SSM Parameter Store plain text.
 
-**Observability.** **CloudWatch** collects application logs (structured JSON from Quarkus), ALB access logs, RDS
+**Observability.** **CloudWatch** collects application logs (structured JSON from Quarkus), ALB access logs, Aurora
 Performance Insights metrics, and ASG instance-level metrics. Alarms on 5xx rate, p99 latency, and CPU drive the
 auto-scaling policy and page on-call via SNS.
 
-| Concern        | Minimal deployment                 | Production deployment                           |
-|----------------|------------------------------------|-------------------------------------------------|
-| TLS            | Caddy + Let's Encrypt DNS-01       | ACM cert on ALB, auto-renewed                   |
-| Availability   | Single EC2 instance                | ASG across 2 AZs, ALB health checks             |
-| Database       | On-instance PostgreSQL             | RDS Multi-AZ + read replica                     |
-| Database proxy | None                               | RDS Proxy (connection pooling, faster failover) |
-| Scaling        | Manual resize                      | Target-tracking ASG on ALB RPS                  |
-| Secrets        | SSM Parameter Store                | Secrets Manager with auto-rotation              |
-| CDN / WAF      | None                               | CloudFront + WAF OWASP rules                    |
-| Observability  | SSM Session Manager + systemd logs | CloudWatch Logs, metrics, alarms                |
+| Concern        | Minimal deployment                 | Production deployment                             |
+|----------------|------------------------------------|---------------------------------------------------|
+| TLS            | Caddy + Let's Encrypt DNS-01       | ACM cert on ALB, auto-renewed                     |
+| Availability   | Single EC2 instance                | ASG across 2 AZs, ALB health checks               |
+| Database       | On-instance PostgreSQL             | Aurora cluster (writer + readers, shared storage) |
+| Database proxy | None                               | RDS Proxy (connection pooling, faster failover)   |
+| Scaling        | Manual resize                      | Target-tracking ASG on ALB RPS                    |
+| Secrets        | SSM Parameter Store                | Secrets Manager with auto-rotation                |
+| CDN / WAF      | None                               | CloudFront + WAF OWASP rules                      |
+| Observability  | SSM Session Manager + systemd logs | CloudWatch Logs, metrics, alarms                  |
 
 ---
 
@@ -454,8 +474,8 @@ mutation flows through the bus:
 types as its only output. A listener that performs an HTTP call must not also mutate service state directly; those
 concerns are split across dedicated listeners. For example, `FileCreateConfirmedApplicationEventListener` fires
 upload lifecycle events (`FileUploadInitiated`, `FileUploadProgressUpdated`, `FileUploadSucceeded`,
-`FileUploadFailed`) and a separate `UploadProgressApplicationEventListener` translates those into
-`NotificationService` calls.
+`FileUploadFailed`), and a separate `OperationProgressApplicationEventListener` consumes both upload and
+download progress events and translates them into `NotificationService` calls.
 
 The 13 listeners are registered in `app.config.ts` as multi-providers of the `MESSAGE_LISTENERS` injection token, and
 `MessageReactorService` fans the event stream out to each listener's filter.
@@ -497,6 +517,26 @@ A trigger fires `*Initiated` with a context payload; the gate mounts the dialog;
 `computed(() => bus.applicationEventSignal().payload as ContextType)`; confirming fires `*Confirmed`, cancelling
 fires `*Cancelled`; any other event collapses the gate and unmounts the dialog.
 
+### Context menu pattern
+
+The context menu uses the same `@if`-on-bus-state mount as dialogs, just with its own lifecycle pair. A kebab
+click, a right-click on a row, a long-press on touch, or a right-click on empty space all fire `ContextMenuShown`
+with `{target, position, parentUuid}`. The gate mounts `<app-file-context-menu/>`. Outside pointerdown, `Escape`,
+scroll, or window resize fires `ContextMenuHidden` and the menu disappears.
+
+What the menu shows depends on `target`: `null` (empty space) gets Refresh / New folder / Upload file, a folder
+gets Open / Rename / Properties / Delete, a file gets Download / Rename / Properties / Delete. The interesting
+part is that picking an item doesn't introduce a new domain event — it just re-fires an existing one. Rename
+fires `DirectoryRenameInitiated` or `FileRenameInitiated`, Delete fires `*DeletionInitiated`, Properties fires
+`*PropertiesShown`, Open fires `DirectoryNavigationInitiated`, Refresh fires `DirectoryRefreshInitiated`, New
+folder fires `DirectoryCreateInitiated`, Download fires `FileDownloadConfirmed`. The one exception is Upload —
+the menu has no idea how upload actually works, so it fires a thin `FileUploadPickerShown` bridge event and
+`FileBrowser` (which owns the file picker) decides what to do with it.
+
+Layout flips at 480 px via `window.matchMedia('(max-width: 480px)')`. Above the breakpoint, the menu floats at
+the trigger coordinates and clamps itself to the viewport (via `getBoundingClientRect` after first render).
+Below it, the menu renders as a full-width bottom sheet over a backdrop.
+
 ### Standalone components and signals
 
 Every component is `standalone: true` — there are no NgModules. State is held in signals (`signal`, `input`,
@@ -510,16 +550,17 @@ src/main/angular/src/app/
 ├── app.config.ts          # providers, listener registration, route loading
 ├── app.routes.ts          # /drive/**, /sso/sign-in, /sso/sign-out
 ├── pages/                 # Drive, SignIn, SignOut (all lazy-loaded)
-├── components/            # Toolbar, FileBrowser, Breadcrumb, NotificationCenter,
-│                          # ErrorState, 7 dialogs (directory + file each: create, rename,
-│                          # delete, properties; file omits create-dialog and instead uses
-│                          # the FileBrowser's built-in upload picker)
+├── components/            # Toolbar, Footer, FileBrowser, Breadcrumb, FileContextMenu,
+│                          # NotificationCenter, ErrorState, 7 dialogs (directory + file
+│                          # each: create, rename, delete, properties; file omits
+│                          # create-dialog and uses the FileBrowser's built-in upload picker)
 ├── services/              # AuthService, FileService, MessageBusService, NotificationService,
 │                          # MessageReactorService, JsonMapperService
 ├── listeners/             # 13 listener classes + AbstractApplicationEventListener +
 │                          # MessageListener interface
-├── models/                # ApplicationEvent envelope, ApplicationEventType (55 values),
-│                          # MessageCode, command interfaces, outcome interfaces, view DTOs
+├── models/                # ApplicationEvent envelope, ApplicationEventType (59 values),
+│                          # MessageCode, ContextMenuItem, command interfaces, outcome
+│                          # interfaces, view DTOs
 └── misc/                  # auth.guard, SessionHttpInterceptor, pipes, utils
 ```
 
@@ -600,34 +641,37 @@ src/main/java/com/oppshan/files/
 
 ## Data Model
 
-The application uses four core entities organized across two domains. All primary keys are UUID v7 (time-ordered)
+The application uses five core entities organized across two domains. All primary keys are UUID v7 (time-ordered)
 to keep B-tree indexes locality-friendly while avoiding integer-ID enumeration leaks.
 
 ### User domain
 
-**`UserAccount`** represents a platform user. Fields: surrogate `id` (BIGINT sequence), `uuid` (UUID v7), `firstName`,
-`lastName`, audit timestamps. It owns one or more `IdpAccount` rows and exactly one `UserStorage` row.
+**`UserAccount`** represents a platform user. Fields: `uuid` (UUID v7 primary key), `firstName`, `lastName`,
+audit timestamps. It owns one or more `IdpAccount` rows and exactly one `UserStorage` row.
 
-**`IdpAccount`** is the abstract base for identity-provider accounts using JPA joined-inheritance. Fields: `uuid`,
-`providerId` (the external identifier from the IdP), `providerName` (e.g. "google"), and `userAccount` reference.
-The abstraction is designed for multi-provider extensibility — adding GitHub or Microsoft requires a new
-`IdpAccount` subclass plus an OIDC configuration entry, with no schema change to the file or user core.
+**`IdpAccount`** is the abstract base for identity-provider accounts, using JPA joined-inheritance. Fields:
+`uuid`, `providerId` (the external identifier from the IdP), `providerName` (e.g. "google"), and a `userAccount`
+reference. The abstraction exists so adding GitHub or Microsoft is cheap — a new `IdpAccount` subclass plus an
+OIDC configuration entry, with no schema change to the file or user core.
 
 **`GoogleAccount`** extends `IdpAccount` with the Google-specific fields `email`, `name`, `photoUrl`. It lives in a
 separate `google_account` table joined to `idp_account` by primary key, with indexes on `name` and `email`.
 
 ### File domain
 
-**`FileNode`** is the unified entity for both files and directories, following an inode-style design. Fields: `id`,
-`uuid`, `name`, `mimeType`, `directory` (boolean), `sizeBytes`, `content` (`java.sql.Blob` mapped via
+**`FileNode`** is the unified entity for both files and directories, following an inode-style design. Fields:
+`uuid` (UUID v7 primary key), `userAccount` (`@ManyToOne` tenant scope, joined as `user_account_uuid NOT NULL`),
+`name`, `mimeType`, `directory` (boolean), `sizeBytes`, `content` (`java.sql.Blob` mapped via
 `@Type(EncryptedBlobUserType.class)`, fetched lazily and streamed end-to-end), `parentFileNode` (self-reference,
 null for root), `childFileNodes` (a sorted set), audit timestamps. A database CHECK constraint enforces that
 directories have null content and zero size while files have non-null content. The unique constraint
-`(parent_file_node_id, name, mime_type) UNIQUE NULLS NOT DISTINCT` prevents duplicate names within the same parent
-even at the root level (where `parent_file_node_id IS NULL`).
+`(user_account_uuid, parent_file_node_uuid, name, mime_type) UNIQUE NULLS NOT DISTINCT` prevents duplicate names
+within the same parent even at the root level (where `parent_file_node_uuid IS NULL`); the leading
+`user_account_uuid` keeps each user's namespace isolated.
 
-**`UserStorage`** tracks each user's quota. Fields: `id`, `uuid`, `userAccount` (one-to-one), `maxStorageBytes`,
-`maxFileUploadBytes`, `rootFileNode` (one-to-one to the user's root `FileNode`), audit timestamps.
+**`UserStorage`** tracks each user's quota. Fields: `uuid` (UUID v7 primary key), `userAccount` (one-to-one),
+`maxStorageBytes`, `maxFileUploadBytes`, `rootFileNode` (one-to-one to the user's root `FileNode`), audit
+timestamps.
 
 ### View records (DTOs)
 
@@ -654,33 +698,7 @@ hydrates nested types via `@Type(() => X)`.
 
 ### Upload pipeline
 
-```
-File from <input type="file"> picker or webkitGetAsEntry() drop
-   │
-   ▼   (FileBrowser validates against UserAccountView.maxFileUploadBytes; rejects fire fileSizeExceeded toasts)
-FileCreateConfirmedApplicationEventListener fires FileUploadInitiated
-   │
-   ▼   (Angular HttpClient.post, reportProgress: true, observe: 'events')
-SessionHttpInterceptor (tap-only — passes every HttpEvent through)
-   │
-   ▼   (Content-Disposition: attachment; filename=...; original Content-Type)
-HTTP request body
-   │
-   ▼   (Undertow servlet handler dispatched onto a virtual thread by VirtualThreadServletExtension)
-servlet InputStream (blocking reads — TCP backpressure propagates if the consumer slows)
-   │
-   ▼
-CountingInputStream                 ← tracks original byte count
-   │
-   ▼
-IncomingBlob  ← prepends 16-byte IV from SecureRandom, then CipherInputStream (AES/CTR/NoPadding)
-   │
-   ▼
-java.sql.Blob (handed to Hibernate as the FileNode.content value)
-   │
-   ▼
-PostgreSQL Large Object (OID) — written by the JDBC driver as it consumes the encrypted stream
-```
+![Upload pipeline](docs/diagrams/upload-pipeline.svg)
 
 After `entityManager.flush()` forces the stream to be drained, `CountingInputStream.getCount()` yields the file's
 original size. The service then verifies the size against `getMaxFileUploadBytes(userAccountUuid)` and the running
@@ -694,24 +712,7 @@ upload section reflects byte-accurate progress in real time; the final `HttpResp
 
 ### Download pipeline
 
-```
-PostgreSQL Large Object (OID) — referenced by FileNode.content
-   │
-   ▼   (JTA transaction open; JDBC driver streams ciphertext)
-java.sql.Blob (lazy-fetched, never materialised in memory)
-   │
-   ▼
-OutgoingBlob  ← reads first 16 bytes as IV, then CipherInputStream (AES/CTR/NoPadding) over the remainder
-   │
-   ▼   (decrypted plaintext)
-StreamingOutput (JAX-RS) wired by FileDownloadViewMessageBodyWriter
-   │
-   ▼   (Content-Disposition: attachment; filename=...; original Content-Type)
-HTTP response body
-   │
-   ▼   (Angular HttpClient, reportProgress: true, observe: 'events')
-browser anchor click → file saved to disk
-```
+![Download pipeline](docs/diagrams/download-pipeline.svg)
 
 `GET /api/files/{uuid}/download` returns a `FileDownloadViewResolver`. The custom
 `FileDownloadViewMessageBodyWriter` opens a JTA transaction, loads the `FileNode`, wraps the `Blob` in an
@@ -749,10 +750,12 @@ events into `ProgressNotification` updates rendered in the `NotificationCenter`'
 | POST   | `/api/files/{uuid}/upload`     | Stream a file into the directory; raw binary body, `Content-Disposition: attachment; filename=...`, `Content-Type` header |
 | GET    | `/api/files/{uuid}/download`   | Stream a file out; sets `Content-Disposition: attachment` and original `Content-Type`                                     |
 
-Errors are emitted as `400 Bad Request` with body `{ "messageCode": "messages.errors.<key>" }` (translated by the
-Angular app via the i18n table). HTTP `401 Unauthorized` indicates session expiry; the Angular app's
-`SessionHttpInterceptor`
-redirects on `499` (custom session-invalidation status).
+Successful `POST` responses (`/api/files`, `/api/files/{uuid}/upload`) return `201 Created` with the updated
+`DirectoryContentsView` body; other successes return `200 OK`. Errors are emitted as `400 Bad Request` with body
+`{ "messageCode": "messages.errors.<key>" }` (translated by the Angular app via the i18n table). `GET /api/auth/me`
+returns `401 Unauthorized` when the session is signed out. The Angular app's `SessionHttpInterceptor` watches for
+`499` — a custom status used by the OIDC layer to signal session invalidation mid-request — and redirects to
+sign-in.
 
 ---
 
@@ -760,17 +763,17 @@ redirects on `499` (custom session-invalidation status).
 
 ### Authentication
 
-Authentication is delegated entirely to **Google OAuth 2.0** via the Quarkus OIDC extension. No passwords are stored
-in the application. On first login, the backend extracts `sub` (Google's unique user identifier), `name`, `email`,
-and `picture` from the ID token claims. If no `UserAccount` exists for that `sub`, a new `UserAccount`,
-`GoogleAccount`, `UserStorage`, and root `FileNode` are created atomically. Subsequent logins match by Google `sub`
-and reuse the existing user. The OIDC session is managed via HTTP-only cookies by Quarkus; the Angular app never sees
-the
-token. Token state is encrypted using the secret in `quarkus.oidc.token-state-manager.encryption-secret`.
+All authentication runs through **Google OAuth 2.0** via the Quarkus OIDC extension. The application stores no
+passwords. On first login, the backend reads `sub` (Google's unique user identifier), `name`, `email`, and
+`picture` from the ID token claims. If no `UserAccount` exists for that `sub`, the backend creates one — along
+with a matching `GoogleAccount`, a `UserStorage` row, and a root `FileNode` — in a single transaction. Subsequent
+logins match by Google `sub` and reuse the existing user. Quarkus manages the OIDC session through HTTP-only
+cookies, so the Angular app never touches a token directly. Token state in the cookie is encrypted with the
+secret in `quarkus.oidc.token-state-manager.encryption-secret`.
 
-The identity-provider abstraction (`IdpAccount` → `GoogleAccount`) is designed for multi-provider extensibility.
-Adding a new provider (such as GitHub) requires a new entity extending `IdpAccount`, claim-extraction logic, and
-an OIDC configuration entry — no changes to the existing user or file core.
+The identity-provider abstraction (`IdpAccount` → `GoogleAccount`) is built so adding more providers is cheap.
+Adding GitHub, for example, would mean a new entity extending `IdpAccount`, a claim-extraction lambda, and an OIDC
+config entry — nothing in the user or file core changes.
 
 ### File encryption
 
@@ -809,8 +812,8 @@ the operator to generate a proper key.
 The application connects to PostgreSQL using a dedicated application role with `NOSUPERUSER`, `NOCREATEDB`,
 `NOCREATEROLE`, and `LOGIN` permissions. The role has `CONNECT` on the application database, `USAGE` and `CREATE`
 on the public schema (required by Flyway), and default privileges for `SELECT`, `INSERT`, `UPDATE`, `DELETE` on
-tables and `USAGE`, `SELECT` on sequences. Large Objects created by this role are owned by it, so no additional
-Large Object grants are needed.
+tables. All entity primary keys are UUID v7 generated by Hibernate, so no sequence privileges are required. Large
+Objects created by this role are owned by it, so no additional Large Object grants are needed either.
 
 ---
 
@@ -834,21 +837,19 @@ Migration files live in `src/main/resources/db/migration/postgresql/` and are pl
 | V5      | `add_user_names.sql`                         | Splits `user_account.name` into `first_name` and `last_name`                                                                                        |
 | V6      | `add_user_storage_file_upload_max_bytes.sql` | Adds per-user file upload size limit (default 100 MB)                                                                                               |
 
-### Sequence allocation
-
-JPA sequences use an `allocationSize` of 100 to match the `INCREMENT BY 100` declared on the Flyway-created
-sequences. This lets Hibernate allocate blocks of 100 IDs per `nextval` call, dramatically reducing round trips
-during batch inserts.
-
 ---
 
 ## User Experience Design
 
-The application's visual design was planned before implementation using wireframe mockups. The design system uses a
-teal primary color (`#009688`) for interactive elements and active states, danger red (`#d93025`) for destructive
-confirmation, and a neutral palette for backgrounds and text. The typography is Inter. Components are built with
-custom SCSS following the project's design-token conventions; the global `styles.scss` defines shared `.dialog-*`
-and `.skeleton-*` classes (the latter for loading shimmer states).
+The visual design was settled before any code got written. There's a **wireframe mockup** for every user-facing
+screen state — one per user story, plus extras for the empty / loading / error variants. The mockups are what
+actually drove implementation: every screen the application renders maps back to a wireframe, and every wireframe
+corresponds to an **acceptance-criterion item on the GitHub issue** — design, requirements, and code stay in lock
+step. The design system uses a teal primary color (`#009688`) for
+interactive elements and active states, danger red (`#d93025`) for destructive confirmation, and a neutral palette
+for backgrounds and text. The typography is Inter. Components are built with custom SCSS following the project's
+design-token conventions; the global `styles.scss` defines shared `.dialog-*` and `.skeleton-*` classes (the latter
+for loading shimmer states).
 
 The wireframes below cover the user flow through all 24 user stories — including planned screens
 for [[EPIC-05]](https://github.com/warrenmnocos/oppshan-files/issues/27)
@@ -875,7 +876,8 @@ upload.
 
 The main working state. Folders are sorted first with amber folder icons, followed by files with color-coded type
 icons (red for PDF, blue for documents, green for images, gray for text). Columns: name, size, last modified.
-Selected rows are highlighted in teal.
+Hovered rows pick up a teal outline; the row's kebab button on the right opens the same context menu as right-click
+or long-press.
 
 ### Populated drive — grid view ([[US-08]](https://github.com/warrenmnocos/oppshan-files/issues/13))
 
@@ -972,12 +974,13 @@ successes (folder created, file renamed, file deleted) appear as info-severity t
 
 ## CI/CD
 
-Three GitHub Actions workflows automate the path from pull request to production. Two gate every pull request — one
-builds and tests, the other runs static analysis — and the third deploys every merge to `main`.
+Three **GitHub Actions** workflows take a change from pull request to production. Two of them run on every PR
+(one **builds and tests**, the other runs **static analysis**); the third **automatically builds and deploys**
+whatever lands on `main`.
 
 ### Continuous Integration
 
-Every push and pull request to `main` triggers two workflows that together gate merge.
+Every push and pull request to `main` runs two workflows. Both have to be green for the change to merge.
 
 #### Build, test, and coverage
 
@@ -1011,8 +1014,8 @@ Findings are surfaced as PR check annotations.
 
 ### Continuous Deployment
 
-Production deployment is fully automated: the Maven build emits a GraalVM native binary, and a GitHub Actions workflow
-rolls it out to the EC2 instance on every push to `main`.
+Production deployment is **fully automated**: the Maven build emits a **GraalVM native binary**, and a GitHub
+Actions workflow rolls it out to the EC2 instance on **every push to `main`** — no manual step in between.
 
 #### Build pipeline
 
@@ -1029,8 +1032,9 @@ starts in under 100 ms, and runs with `-Xmx512m` heap on the deployment target.
 #### Deployment target
 
 Production runs on a single **AWS EC2 t4g.small** (Graviton 2 ARM, 2 vCPU, 2 GB RAM) on **Amazon Linux 2023**, with *
-*PostgreSQL 18 on the same instance** (not RDS — keeps cost predictable and removes cross-host network hops for a
-personal-scale app). **Caddy** terminates TLS on `:443` with a wildcard `*.oppshan.com` cert acquired automatically from
+*PostgreSQL 18 on the same instance** (not RDS or Aurora — keeps cost predictable and removes cross-host network
+hops for a personal-scale app). **Caddy** terminates TLS on `:443` with a wildcard `*.oppshan.com` cert acquired
+automatically from
 Let's Encrypt via the **DNS-01 challenge against Route 53** (Caddy `route53` plugin, backed by an EC2 instance role with
 scoped Route 53 permissions). The wildcard cert auto-renews ~30 days before expiry; no ALB, no separate certificate
 management.
@@ -1047,9 +1051,6 @@ Command on the EC2 instance to `systemctl stop`, `aws s3 cp` the new binary, `ch
 `systemctl start`. Authentication uses **OIDC federation** — GitHub mints a short-lived JWT, AWS STS exchanges it for
 temporary credentials based on a trust policy scoped to `repo:OWNER/REPO:ref:refs/heads/main`. No long-lived AWS keys
 live in repository secrets.
-
-Three deployment guides at `docs/aws-deployment-{manual,cli,terraform}.md` walk through the AWS-side setup at three
-levels of automation. See `docs/aws-deployment-recovery.md` and `docs/recovery-*.txt` for per-scenario recovery scripts.
 
 ---
 
@@ -1104,10 +1105,10 @@ be running.
 java -jar target/oppshan-files-*-runner.jar
 ```
 
-For native image:
+For the production native image (Oracle GraalVM 25, ARM64-tuned, debug stripped):
 
 ```bash
-./mvnw clean package -Dnative
+./mvnw -Pnative-release package
 ./target/oppshan-files-*-runner
 ```
 

@@ -2,35 +2,35 @@
   <div (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)" class="dialog">
     <h2 class="dialog-title">{{ 'dialog.fileProperties.title' | translate }}</h2>
     <div class="dialog-body">
-      <div class="dialog-properties-row">
-        <span class="dialog-properties-label">{{ 'dialog.fileProperties.name' | translate }}</span>
-        <span class="dialog-properties-value"
-              [class.skeleton-line]="!properties()">{{ properties()?.name }}</span>
-      </div>
-      <div class="dialog-properties-row">
-        <span class="dialog-properties-label">{{ 'dialog.fileProperties.type' | translate }}</span>
-        <span class="dialog-properties-value"
-              [class.skeleton-line]="!properties()">{{ properties()?.mimeType }}</span>
-      </div>
-      <div class="dialog-properties-row">
-        <span class="dialog-properties-label">{{ 'dialog.fileProperties.size' | translate }}</span>
-        <span class="dialog-properties-value"
-              [class.skeleton-line]="!properties()">{{ properties()?.sizeBytes | fileSize }}</span>
-      </div>
-      <div class="dialog-properties-row">
-        <span class="dialog-properties-label">{{ 'dialog.fileProperties.location' | translate }}</span>
-        <span class="dialog-properties-value"
-              [class.skeleton-line]="!properties()">{{ properties()?.parentName }}</span>
-      </div>
-      <div class="dialog-properties-row">
-        <span class="dialog-properties-label">{{ 'dialog.fileProperties.created' | translate }}</span>
-        <span class="dialog-properties-value"
-              [class.skeleton-line]="!properties()">{{ properties()?.createdAt | dateTime:'MMM d, yyyy' }}</span>
-      </div>
-      <div class="dialog-properties-row">
-        <span class="dialog-properties-label">{{ 'dialog.fileProperties.modified' | translate }}</span>
-        <span class="dialog-properties-value"
-              [class.skeleton-line]="!properties()">{{ properties()?.lastModifiedAt | dateTime:'MMM d, yyyy' }}</span>
+      <div class="dialog-properties">
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.fileProperties.name' | translate }}</span>
+          <span class="dialog-properties-value">{{ fileName() }}</span>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.fileProperties.type' | translate }}</span>
+          <span class="dialog-properties-value">{{ mimeType() }}</span>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.fileProperties.size' | translate }}</span>
+          <span class="dialog-properties-value">{{ sizeBytes() | fileSize }}</span>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.fileProperties.location' | translate }}</span>
+          <span class="dialog-properties-value">{{ location() }}</span>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.fileProperties.url' | translate }}</span>
+          <a [href]="fileUrl()" class="dialog-properties-value dialog-properties-url">{{ fileUrl() }}</a>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.fileProperties.created' | translate }}</span>
+          <span class="dialog-properties-value">{{ selectedFile()?.createdAt | dateTime:'MMM d, yyyy' }}</span>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.fileProperties.modified' | translate }}</span>
+          <span class="dialog-properties-value">{{ selectedFile()?.lastModifiedAt | dateTime:'MMM d, yyyy' }}</span>
+        </div>
       </div>
     </div>
     <div class="dialog-actions">

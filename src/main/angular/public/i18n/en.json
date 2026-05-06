@@ -34,6 +34,10 @@
       "newFolder": "New folder",
       "uploadFile": "Upload file",
       "refresh": "Refresh"
+    },
+    "quotaBanner": {
+      "title": "Storage quota exceeded",
+      "description": "You've used {{used}} of {{max}}. Delete files to free up space before uploading."
     }
   },
   "dialog": {
@@ -75,6 +79,7 @@
       "type": "Type",
       "size": "Size",
       "location": "Location",
+      "url": "Link",
       "created": "Created",
       "modified": "Updated",
       "close": "Close"
@@ -87,6 +92,16 @@
       "directories": "Folders",
       "files": "Files",
       "totalSize": "Total size",
+      "url": "Link",
+      "close": "Close"
+    },
+    "filePreview": {
+      "title": "File preview",
+      "name": "Name",
+      "type": "Type",
+      "size": "Size",
+      "unavailable": "Preview is not available for this file type.",
+      "download": "Download",
       "close": "Close"
     }
   },
@@ -131,6 +146,7 @@
       "directoryNameNotUnique": "A folder with this name already exists.",
       "directoryNameRequired": "Folder name is required.",
       "rootDirectoryDeletionNotAllowed": "The root directory cannot be deleted.",
+      "rootDirectoryModificationNotAllowed": "The root directory cannot be modified.",
       "accessDenied": "You do not have permission to access this resource.",
       "fileNotFound": "File not found.",
       "fileNameNotUnique": "A file with this name already exists.",

@@ -11,6 +11,8 @@ export class DirectoryContentsView {
 
   parentUuid!: string | null;
 
+  targetFileUuid!: string | null;
+
   @Type(() => BreadcrumbView)
   breadcrumbViews!: BreadcrumbView[];
 

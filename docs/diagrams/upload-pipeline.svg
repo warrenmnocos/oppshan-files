@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 600" width="660" height="600"
+     font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="12">
+    <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 1.5 L8.5 5 L0 8.5 z" fill="#546E7A"/>
+        </marker>
+    </defs>
+
+    <rect width="660" height="600" fill="#FAFAFA"/>
+
+    <!-- Title -->
+    <text x="330" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#212121">Upload pipeline</text>
+
+    <!-- Box 1: Browser file picker (CLIENT) -->
+    <rect x="50" y="36" width="560" height="40" rx="6" fill="#D6EAF8" stroke="#2980B9" stroke-width="1.5"/>
+    <text x="330" y="54" text-anchor="middle" font-size="11" font-weight="700" fill="#1A5276">Browser file picker / drop
+        zone
+    </text>
+    <text x="330" y="69" text-anchor="middle" font-size="9" fill="#2980B9">&lt;input type="file"&gt; ·
+        webkitGetAsEntry drag-drop
+    </text>
+
+    <!-- Arrow 1→2 -->
+    <line x1="330" y1="76" x2="330" y2="100" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+    <text x="338" y="92" font-size="9" fill="#546E7A">FileBrowser size-checks against UserAccountView.maxFileUploadBytes
+        (rejects fire fileSizeExceeded toast)
+    </text>
+
+    <!-- Box 2: Frontend listener (CLIENT) -->
+    <rect x="50" y="102" width="560" height="40" rx="6" fill="#D6EAF8" stroke="#2980B9" stroke-width="1.5"/>
+    <text x="330" y="120" text-anchor="middle" font-size="11" font-weight="700" fill="#1A5276">
+        FileCreateConfirmedApplicationEventListener
+    </text>
+    <text x="330" y="135" text-anchor="middle" font-size="9" fill="#2980B9">fires FileUploadInitiated · streams the File
+        via Angular HttpClient
+    </text>
+
+    <!-- Arrow 2→3 -->
+    <line x1="330" y1="142" x2="330" y2="166" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+    <text x="338" y="158" font-size="9" fill="#546E7A">HttpClient.post · reportProgress: true · observe: 'events'</text>
+
+    <!-- Box 3: SessionHttpInterceptor (CLIENT) -->
+    <rect x="50" y="168" width="560" height="40" rx="6" fill="#D6EAF8" stroke="#2980B9" stroke-width="1.5"/>
+    <text x="330" y="186" text-anchor="middle" font-size="11" font-weight="700" fill="#1A5276">SessionHttpInterceptor
+    </text>
+    <text x="330" y="201" text-anchor="middle" font-size="9" fill="#2980B9">tap-only · passes every HttpEvent through
+        (does not filter to HttpResponse)
+    </text>
+
+    <!-- HTTP boundary divider -->
+    <line x1="20" y1="226" x2="640" y2="226" stroke="#90A4AE" stroke-width="1" stroke-dasharray="6 4"/>
+    <text x="330" y="222" text-anchor="middle" font-size="9" fill="#90A4AE">— HTTPS request body · Content-Disposition:
+        attachment; filename=… · original Content-Type —
+    </text>
+
+    <!-- Box 4: servlet InputStream (SERVER) -->
+    <rect x="50" y="234" width="560" height="40" rx="6" fill="#FDEBD0" stroke="#E67E22" stroke-width="1.5"/>
+    <text x="330" y="252" text-anchor="middle" font-size="11" font-weight="700" fill="#784212">servlet InputStream
+        (Undertow · virtual thread)
+    </text>
+    <text x="330" y="267" text-anchor="middle" font-size="9" fill="#A04000">blocking reads · TCP backpressure
+        propagates if the consumer slows
+    </text>
+
+    <!-- Arrow 4→5 -->
+    <line x1="330" y1="274" x2="330" y2="298" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+
+    <!-- Box 5: CountingInputStream (SERVER) -->
+    <rect x="50" y="300" width="560" height="40" rx="6" fill="#FDEBD0" stroke="#E67E22" stroke-width="1.5"/>
+    <text x="330" y="318" text-anchor="middle" font-size="11" font-weight="700" fill="#784212">CountingInputStream
+    </text>
+    <text x="330" y="333" text-anchor="middle" font-size="9" fill="#A04000">tracks original (plaintext) byte count for
+        post-flush quota enforcement
+    </text>
+
+    <!-- Arrow 5→6 -->
+    <line x1="330" y1="340" x2="330" y2="364" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+
+    <!-- Box 6: IncomingBlob (ENCRYPTION boundary) -->
+    <rect x="50" y="366" width="560" height="40" rx="6" fill="#FADBD8" stroke="#CB4335" stroke-width="1.5"/>
+    <text x="330" y="384" text-anchor="middle" font-size="11" font-weight="700" fill="#922B21">IncomingBlob
+        (encryption boundary)
+    </text>
+    <text x="330" y="399" text-anchor="middle" font-size="9" fill="#922B21">prepends 16-byte IV (SecureRandom) ·
+        CipherInputStream (AES/CTR/NoPadding)
+    </text>
+
+    <!-- Arrow 6→7 -->
+    <line x1="330" y1="406" x2="330" y2="430" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+
+    <!-- Box 7: Hibernate (SERVER) -->
+    <rect x="50" y="432" width="560" height="40" rx="6" fill="#FDEBD0" stroke="#E67E22" stroke-width="1.5"/>
+    <text x="330" y="450" text-anchor="middle" font-size="11" font-weight="700" fill="#784212">java.sql.Blob → Hibernate
+    </text>
+    <text x="330" y="465" text-anchor="middle" font-size="9" fill="#A04000">FileNode.content via
+        @Type(EncryptedBlobUserType.class) · @LazyGroup
+    </text>
+
+    <!-- Arrow 7→8 -->
+    <line x1="330" y1="472" x2="330" y2="496" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+    <text x="338" y="488" font-size="9" fill="#546E7A">JDBC driver streams ciphertext as the Large Object is consumed
+    </text>
+
+    <!-- Box 8: PostgreSQL Large Object (DATABASE) -->
+    <rect x="50" y="498" width="560" height="40" rx="6" fill="#E8DAEF" stroke="#7D3C98" stroke-width="1.5"/>
+    <text x="330" y="516" text-anchor="middle" font-size="11" font-weight="700" fill="#512E5F">PostgreSQL Large Object
+        (OID)
+    </text>
+    <text x="330" y="531" text-anchor="middle" font-size="9" fill="#7D3C98">FileNode.content_oid · BEFORE DELETE
+        trigger calls lo_unlink to reclaim
+    </text>
+
+    <!-- Footer note: post-flush quota check -->
+    <rect x="20" y="552" width="620" height="38" rx="8" fill="#FEF9E7" stroke="#D4AC0D" stroke-width="1"
+          stroke-dasharray="5 3"/>
+    <text x="330" y="569" text-anchor="middle" font-size="10" font-weight="700" fill="#7D6608">After
+        entityManager.flush()
+    </text>
+    <text x="330" y="583" text-anchor="middle" font-size="9" fill="#7D6608">CountingInputStream.getCount() → original
+        size · enforced vs maxFileUploadBytes &amp; maxStorageBytes · FileNode.sizeBytes set · transaction commits
+    </text>
+</svg>

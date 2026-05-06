@@ -33,6 +33,9 @@
 @if (messageBusService.applicationEvenTypeSignal() === ApplicationEventType.FilePropertiesShown) {
   <app-file-properties-dialog/>
 }
+@if (messageBusService.applicationEvenTypeSignal() === ApplicationEventType.FilePreviewInitiated) {
+  <app-file-preview-dialog/>
+}
 @if (messageBusService.applicationEvenTypeSignal() === ApplicationEventType.ContextMenuShown) {
   <app-file-context-menu/>
 }

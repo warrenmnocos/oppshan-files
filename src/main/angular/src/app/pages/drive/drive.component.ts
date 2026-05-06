@@ -17,6 +17,7 @@ import {NotificationCenter} from '../../components/notification-center/notificat
 import {FileRenameDialog} from '../../components/file-rename-dialog/file-rename-dialog.component';
 import {FileDeletionDialog} from '../../components/file-deletion-dialog/file-deletion-dialog.component';
 import {FilePropertiesDialog} from '../../components/file-properties-dialog/file-properties-dialog.component';
+import {FilePreviewDialog} from '../../components/file-preview-dialog/file-preview-dialog.component';
 import {FileContextMenu} from '../../components/file-context-menu/file-context-menu.component';
 import {Footer} from '../../components/footer/footer.component';
 import {Subscription} from 'rxjs';
@@ -47,6 +48,7 @@ import {map} from 'rxjs/operators';
     FileRenameDialog,
     FileDeletionDialog,
     FilePropertiesDialog,
+    FilePreviewDialog,
     FileContextMenu,
     NotificationCenter,
     Footer,
@@ -141,22 +143,45 @@ export class Drive implements AfterViewInit, OnDestroy {
   }
 
   private loadDirectoryByPathForcibly(path: string | null | undefined): void {
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const command: DirectoryNavigationCommand = path && uuidPattern.test(path)
+      ? {uuid: path}
+      : {path: path ?? ''};
     this.messageBusService.fireApplicationEvent(new ApplicationEvent(
       ApplicationEventType.DirectoryNavigationInitiated,
-      {
-        path: path,
-      } as DirectoryNavigationCommand
+      command
     ));
   }
 
   private loadDirectoryContents(directoryContentsViewAwareDirectoryOperationResult: DirectoryContentsViewAwareDirectoryOperationResult) {
-    this.directoryContentsView.set(directoryContentsViewAwareDirectoryOperationResult.directoryContentsView);
-    this.currentPath = directoryContentsViewAwareDirectoryOperationResult.directoryContentsView.breadcrumbViews
+    const contentsView = directoryContentsViewAwareDirectoryOperationResult.directoryContentsView;
+    this.directoryContentsView.set(contentsView);
+    this.currentPath = contentsView.breadcrumbViews
       .slice(1)
       .map(breadcrumbView => breadcrumbView.name)
       .join("/");
     this.router.navigate(['/drive', this.currentPath])
-      .then(_ => this.loading.set(false));
+      .then(_ => {
+        this.loading.set(false);
+        this.openTargetFilePreview(contentsView);
+      });
+  }
+
+  private openTargetFilePreview(contentsView: DirectoryContentsView): void {
+    if (!contentsView.targetFileUuid) {
+      return;
+    }
+
+    const targetFile = contentsView.childrenFileNodeViews
+      .find(child => child.uuid === contentsView.targetFileUuid);
+    if (!targetFile) {
+      return;
+    }
+
+    this.messageBusService.fireApplicationEvent(new ApplicationEvent(
+      ApplicationEventType.FilePreviewInitiated,
+      targetFile
+    ));
   }
 
   private handleDirectoryNavigationFailure(directoryNavigationFailed: DirectoryNavigationFailed): void {

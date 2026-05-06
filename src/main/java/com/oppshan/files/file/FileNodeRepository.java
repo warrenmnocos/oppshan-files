@@ -19,20 +19,6 @@ public interface FileNodeRepository
         extends CrudRepository<FileNode, UUID>, StatefulWriteRepository<FileNode> {
 
     @Query("""
-            SELECT COALESCE(SUM(fileNode.sizeBytes), 0)
-            FROM FileNode fileNode
-            WHERE fileNode.directory = false""")
-    long getTotalSizeBytes();
-
-    @Query("""
-            SELECT COALESCE(SUM(fileNode.sizeBytes), 0)
-            FROM FileNode fileNode
-            WHERE fileNode.userAccount.uuid = :userAccountUuid
-                AND fileNode.directory = false""")
-    long getTotalSizeBytes(@NotNull
-                           UUID userAccountUuid);
-
-    @Query("""
             SELECT COUNT(fileNode) > 0
             FROM FileNode fileNode
             WHERE fileNode.userAccount.uuid = :userAccountUuid
@@ -67,6 +53,50 @@ public interface FileNodeRepository
 
                                @NotNull
                                UUID excludeUuid);
+
+    @Query("""
+            SELECT COUNT(fileNode) > 0
+            FROM FileNode fileNode
+            WHERE fileNode.userAccount.uuid = :userAccountUuid
+                AND fileNode.parentFileNode.uuid = :parentFileNodeUuid
+                AND fileNode.name = :name
+                AND fileNode.mimeType = :mimeType
+                AND fileNode.directory = false""")
+    boolean isFilePresent(@NotNull
+                          UUID userAccountUuid,
+
+                          @NotNull
+                          UUID parentFileNodeUuid,
+
+                          @NotEmpty
+                          String name,
+
+                          @NotEmpty
+                          String mimeType);
+
+    @Query("""
+            SELECT COUNT(fileNode) > 0
+            FROM FileNode fileNode
+            WHERE fileNode.userAccount.uuid = :userAccountUuid
+                AND fileNode.parentFileNode.uuid = :parentFileNodeUuid
+                AND fileNode.name = :name
+                AND fileNode.mimeType = :mimeType
+                AND fileNode.directory = false
+                AND fileNode.uuid != :excludeUuid""")
+    boolean isFilePresent(@NotNull
+                          UUID userAccountUuid,
+
+                          @NotNull
+                          UUID parentFileNodeUuid,
+
+                          @NotEmpty
+                          String name,
+
+                          @NotEmpty
+                          String mimeType,
+
+                          @NotNull
+                          UUID excludeUuid);
 
     @Query("""
             SELECT fileNode
@@ -112,6 +142,32 @@ public interface FileNodeRepository
                                                          @NotNull
                                                          UUID uuid);
 
+
+    @Query("""
+            SELECT fileNode
+            FROM FileNode fileNode
+            WHERE fileNode.userAccount.uuid = :userAccountUuid
+                AND fileNode.uuid = :uuid
+                AND fileNode.directory = false""")
+    @NotNull
+    Optional<FileNode> findRegularFileNode(@NotNull
+                                           UUID userAccountUuid,
+
+                                           @NotNull
+                                           UUID uuid);
+
+    @Query("""
+            SELECT fileNode
+            FROM FileNode fileNode
+            WHERE fileNode.userAccount.uuid = :userAccountUuid
+                AND fileNode.uuid = :uuid""")
+    @NotNull
+    Optional<FileNode> findFileNode(@NotNull
+                                    UUID userAccountUuid,
+
+                                    @NotNull
+                                    UUID uuid);
+
     @Query("""
             SELECT fileNode
             FROM FileNode fileNode
@@ -123,47 +179,27 @@ public interface FileNodeRepository
     Optional<FileNode> findRootDirectoryFileNodeWithContents(@NotNull
                                                              UUID userAccountUuid);
 
-    @NotNull
-    default Optional<DirectoryStatistics> getDirectoryStatistics(@NotNull UUID userAccountUuid,
-                                                                 @NotNull UUID fileNodeDirectoryUuid) {
-        return Optional.ofNullable(
-                CDI.current().select(EntityManager.class).get()
-                        .createNamedQuery(FileNode.GET_DIRECTORY_STATISTICS, DirectoryStatistics.class)
-                        .setParameter("userAccountUuid", userAccountUuid)
-                        .setParameter("fileNodeDirectoryUuid", fileNodeDirectoryUuid)
-                        .getSingleResultOrNull()
-        );
-    }
-
-    @NotNull
-    default List<BreadcrumbView> getAncestors(@NotNull UUID userAccountUuid,
-                                              @NotNull UUID fileNodeUuid) {
-        return CDI.current().select(EntityManager.class).get()
-                .createNamedQuery(FileNode.GET_ANCESTORS, BreadcrumbView.class)
-                .setParameter("userAccountUuid", userAccountUuid)
-                .setParameter("fileNodeUuid", fileNodeUuid)
-                .getResultList();
-    }
-
-    @NotNull
-    default Optional<UUID> resolveDirectoryPath(@NotNull UUID userAccountUuid,
-                                                @NotNull String path) {
-        return Optional.ofNullable(
-                CDI.current().select(EntityManager.class).get()
-                        .createNamedQuery(FileNode.RESOLVE_DIRECTORY_PATH, UUID.class)
-                        .setParameter("userAccountUuid", userAccountUuid)
-                        .setParameter("path", path)
-                        .getSingleResultOrNull()
-        );
-    }
-
     @Query("""
             SELECT userStorage.rootFileNode.uuid
             FROM UserStorage userStorage
             WHERE userStorage.userAccount.uuid = :userAccountUuid""")
     @NotNull
-    Optional<UUID> findRootFileNodeUuid(@NotNull
-                                        UUID userAccountUuid);
+    Optional<UUID> findRootDirectoryFileNodeUuid(@NotNull
+                                                 UUID userAccountUuid);
+
+    @Query("""
+            SELECT COALESCE(SUM(fileNode.sizeBytes), 0)
+            FROM FileNode fileNode
+            WHERE fileNode.directory = false""")
+    long getTotalSizeBytes();
+
+    @Query("""
+            SELECT COALESCE(SUM(fileNode.sizeBytes), 0)
+            FROM FileNode fileNode
+            WHERE fileNode.userAccount.uuid = :userAccountUuid
+                AND fileNode.directory = false""")
+    long getTotalSizeBytes(@NotNull
+                           UUID userAccountUuid);
 
     @Query("""
             SELECT userStorage.maxStorageBytes
@@ -179,6 +215,48 @@ public interface FileNodeRepository
     long getMaxFileUploadBytes(@NotNull
                                UUID userAccountUuid);
 
+    @NotNull
+    default Optional<UserStorageView> getUserStorageView(@NotNull UUID userAccountUuid) {
+        return Optional.ofNullable(
+                CDI.current().select(EntityManager.class).get()
+                        .createNamedQuery(UserStorage.GET_USER_STORAGE_VIEW, UserStorageView.class)
+                        .setParameter("userAccountUuid", userAccountUuid)
+                        .getSingleResultOrNull()
+        );
+    }
+
+    @NotNull
+    default Optional<DirectoryStatistics> getDirectoryStatistics(@NotNull UUID userAccountUuid,
+                                                                 @NotNull UUID fileNodeDirectoryUuid) {
+        return Optional.ofNullable(
+                CDI.current().select(EntityManager.class).get()
+                        .createNamedQuery(FileNode.GET_DIRECTORY_STATISTICS, DirectoryStatistics.class)
+                        .setParameter("userAccountUuid", userAccountUuid)
+                        .setParameter("fileNodeDirectoryUuid", fileNodeDirectoryUuid)
+                        .getSingleResultOrNull()
+        );
+    }
+
+    @NotNull
+    default List<BreadcrumbView> getBreadcrumbs(@NotNull UUID userAccountUuid,
+                                                @NotNull String path) {
+        return CDI.current().select(EntityManager.class).get()
+                .createNamedQuery(FileNode.GET_BREADCRUMBS_BY_PATH, BreadcrumbView.class)
+                .setParameter("userAccountUuid", userAccountUuid)
+                .setParameter("path", path)
+                .getResultList();
+    }
+
+    @NotNull
+    default List<BreadcrumbView> getBreadcrumbs(@NotNull UUID userAccountUuid,
+                                                @NotNull UUID fileNodeUuid) {
+        return CDI.current().select(EntityManager.class).get()
+                .createNamedQuery(FileNode.GET_BREADCRUMBS_BY_FILE_NODE_UUID, BreadcrumbView.class)
+                .setParameter("userAccountUuid", userAccountUuid)
+                .setParameter("fileNodeUuid", fileNodeUuid)
+                .getResultList();
+    }
+
     @Query("""
             SELECT fileNode
             FROM FileNode fileNode
@@ -191,73 +269,4 @@ public interface FileNodeRepository
 
                             @NotNull
                             UUID parentFileNodeUuid);
-
-    @Query("""
-            SELECT fileNode
-            FROM FileNode fileNode
-            WHERE fileNode.userAccount.uuid = :userAccountUuid
-                AND fileNode.uuid = :uuid
-                AND fileNode.directory = false""")
-    @NotNull
-    Optional<FileNode> findFileNode(@NotNull
-                                    UUID userAccountUuid,
-
-                                    @NotNull
-                                    UUID uuid);
-
-    @Query("""
-            SELECT fileNode
-            FROM FileNode fileNode
-            WHERE fileNode.userAccount.uuid = :userAccountUuid
-                AND fileNode.uuid = :uuid""")
-    @NotNull
-    Optional<FileNode> findNode(@NotNull
-                                UUID userAccountUuid,
-
-                                @NotNull
-                                UUID uuid);
-
-    @Query("""
-            SELECT COUNT(fileNode) > 0
-            FROM FileNode fileNode
-            WHERE fileNode.userAccount.uuid = :userAccountUuid
-                AND fileNode.parentFileNode.uuid = :parentFileNodeUuid
-                AND fileNode.name = :name
-                AND fileNode.mimeType = :mimeType
-                AND fileNode.directory = false""")
-    boolean isFilePresent(@NotNull
-                          UUID userAccountUuid,
-
-                          @NotNull
-                          UUID parentFileNodeUuid,
-
-                          @NotEmpty
-                          String name,
-
-                          @NotEmpty
-                          String mimeType);
-
-    @Query("""
-            SELECT COUNT(fileNode) > 0
-            FROM FileNode fileNode
-            WHERE fileNode.userAccount.uuid = :userAccountUuid
-                AND fileNode.parentFileNode.uuid = :parentFileNodeUuid
-                AND fileNode.name = :name
-                AND fileNode.mimeType = :mimeType
-                AND fileNode.directory = false
-                AND fileNode.uuid != :excludeUuid""")
-    boolean isFilePresent(@NotNull
-                          UUID userAccountUuid,
-
-                          @NotNull
-                          UUID parentFileNodeUuid,
-
-                          @NotEmpty
-                          String name,
-
-                          @NotEmpty
-                          String mimeType,
-
-                          @NotNull
-                          UUID excludeUuid);
 }

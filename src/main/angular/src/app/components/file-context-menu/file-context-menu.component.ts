@@ -2,6 +2,7 @@ import {
   afterNextRender,
   Component,
   computed,
+  effect,
   ElementRef,
   HostListener,
   OnDestroy,
@@ -34,6 +35,7 @@ export class FileContextMenu implements OnInit, OnDestroy {
   private readonly target: Signal<FileNodeView | null>;
   private readonly rawPosition: Signal<{ x: number; y: number } | null>;
   private readonly parentUuid: Signal<string | null>;
+  private readonly quotaExceeded: Signal<boolean>;
 
   protected readonly items: Signal<readonly ContextMenuItem[]>;
 
@@ -41,7 +43,7 @@ export class FileContextMenu implements OnInit, OnDestroy {
   protected readonly clampedPosition: WritableSignal<{ x: number; y: number } | null>;
   protected readonly visible: WritableSignal<boolean>;
 
-  protected readonly ContextMenuItemId: typeof ContextMenuItemId;
+  protected readonly ContextMenuItemId = ContextMenuItemId;
 
   private readonly mediaQuery: MediaQueryList;
   private readonly mediaListener: (event: MediaQueryListEvent) => void;
@@ -53,8 +55,9 @@ export class FileContextMenu implements OnInit, OnDestroy {
     this.target = computed(() => payloadOf()?.target ?? null);
     this.rawPosition = computed(() => payloadOf()?.position ?? null);
     this.parentUuid = computed(() => payloadOf()?.parentUuid ?? null);
+    this.quotaExceeded = computed(() => payloadOf()?.quotaExceeded ?? false);
 
-    this.items = computed(() => this.resolveItems(this.target()));
+    this.items = computed(() => this.resolveItems(this.target(), this.quotaExceeded()));
 
     this.mediaQuery = window.matchMedia('(max-width: 480px)');
     this.bottomSheet = signal(this.mediaQuery.matches);
@@ -63,9 +66,11 @@ export class FileContextMenu implements OnInit, OnDestroy {
     this.clampedPosition = signal<{ x: number; y: number } | null>(null);
     this.visible = signal<boolean>(false);
 
-    this.ContextMenuItemId = ContextMenuItemId;
-
     afterNextRender(() => this.measureAndShow());
+    effect(() => {
+      this.target();
+      this.measureAndShow();
+    });
   }
 
   ngOnInit(): void {
@@ -81,6 +86,7 @@ export class FileContextMenu implements OnInit, OnDestroy {
     if (this.hostRef.nativeElement.contains(event.target as Node)) {
       return;
     }
+
     this.dismiss();
   }
 
@@ -100,7 +106,7 @@ export class FileContextMenu implements OnInit, OnDestroy {
   }
 
   protected select(item: ContextMenuItem): void {
-    if (item.id === ContextMenuItemId.Divider) {
+    if (item.id === ContextMenuItemId.Divider || item.disabled) {
       return;
     }
 
@@ -175,7 +181,7 @@ export class FileContextMenu implements OnInit, OnDestroy {
     this.messageBusService.fireApplicationEventOfType(ApplicationEventType.ContextMenuHidden);
   }
 
-  private resolveItems(target: FileNodeView | null): readonly ContextMenuItem[] {
+  private resolveItems(target: FileNodeView | null, quotaExceeded: boolean): readonly ContextMenuItem[] {
     if (target === null) {
       return [
         {
@@ -189,12 +195,14 @@ export class FileContextMenu implements OnInit, OnDestroy {
         {
           id: ContextMenuItemId.NewFolder,
           labelKey: 'fileBrowser.contextMenu.newFolder',
-          iconSrc: '/icons/plus.svg'
+          iconSrc: '/icons/plus.svg',
+          disabled: quotaExceeded
         },
         {
           id: ContextMenuItemId.UploadFile,
           labelKey: 'fileBrowser.contextMenu.uploadFile',
-          iconSrc: '/icons/upload.svg'
+          iconSrc: '/icons/upload.svg',
+          disabled: quotaExceeded
         },
       ];
     }
@@ -263,7 +271,7 @@ export class FileContextMenu implements OnInit, OnDestroy {
     }
 
     const raw = this.rawPosition();
-    const host = this.hostRef.nativeElement;
+    const host = this.hostRef?.nativeElement;
     if (!raw || !host) {
       this.visible.set(true);
       return;
