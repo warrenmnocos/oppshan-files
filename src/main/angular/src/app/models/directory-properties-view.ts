@@ -1,7 +1,8 @@
 import {DateTime} from 'luxon';
 import {TransformDateTime} from '../misc/transform-date-time';
+import {FileNodePropertiesView} from './file-node-properties-view';
 
-export class DirectoryPropertiesView {
+export class DirectoryPropertiesView implements FileNodePropertiesView {
 
   uuid!: string;
 

@@ -79,6 +79,7 @@
       "type": "Type",
       "size": "Size",
       "location": "Location",
+      "url": "Link",
       "created": "Created",
       "modified": "Updated",
       "close": "Close"
@@ -91,6 +92,7 @@
       "directories": "Folders",
       "files": "Files",
       "totalSize": "Total size",
+      "url": "Link",
       "close": "Close"
     },
     "filePreview": {
@@ -144,6 +146,7 @@
       "directoryNameNotUnique": "A folder with this name already exists.",
       "directoryNameRequired": "Folder name is required.",
       "rootDirectoryDeletionNotAllowed": "The root directory cannot be deleted.",
+      "rootDirectoryModificationNotAllowed": "The root directory cannot be modified.",
       "accessDenied": "You do not have permission to access this resource.",
       "fileNotFound": "File not found.",
       "fileNameNotUnique": "A file with this name already exists.",

@@ -13,6 +13,7 @@ public enum MessageCode {
     FOLDER_NAME_NOT_UNIQUE("messages.errors.directoryNameNotUnique"),
     FOLDER_NAME_REQUIRED("messages.errors.directoryNameRequired"),
     ROOT_FOLDER_DELETION_NOT_ALLOWED("messages.errors.rootDirectoryDeletionNotAllowed"),
+    ROOT_FOLDER_MODIFICATION_NOT_ALLOWED("messages.errors.rootDirectoryModificationNotAllowed"),
     FILE_NOT_FOUND("messages.errors.fileNotFound"),
     FILE_NAME_NOT_UNIQUE("messages.errors.fileNameNotUnique"),
     FILE_NAME_REQUIRED("messages.errors.fileNameRequired"),

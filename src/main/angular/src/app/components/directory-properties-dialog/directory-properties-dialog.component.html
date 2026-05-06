@@ -32,6 +32,10 @@
         <span class="dialog-properties-value"
               [class.skeleton-line]="!properties()">{{ properties()?.totalSizeBytes | fileSize }}</span>
       </div>
+      <div class="dialog-properties-row">
+        <span class="dialog-properties-label">{{ 'dialog.directoryProperties.url' | translate }}</span>
+        <a [href]="directoryUrl()" class="dialog-properties-value dialog-properties-url">{{ directoryUrl() }}</a>
+      </div>
     </div>
     <div class="dialog-actions">
       <button (click)="onClose()" class="dialog-btn dialog-btn-secondary">

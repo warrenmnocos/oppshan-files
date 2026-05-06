@@ -1,13 +1,20 @@
 import {DateTime} from 'luxon';
 import {TransformDateTime} from '../misc/transform-date-time';
+import {FileNodePropertiesView} from './file-node-properties-view';
 
-export class FilePropertiesView {
+export class FilePropertiesView implements FileNodePropertiesView {
+
   uuid!: string;
+
   name!: string;
+
   mimeType!: string;
+
   sizeBytes!: number;
-  parentUuid!: string | null;
-  parentName!: string | null;
+
+  parentUuid!: string;
+
+  parentName!: string;
 
   @TransformDateTime()
   createdAt!: DateTime;

@@ -69,7 +69,7 @@ public class FileSystemEndpoint {
     @Produces(MediaType.APPLICATION_JSON)
     public Response createDirectory(@Valid CreateDirectoryRequest request) {
         return Response.status(Status.CREATED)
-                .entity(fileNodeService.createDirectory(
+                .entity(fileNodeService.createDirectoryFileNode(
                         userSessionManager.getSessionUserAccount().uuid(),
                         request
                 ))
@@ -111,7 +111,7 @@ public class FileSystemEndpoint {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getFileNodeProperties(@PathParam("uuid")
                                           UUID nodeUuid) {
-        return Response.ok(fileNodeService.getFileNodePropertiesView(
+        return Response.ok(fileNodeService.getFileNodeProperties(
                         userSessionManager.getSessionUserAccount().uuid(),
                         nodeUuid
                 ))
@@ -127,7 +127,7 @@ public class FileSystemEndpoint {
                                FileUploadRequest request,
 
                                InputStream contentInputStream) {
-        final var directoryContentsView = fileNodeService.uploadFile(
+        final var directoryContentsView = fileNodeService.createRegularFileNode(
                 userSessionManager.getSessionUserAccount().uuid(),
                 request.getParentFileNodeUuid(),
                 request.getContentFilename(),

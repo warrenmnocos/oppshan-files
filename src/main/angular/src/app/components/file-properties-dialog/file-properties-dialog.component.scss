@@ -1,0 +1,9 @@
+.dialog-properties-url {
+  word-break: break-all;
+  color: #009688;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}

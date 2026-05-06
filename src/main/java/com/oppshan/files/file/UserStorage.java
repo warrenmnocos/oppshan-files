@@ -10,6 +10,7 @@ import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
@@ -28,9 +29,26 @@ import java.util.UUID;
 @EntityListeners({
         AuditableEntityEntityListener.class
 })
+@NamedQuery(
+        name = UserStorage.GET_USER_STORAGE_VIEW,
+        query = """
+                SELECT new com.oppshan.files.file.UserStorageView(
+                    userStorage.userAccount.uuid,
+                    userStorage.maxFileUploadBytes,
+                    userStorage.maxStorageBytes,
+                    (SELECT COALESCE(SUM(fileNode.sizeBytes), 0)
+                     FROM FileNode fileNode
+                     WHERE fileNode.userAccount.uuid = :userAccountUuid
+                       AND fileNode.directory = false))
+                FROM UserStorage userStorage
+                WHERE userStorage.userAccount.uuid = :userAccountUuid""",
+        resultClass = UserStorageView.class
+)
 @Table(name = "user_storage")
 public class UserStorage
         implements AuditableEntity<UserStorage>, Comparable<UserStorage>, Serializable {
+
+    static final String GET_USER_STORAGE_VIEW = "UserStorage.getUserStorageView";
 
     @Serial
     private static final long serialVersionUID = 1L;

@@ -3,6 +3,7 @@ package com.oppshan.files.file;
 import com.google.common.base.MoreObjects;
 import com.oppshan.files.common.AuditableEntity;
 import com.oppshan.files.common.AuditableEntityEntityListener;
+import com.oppshan.files.exception.BusinessException;
 import com.oppshan.files.user.UserAccount;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
@@ -16,13 +17,11 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedNativeQueries;
 import jakarta.persistence.NamedNativeQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.SqlResultSetMapping;
-import jakarta.persistence.SqlResultSetMappings;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotEmpty;
@@ -73,108 +72,113 @@ import java.util.stream.Stream;
                 ),
         }
 )
-@NamedNativeQueries({
-        @NamedNativeQuery(
-                name = FileNode.GET_DIRECTORY_STATISTICS,
-                query = """
-                        WITH RECURSIVE descendants AS (
-                            SELECT uuid, directory, size_bytes
-                            FROM file_node
-                            WHERE user_account_uuid = :userAccountUuid
-                                AND parent_file_node_uuid = :fileNodeDirectoryUuid
-                            UNION ALL
-                            SELECT fn.uuid, fn.directory, fn.size_bytes
-                            FROM file_node fn
-                            INNER JOIN descendants d ON fn.parent_file_node_uuid = d.uuid
-                        )
-                        SELECT
-                            COUNT(*) FILTER (WHERE directory = true) AS folder_count,
-                            COUNT(*) FILTER (WHERE directory = false) AS file_count,
-                            COALESCE(SUM(size_bytes) FILTER (WHERE directory = false), 0) AS total_size_bytes
-                        FROM descendants
-                        """,
-                resultSetMapping = FileNode.DIRECTORY_STATISTICS_MAPPING,
-                resultClass = DirectoryStatistics.class
-        ),
-        @NamedNativeQuery(
-                name = FileNode.GET_ANCESTORS,
-                query = """
-                        WITH RECURSIVE ancestors AS (
-                            SELECT uuid, name, parent_file_node_uuid, 0 AS depth
-                            FROM file_node
-                            WHERE user_account_uuid = :userAccountUuid
-                                AND uuid = :fileNodeUuid
-                                AND directory = true
-                            UNION ALL
-                            SELECT parent.uuid, parent.name, parent.parent_file_node_uuid, a.depth + 1
-                            FROM file_node parent
-                            INNER JOIN ancestors a ON parent.uuid = a.parent_file_node_uuid
-                            WHERE parent.user_account_uuid = :userAccountUuid
-                        )
-                        SELECT uuid, name
-                        FROM ancestors
-                        ORDER BY depth DESC
-                        """,
-                resultSetMapping = FileNode.BREADCRUMB_VIEW_MAPPING,
-                resultClass = BreadcrumbView.class
-        ),
-        @NamedNativeQuery(
-                name = FileNode.RESOLVE_DIRECTORY_PATH,
-                query = """
-                        WITH RECURSIVE segments(idx, segment) AS (
-                            SELECT ordinality, segment
-                            FROM unnest(string_to_array(:path, '/'))
-                                WITH ORDINALITY AS t(segment, ordinality)
-                            WHERE segment <> ''
-                        ),
-                        walk AS (
-                            SELECT fn.uuid, 0 AS depth
-                            FROM file_node fn
-                            INNER JOIN user_storage us
-                                ON us.root_file_node_uuid = fn.uuid
-                            WHERE us.user_account_uuid = :userAccountUuid
-                            UNION ALL
-                            SELECT child.uuid, w.depth + 1
-                            FROM file_node child
-                            INNER JOIN walk w
-                                ON child.parent_file_node_uuid = w.uuid
-                            INNER JOIN segments s
-                                ON s.idx = w.depth + 1
-                            WHERE child.user_account_uuid = :userAccountUuid
-                                AND child.directory = true
-                                AND child.name = s.segment
-                        )
-                        SELECT uuid
-                        FROM walk
-                        WHERE depth = (SELECT COUNT(*) FROM segments)
-                        LIMIT 1
-                        """,
-                resultClass = UUID.class
-        ),
-})
-@SqlResultSetMappings({
-        @SqlResultSetMapping(
-                name = FileNode.DIRECTORY_STATISTICS_MAPPING,
-                classes = @ConstructorResult(
-                        targetClass = DirectoryStatistics.class,
-                        columns = {
-                                @ColumnResult(name = "folder_count", type = Long.class),
-                                @ColumnResult(name = "file_count", type = Long.class),
-                                @ColumnResult(name = "total_size_bytes", type = Long.class),
-                        }
+@NamedNativeQuery(
+        name = FileNode.GET_DIRECTORY_STATISTICS,
+        query = """
+                WITH RECURSIVE descendants AS (
+                    SELECT uuid, directory, size_bytes
+                    FROM file_node
+                    WHERE user_account_uuid = :userAccountUuid
+                        AND parent_file_node_uuid = :fileNodeDirectoryUuid
+                    UNION ALL
+                    SELECT fn.uuid, fn.directory, fn.size_bytes
+                    FROM file_node fn
+                    INNER JOIN descendants d ON fn.user_account_uuid = :userAccountUuid
+                        AND fn.parent_file_node_uuid = d.uuid
                 )
-        ),
-        @SqlResultSetMapping(
-                name = FileNode.BREADCRUMB_VIEW_MAPPING,
-                classes = @ConstructorResult(
-                        targetClass = BreadcrumbView.class,
-                        columns = {
-                                @ColumnResult(name = "uuid", type = UUID.class),
-                                @ColumnResult(name = "name", type = String.class),
-                        }
+                SELECT
+                    COUNT(*) FILTER (WHERE directory = true) AS folder_count,
+                    COUNT(*) FILTER (WHERE directory = false) AS file_count,
+                    COALESCE(SUM(size_bytes) FILTER (WHERE directory = false), 0) AS total_size_bytes
+                FROM descendants
+                """,
+        resultSetMapping = FileNode.DIRECTORY_STATISTICS_MAPPING,
+        resultClass = DirectoryStatistics.class
+)
+@NamedNativeQuery(
+        name = FileNode.GET_BREADCRUMBS_BY_FILE_NODE_UUID,
+        query = """
+                WITH RECURSIVE ancestors AS (
+                    SELECT uuid, name, directory, parent_file_node_uuid, 0 AS depth
+                    FROM file_node
+                    WHERE user_account_uuid = :userAccountUuid
+                        AND uuid = :fileNodeUuid
+                    UNION ALL
+                    SELECT parent.uuid, parent.name, parent.directory, parent.parent_file_node_uuid, a.depth + 1
+                    FROM file_node parent
+                    INNER JOIN ancestors a ON parent.uuid = a.parent_file_node_uuid
+                    WHERE parent.user_account_uuid = :userAccountUuid
                 )
-        ),
-})
+                SELECT uuid, name, directory
+                FROM ancestors
+                ORDER BY depth DESC
+                """,
+        resultSetMapping = FileNode.BREADCRUMB_VIEW_MAPPING,
+        resultClass = BreadcrumbView.class
+)
+@NamedNativeQuery(
+        name = FileNode.GET_BREADCRUMBS_BY_PATH,
+        query = """
+                WITH RECURSIVE segments(idx, segment) AS (
+                    SELECT ordinality, segment
+                    FROM unnest(string_to_array(:path, '/'))
+                        WITH ORDINALITY AS t(segment, ordinality)
+                    WHERE segment <> ''
+                ),
+                segment_count AS (
+                    SELECT COUNT(*) AS total FROM segments
+                ),
+                walk AS (
+                    SELECT fn.uuid, fn.name, fn.directory, 0 AS depth
+                    FROM file_node fn
+                    INNER JOIN user_storage us
+                        ON us.root_file_node_uuid = fn.uuid
+                    WHERE us.user_account_uuid = :userAccountUuid
+                    UNION ALL
+                    SELECT child.uuid, child.name, child.directory, w.depth + 1
+                    FROM file_node child
+                    INNER JOIN walk w
+                        ON child.parent_file_node_uuid = w.uuid
+                    INNER JOIN segments s
+                        ON s.idx = w.depth + 1
+                    WHERE child.user_account_uuid = :userAccountUuid
+                        AND child.name = s.segment
+                        AND (child.directory = true
+                            OR s.idx = (SELECT total FROM segment_count))
+                )
+                SELECT w.uuid, w.name, w.directory
+                FROM walk w
+                WHERE EXISTS (
+                    SELECT 1 FROM walk w2
+                    WHERE w2.depth = (SELECT total FROM segment_count)
+                )
+                ORDER BY w.depth
+                """,
+        resultSetMapping = FileNode.BREADCRUMB_VIEW_MAPPING,
+        resultClass = BreadcrumbView.class
+)
+@SqlResultSetMapping(
+        name = FileNode.DIRECTORY_STATISTICS_MAPPING,
+        classes = @ConstructorResult(
+                targetClass = DirectoryStatistics.class,
+                columns = {
+                        @ColumnResult(name = "folder_count", type = Long.class),
+                        @ColumnResult(name = "file_count", type = Long.class),
+                        @ColumnResult(name = "total_size_bytes", type = Long.class),
+                }
+        )
+)
+@SqlResultSetMapping(
+        name = FileNode.BREADCRUMB_VIEW_MAPPING,
+        classes = @ConstructorResult(
+                targetClass = BreadcrumbView.class,
+                columns = {
+                        @ColumnResult(name = "uuid", type = UUID.class),
+                        @ColumnResult(name = "name", type = String.class),
+                        @ColumnResult(name = "directory", type = Boolean.class),
+                }
+        )
+)
 public class FileNode
         implements AuditableEntity<FileNode>, Comparable<FileNode>, Serializable {
 
@@ -182,11 +186,11 @@ public class FileNode
 
     static final String DIRECTORY_STATISTICS_MAPPING = "DirectoryStatisticsMapping";
 
-    static final String GET_ANCESTORS = "FileNode.getAncestors";
+    static final String GET_BREADCRUMBS_BY_FILE_NODE_UUID = "FileNode.getBreadcrumbsByFileNodeUuid";
 
     static final String BREADCRUMB_VIEW_MAPPING = "BreadcrumbViewMapping";
 
-    static final String RESOLVE_DIRECTORY_PATH = "FileNode.resolveDirectoryPath";
+    static final String GET_BREADCRUMBS_BY_PATH = "FileNode.getBreadcrumbsByPath";
 
     @Serial
     private static final long serialVersionUID = 1L;
@@ -411,6 +415,14 @@ public class FileNode
         return this;
     }
 
+    public boolean isRegularFile() {
+        return !directory;
+    }
+
+    public boolean isRootDirectory() {
+        return directory && parentFileNode == null;
+    }
+
     public FileNode addDirectoryChildFileNode(String name) {
         if (directory) {
             getChildFileNodes().add(
@@ -429,7 +441,8 @@ public class FileNode
     public BreadcrumbView toBreadcrumbView() {
         return new BreadcrumbView(
                 uuid,
-                name
+                name,
+                directory
         );
     }
 
@@ -480,20 +493,35 @@ public class FileNode
     }
 
     public DirectoryContentsView toDirectoryContentsView(List<BreadcrumbView> breadcrumbs) {
-        return toDirectoryContentsView(breadcrumbs, FileNodeComparator.NAME);
+        return toDirectoryContentsView(breadcrumbs, FileNodeComparator.NAME, null);
     }
 
     public DirectoryContentsView toDirectoryContentsView(List<BreadcrumbView> breadcrumbs,
-                                                         FileNodeComparator fileNodeComparator) {
+                                                         UUID targetFileNodeUuid) {
+        return toDirectoryContentsView(breadcrumbs, FileNodeComparator.NAME, targetFileNodeUuid);
+    }
+
+    public DirectoryContentsView toDirectoryContentsView(List<BreadcrumbView> breadcrumbs,
+                                                         FileNodeComparator fileNodeComparator,
+                                                         UUID targetFileNodeUuid) {
         final var parentUuid = breadcrumbs.size() >= 2
                 ? breadcrumbs.get(breadcrumbs.size() - 2).uuid()
                 : null;
+        if (targetFileNodeUuid != null) {
+            childFileNodes.stream()
+                    .map(FileNode::getUuid)
+                    .filter(targetFileNodeUuid::equals)
+                    .findAny()
+                    .orElseThrow(BusinessException::fileNotFound);
+        }
+
         return new DirectoryContentsView(
                 uuid,
                 name,
                 parentUuid,
                 breadcrumbs,
-                toChildFileNodeViews(fileNodeComparator)
+                toChildFileNodeViews(fileNodeComparator),
+                targetFileNodeUuid
         );
     }
 

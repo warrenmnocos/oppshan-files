@@ -8,6 +8,7 @@ export enum MessageCode {
   DirectoryNameNotUnique = 'messages.errors.directoryNameNotUnique',
   DirectoryNameRequired = 'messages.errors.directoryNameRequired',
   RootDirectoryDeletionNotAllowed = 'messages.errors.rootDirectoryDeletionNotAllowed',
+  RootDirectoryModificationNotAllowed = 'messages.errors.rootDirectoryModificationNotAllowed',
   FileNotFound = 'messages.errors.fileNotFound',
   FileNameNotUnique = 'messages.errors.fileNameNotUnique',
   FileNameRequired = 'messages.errors.fileNameRequired',

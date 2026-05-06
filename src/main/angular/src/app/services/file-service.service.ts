@@ -3,7 +3,6 @@ import {HttpClient, HttpEvent, HttpHeaders, HttpParams, HttpResponse} from '@ang
 import {map, Observable} from 'rxjs';
 import {DirectoryContentsView} from '../models/directory-contents-view';
 import {DirectoryPropertiesView} from '../models/directory-properties-view';
-import {FilePropertiesView} from '../models/file-properties-view';
 import {JsonMapperService} from './json-mapper.service';
 import {TranslateService} from '@ngx-translate/core';
 
@@ -111,9 +110,4 @@ export class FileService {
     );
   }
 
-  getFileProperties(uuid: string): Observable<FilePropertiesView> {
-    return this.http.get<Record<string, unknown>>(`/api/files/${uuid}/properties`).pipe(
-      map(raw => this.jsonMapperService.deserialize(FilePropertiesView, raw)),
-    );
-  }
 }
