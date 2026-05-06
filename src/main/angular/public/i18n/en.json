@@ -34,6 +34,10 @@
       "newFolder": "New folder",
       "uploadFile": "Upload file",
       "refresh": "Refresh"
+    },
+    "quotaBanner": {
+      "title": "Storage quota exceeded",
+      "description": "You've used {{used}} of {{max}}. Delete files to free up space before uploading."
     }
   },
   "dialog": {
@@ -87,6 +91,15 @@
       "directories": "Folders",
       "files": "Files",
       "totalSize": "Total size",
+      "close": "Close"
+    },
+    "filePreview": {
+      "title": "File preview",
+      "name": "Name",
+      "type": "Type",
+      "size": "Size",
+      "unavailable": "Preview is not available for this file type.",
+      "download": "Download",
       "close": "Close"
     }
   },

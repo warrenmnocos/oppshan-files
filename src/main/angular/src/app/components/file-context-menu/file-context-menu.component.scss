@@ -82,6 +82,12 @@
   &.ctx-danger {
     color: #d93025;
   }
+
+  &.ctx-disabled {
+    opacity: 0.5;
+    cursor: default;
+    pointer-events: none;
+  }
 }
 
 .ctx-sheet .ctx-item {

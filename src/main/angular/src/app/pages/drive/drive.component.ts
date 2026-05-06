@@ -17,6 +17,7 @@ import {NotificationCenter} from '../../components/notification-center/notificat
 import {FileRenameDialog} from '../../components/file-rename-dialog/file-rename-dialog.component';
 import {FileDeletionDialog} from '../../components/file-deletion-dialog/file-deletion-dialog.component';
 import {FilePropertiesDialog} from '../../components/file-properties-dialog/file-properties-dialog.component';
+import {FilePreviewDialog} from '../../components/file-preview-dialog/file-preview-dialog.component';
 import {FileContextMenu} from '../../components/file-context-menu/file-context-menu.component';
 import {Footer} from '../../components/footer/footer.component';
 import {Subscription} from 'rxjs';
@@ -47,6 +48,7 @@ import {map} from 'rxjs/operators';
     FileRenameDialog,
     FileDeletionDialog,
     FilePropertiesDialog,
+    FilePreviewDialog,
     FileContextMenu,
     NotificationCenter,
     Footer,

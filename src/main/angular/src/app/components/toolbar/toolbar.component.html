@@ -7,15 +7,20 @@
   <div class="toolbar-right">
     <div class="storage-compact">
       <div class="storage-bar-compact">
-        <div [style.width.%]="storagePercent" class="storage-bar-fill"></div>
+        <div [style.width.%]="storagePercent"
+             class="storage-bar-fill"
+             [class.storage-bar-fill--warning]="storagePercent >= 70 && storagePercent < 90"
+             [class.storage-bar-fill--danger]="storagePercent >= 90"></div>
       </div>
-      <span class="storage-label">{{ userAccountView() | storageBar }}</span>
+      <span class="storage-label"
+            [class.storage-text--warning]="storagePercent >= 70 && storagePercent < 90"
+            [class.storage-text--danger]="storagePercent >= 90">{{ userAccountView() | storageBar }}</span>
     </div>
 
     <button (click)="toggleDropdown()" class="profile-trigger">
       <span class="profile-name">{{ userAccountView()?.firstName }}</span>
       <span class="avatar">
-        @if (showPhoto) {
+        @if (photoRetrieved) {
           <img (error)="onPhotoError()" [alt]="userAccountView()?.firstName"
                [src]="userAccountView()?.photoUrl" class="avatar-img">
         } @else {
@@ -28,7 +33,7 @@
       <div class="profile-dropdown">
         <div class="dropdown-header">
           <span class="avatar avatar-large">
-            @if (showPhoto) {
+            @if (photoRetrieved) {
               <img (error)="onPhotoError()" [alt]="userAccountView()?.firstName"
                    [src]="userAccountView()?.photoUrl" class="avatar-img">
             } @else {
@@ -53,11 +58,18 @@
               <span>{{ 'toolbar.storage' | translate }}</span>
               <div class="storage-bar-row">
                 <div class="storage-bar">
-                  <div [style.width.%]="storagePercent" class="storage-bar-fill"></div>
+                  <div [style.width.%]="storagePercent"
+                       class="storage-bar-fill"
+                       [class.storage-bar-fill--warning]="storagePercent >= 70 && storagePercent < 90"
+                       [class.storage-bar-fill--danger]="storagePercent >= 90"></div>
                 </div>
-                <span class="storage-percent">{{ storagePercent }}%</span>
+                <span class="storage-percent"
+                      [class.storage-text--warning]="storagePercent >= 70 && storagePercent < 90"
+                      [class.storage-text--danger]="storagePercent >= 90">{{ storagePercent }}%</span>
               </div>
-              <span class="storage-usage">{{ userAccountView() | storageBar }}</span>
+              <span class="storage-usage"
+                    [class.storage-text--warning]="storagePercent >= 70 && storagePercent < 90"
+                    [class.storage-text--danger]="storagePercent >= 90">{{ userAccountView() | storageBar }}</span>
             </div>
           </div>
         </div>

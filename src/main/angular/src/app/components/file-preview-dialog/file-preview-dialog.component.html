@@ -1,0 +1,30 @@
+<div (click)="onClose()" class="dialog-overlay">
+  <div (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)" class="dialog">
+    <h2 class="dialog-title">{{ 'dialog.filePreview.title' | translate }}</h2>
+    <div class="dialog-body">
+      <div class="dialog-properties">
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.filePreview.name' | translate }}</span>
+          <span class="dialog-properties-value">{{ fileName() }}</span>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.filePreview.type' | translate }}</span>
+          <span class="dialog-properties-value">{{ mimeType() }}</span>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.filePreview.size' | translate }}</span>
+          <span class="dialog-properties-value">{{ sizeBytes() | fileSize }}</span>
+        </div>
+      </div>
+      <p class="dialog-message preview-unavailable">{{ 'dialog.filePreview.unavailable' | translate }}</p>
+    </div>
+    <div class="dialog-actions">
+      <button (click)="onClose()" class="dialog-btn dialog-btn-secondary">
+        {{ 'dialog.filePreview.close' | translate }}
+      </button>
+      <button (click)="onDownload()" class="dialog-btn dialog-btn-primary">
+        {{ 'dialog.filePreview.download' | translate }}
+      </button>
+    </div>
+  </div>
+</div>

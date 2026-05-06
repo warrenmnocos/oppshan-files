@@ -1,4 +1,15 @@
-import {AfterViewInit, Component, ElementRef, input, OnDestroy, signal, ViewChild, WritableSignal} from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  computed,
+  ElementRef,
+  input,
+  OnDestroy,
+  Signal,
+  signal,
+  ViewChild,
+  WritableSignal
+} from '@angular/core';
 import {TranslatePipe} from '@ngx-translate/core';
 import {Subscription} from 'rxjs';
 import {FileNodeView} from '../../models/file-node-view';
@@ -9,10 +20,11 @@ import {MessageBusService} from '../../services/message-bus-service';
 import {ApplicationEvent} from '../../models/application-event';
 import {ApplicationEventType} from '../../models/application-event-type';
 import {DirectoryNavigationCommand, FileCreateCommand} from '../../models/operation-commands';
-import {ContextMenuShown, FileCreateFailed} from '../../models/operation-outcomes';
+import {ContextMenuShown, FileCreateFailed, FileNodeSelectionChanged} from '../../models/operation-outcomes';
 import {MessageCode} from '../../models/message-code';
 import {resolveFileIcon} from '../../misc/utils';
 import {UserAccountView} from '../../models/user-account-view';
+import {FileService} from '../../services/file-service.service';
 
 @Component({
   selector: 'app-file-browser',
@@ -34,6 +46,12 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
 
   readonly dropTarget: WritableSignal<boolean>;
 
+  readonly quotaExceeded: Signal<boolean>;
+
+  readonly quotaBannerParams: Signal<Record<string, string>>;
+
+  readonly selectedItems: WritableSignal<FileNodeView[]>;
+
   protected readonly ViewMode = ViewMode;
 
   @ViewChild('fileInput')
@@ -45,11 +63,27 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
 
   private applicationEventSubscription?: Subscription;
 
-  constructor(private readonly messageBusService: MessageBusService) {
+  constructor(private readonly messageBusService: MessageBusService,
+              private readonly fileService: FileService) {
     this.viewMode = signal<ViewMode>(ViewMode.List);
     this.dropTarget = signal(false);
     this.longPressTimer = null;
     this.longPressTouch = null;
+    this.quotaExceeded = computed(() => {
+      const account = this.userAccountView();
+      if (!account || account.maxStorageBytes === 0) {
+        return false;
+      }
+      return account.usedStorageBytes >= account.maxStorageBytes;
+    });
+    this.quotaBannerParams = computed(() => {
+      const account = this.userAccountView();
+      return {
+        used: this.fileService.getFileSizeDisplay(account?.usedStorageBytes),
+        max: this.fileService.getFileSizeDisplay(account?.maxStorageBytes),
+      };
+    });
+    this.selectedItems = signal<FileNodeView[]>([]);
   }
 
   ngAfterViewInit(): void {
@@ -84,20 +118,31 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
     localStorage.setItem(VIEW_MODE_KEY, mode);
   }
 
-  onItemClick(item: FileNodeView): void {
-    if (!item.directory) {
-      return;
-    }
+  onItemClick(event: MouseEvent, item: FileNodeView): void {
+    event.stopPropagation();
+    this.selectItem(item);
+  }
 
-    this.messageBusService.fireApplicationEvent(new ApplicationEvent(
-      ApplicationEventType.DirectoryNavigationInitiated,
-      {uuid: item.uuid} as DirectoryNavigationCommand
-    ));
+  onItemDoubleClick(event: MouseEvent, item: FileNodeView): void {
+    event.stopPropagation();
+
+    if (item.directory) {
+      this.messageBusService.fireApplicationEvent(new ApplicationEvent(
+        ApplicationEventType.DirectoryNavigationInitiated,
+        {uuid: item.uuid} as DirectoryNavigationCommand
+      ));
+    } else {
+      this.messageBusService.fireApplicationEvent(new ApplicationEvent(
+        ApplicationEventType.FilePreviewInitiated,
+        item
+      ));
+    }
   }
 
   onItemRightClick(event: MouseEvent, target: FileNodeView): void {
     event.preventDefault();
     event.stopPropagation();
+    this.selectItem(target);
     this.openContextMenu(target, {x: event.clientX, y: event.clientY});
   }
 
@@ -116,6 +161,22 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
     this.openContextMenu(null, {x: event.clientX, y: event.clientY});
   }
 
+  onEmptyAreaClick(): void {
+    const previousItems = this.selectedItems();
+    if (previousItems.length === 0) {
+      return;
+    }
+
+    this.selectedItems.set([]);
+    this.messageBusService.fireApplicationEvent(new ApplicationEvent(
+      ApplicationEventType.FileNodeSelectionChanged,
+      {
+        selectedItems: [],
+        deselectedItems: previousItems
+      } as FileNodeSelectionChanged
+    ));
+  }
+
   onItemTouchStart(event: TouchEvent, target: FileNodeView): void {
     const touch = event.touches[0];
     this.longPressTouch = {x: touch.clientX, y: touch.clientY, target};
@@ -132,12 +193,20 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
   }
 
   onDirectoryCreationRequested(): void {
+    if (this.quotaExceeded()) {
+      return;
+    }
+
     this.messageBusService.fireApplicationEvent(
       new ApplicationEvent(ApplicationEventType.DirectoryCreateInitiated, this.parentDirectoryUuid())
     );
   }
 
   onUploadRequested(): void {
+    if (this.quotaExceeded()) {
+      return;
+    }
+
     this.fileInputRef.nativeElement.click();
   }
 
@@ -192,6 +261,10 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
   onDrop(event: DragEvent): void {
     event.preventDefault();
     this.dropTarget.set(false);
+    if (this.quotaExceeded()) {
+      return;
+    }
+
     const items = event.dataTransfer?.items;
     if (!items) {
       return;
@@ -221,7 +294,7 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
   }
 
   onFileSelectionStarted(event: MouseEvent): void {
-    if (event.button !== 0 || event.buttons !== 1) {
+    if (this.quotaExceeded() || event.button !== 0 || event.buttons !== 1) {
       return;
     }
 
@@ -233,13 +306,34 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
     this.dropTarget.set(false);
   }
 
-  getIcon(item: FileNodeView): string {
-    if (item.directory) {
+  getIcon(fileNodeView: FileNodeView): string {
+    if (fileNodeView.directory) {
       return '/icons/directory.svg';
     }
 
-    const kind = resolveFileIcon(item.name);
+    const kind = resolveFileIcon(fileNodeView.name, fileNodeView.mimeType);
     return kind ? `/icons/file-${kind}.svg` : '/icons/file.svg';
+  }
+
+  isSelected(item: FileNodeView): boolean {
+    return this.selectedItems().some(selected => selected.uuid === item.uuid);
+  }
+
+  private selectItem(item: FileNodeView): void {
+    const previousItems = this.selectedItems();
+    const alreadySelected = previousItems.some(selected => selected.uuid === item.uuid);
+    if (alreadySelected) {
+      return;
+    }
+
+    this.selectedItems.set([item]);
+    this.messageBusService.fireApplicationEvent(new ApplicationEvent(
+      ApplicationEventType.FileNodeSelectionChanged,
+      {
+        selectedItems: [item],
+        deselectedItems: previousItems
+      } as FileNodeSelectionChanged
+    ));
   }
 
   private fireLongPress(): void {
@@ -260,6 +354,7 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
         target,
         position,
         parentUuid: this.parentDirectoryUuid(),
+        quotaExceeded: this.quotaExceeded(),
       } as ContextMenuShown
     ));
   }

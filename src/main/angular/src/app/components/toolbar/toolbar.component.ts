@@ -24,7 +24,7 @@ export class Toolbar {
     this.photoFailed = signal(false);
   }
 
-  protected get showPhoto(): boolean {
+  protected get photoRetrieved(): boolean {
     return !!this.userAccountView()?.photoUrl && !this.photoFailed();
   }
 

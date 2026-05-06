@@ -15,4 +15,5 @@ export interface ContextMenuItem {
   labelKey?: string;
   iconSrc?: string;
   danger?: boolean;
+  disabled?: boolean;
 }

@@ -35,6 +35,7 @@ export class FileContextMenu implements OnInit, OnDestroy {
   private readonly target: Signal<FileNodeView | null>;
   private readonly rawPosition: Signal<{ x: number; y: number } | null>;
   private readonly parentUuid: Signal<string | null>;
+  private readonly quotaExceeded: Signal<boolean>;
 
   protected readonly items: Signal<readonly ContextMenuItem[]>;
 
@@ -54,8 +55,9 @@ export class FileContextMenu implements OnInit, OnDestroy {
     this.target = computed(() => payloadOf()?.target ?? null);
     this.rawPosition = computed(() => payloadOf()?.position ?? null);
     this.parentUuid = computed(() => payloadOf()?.parentUuid ?? null);
+    this.quotaExceeded = computed(() => payloadOf()?.quotaExceeded ?? false);
 
-    this.items = computed(() => this.resolveItems(this.target()));
+    this.items = computed(() => this.resolveItems(this.target(), this.quotaExceeded()));
 
     this.mediaQuery = window.matchMedia('(max-width: 480px)');
     this.bottomSheet = signal(this.mediaQuery.matches);
@@ -104,7 +106,7 @@ export class FileContextMenu implements OnInit, OnDestroy {
   }
 
   protected select(item: ContextMenuItem): void {
-    if (item.id === ContextMenuItemId.Divider) {
+    if (item.id === ContextMenuItemId.Divider || item.disabled) {
       return;
     }
 
@@ -179,7 +181,7 @@ export class FileContextMenu implements OnInit, OnDestroy {
     this.messageBusService.fireApplicationEventOfType(ApplicationEventType.ContextMenuHidden);
   }
 
-  private resolveItems(target: FileNodeView | null): readonly ContextMenuItem[] {
+  private resolveItems(target: FileNodeView | null, quotaExceeded: boolean): readonly ContextMenuItem[] {
     if (target === null) {
       return [
         {
@@ -193,12 +195,14 @@ export class FileContextMenu implements OnInit, OnDestroy {
         {
           id: ContextMenuItemId.NewFolder,
           labelKey: 'fileBrowser.contextMenu.newFolder',
-          iconSrc: '/icons/plus.svg'
+          iconSrc: '/icons/plus.svg',
+          disabled: quotaExceeded
         },
         {
           id: ContextMenuItemId.UploadFile,
           labelKey: 'fileBrowser.contextMenu.uploadFile',
-          iconSrc: '/icons/upload.svg'
+          iconSrc: '/icons/upload.svg',
+          disabled: quotaExceeded
         },
       ];
     }

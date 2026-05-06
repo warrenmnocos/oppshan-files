@@ -2,11 +2,15 @@
 
 <div class="action-bar">
   <div class="action-bar-left">
-    <button (click)="onDirectoryCreationRequested()" [disabled]="loading()" class="action-btn action-btn-primary">
+    <button (click)="onDirectoryCreationRequested()"
+            [disabled]="loading() || quotaExceeded()"
+            class="action-btn action-btn-primary">
       <img alt="" class="action-btn-icon" src="/icons/plus.svg"/>
       {{ 'fileBrowser.newDirectory' | translate }}
     </button>
-    <button (click)="onUploadRequested()" [disabled]="loading()" class="action-btn action-btn-secondary">
+    <button (click)="onUploadRequested()"
+            [disabled]="loading() || quotaExceeded()"
+            class="action-btn action-btn-secondary">
       <img alt="" class="action-btn-icon" src="/icons/upload.svg"/>
       {{ 'fileBrowser.upload' | translate }}
     </button>
@@ -27,8 +31,20 @@
   </div>
 </div>
 
+@if (quotaExceeded()) {
+  <div class="quota-banner">
+    <img alt="" class="quota-banner-icon" src="/icons/warning.svg"/>
+    <div class="quota-banner-content">
+      <span class="quota-banner-title">{{ 'fileBrowser.quotaBanner.title' | translate }}</span>
+      <span
+        class="quota-banner-description">{{ 'fileBrowser.quotaBanner.description' | translate:quotaBannerParams() }}</span>
+    </div>
+  </div>
+}
+
 <div class="browser-content"
      [class.drop-target]="dropTarget()"
+     (click)="onEmptyAreaClick()"
      (contextmenu)="onEmptyAreaRightClick($event)"
      (dragover)="onFileSelectionStarted($event)"
      (dragleave)="onFileSelectionCompleted()"
@@ -93,7 +109,9 @@
       </div>
       @for (fileNodeView of fileNodeViews(); track fileNodeView.uuid) {
         <div class="list-row clickable"
-             (click)="onItemClick(fileNodeView)"
+             [class.selected]="isSelected(fileNodeView)"
+             (click)="onItemClick($event, fileNodeView)"
+             (dblclick)="onItemDoubleClick($event, fileNodeView)"
              (contextmenu)="onItemRightClick($event, fileNodeView)"
              (touchstart)="onItemTouchStart($event, fileNodeView)"
              (touchend)="onItemTouchEnd()"
@@ -116,7 +134,9 @@
     <div class="grid-view">
       @for (fileNodeView of fileNodeViews(); track fileNodeView.uuid) {
         <div class="grid-item clickable"
-             (click)="onItemClick(fileNodeView)"
+             [class.selected]="isSelected(fileNodeView)"
+             (click)="onItemClick($event, fileNodeView)"
+             (dblclick)="onItemDoubleClick($event, fileNodeView)"
              (contextmenu)="onItemRightClick($event, fileNodeView)"
              (touchstart)="onItemTouchStart($event, fileNodeView)"
              (touchend)="onItemTouchEnd()"

@@ -74,4 +74,9 @@ export enum ApplicationEventType {
   ContextMenuHidden = 'contextMenuHidden',
 
   FileUploadPickerShown = 'fileUploadPickerShown',
+
+  FileNodeSelectionChanged = 'fileNodeSelectionChanged',
+
+  FilePreviewInitiated = 'filePreviewInitiated',
+  FilePreviewCancelled = 'filePreviewCancelled',
 }
