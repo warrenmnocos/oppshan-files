@@ -295,6 +295,7 @@ html, body {
 .dialog-properties-row {
   display: flex;
   justify-content: space-between;
+  gap: 16px;
   padding: 8px 0;
   border-bottom: 1px solid #f0eeea;
 
@@ -307,11 +308,15 @@ html, body {
   font-size: 13px;
   color: #5f6368;
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 .dialog-properties-value {
   font-size: 13px;
   color: #202124;
+  text-align: right;
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 
 .dialog-properties-value.skeleton-line {
