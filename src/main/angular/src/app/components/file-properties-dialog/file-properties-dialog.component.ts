@@ -36,9 +36,11 @@ export class FilePropertiesDialog {
     this.mimeType = computed(() => this.selectedFile()?.mimeType ?? '');
     this.sizeBytes = computed(() => this.selectedFile()?.sizeBytes ?? 0);
     this.location = computed(() => {
-      const segments = this.route.snapshot.url.map(segment => decodeURIComponent(segment.path));
-      return segments.length > 0
-        ? 'My files / ' + segments.join(' / ')
+      const path = this.route.snapshot.url
+        .map(segment => decodeURIComponent(segment.path))
+        .join('/');
+      return path.length > 0
+        ? 'My files / ' + path.split('/').join(' / ')
         : 'My files';
     });
     this.fileUrl = computed(() => {

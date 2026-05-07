@@ -8,16 +8,6 @@
               [class.skeleton-line]="!properties()">{{ properties()?.name }}</span>
       </div>
       <div class="dialog-properties-row">
-        <span class="dialog-properties-label">{{ 'dialog.directoryProperties.created' | translate }}</span>
-        <span class="dialog-properties-value"
-              [class.skeleton-line]="!properties()">{{ properties()?.createdAt | dateTime:'MMM d, yyyy' }}</span>
-      </div>
-      <div class="dialog-properties-row">
-        <span class="dialog-properties-label">{{ 'dialog.directoryProperties.modified' | translate }}</span>
-        <span class="dialog-properties-value"
-              [class.skeleton-line]="!properties()">{{ properties()?.lastModifiedAt | dateTime:'MMM d, yyyy' }}</span>
-      </div>
-      <div class="dialog-properties-row">
         <span class="dialog-properties-label">{{ 'dialog.directoryProperties.directories' | translate }}</span>
         <span class="dialog-properties-value"
               [class.skeleton-line]="!properties()">{{ properties()?.directoryCount }}</span>
@@ -33,8 +23,22 @@
               [class.skeleton-line]="!properties()">{{ properties()?.totalSizeBytes | fileSize }}</span>
       </div>
       <div class="dialog-properties-row">
+        <span class="dialog-properties-label">{{ 'dialog.directoryProperties.location' | translate }}</span>
+        <span class="dialog-properties-value">{{ location() }}</span>
+      </div>
+      <div class="dialog-properties-row">
         <span class="dialog-properties-label">{{ 'dialog.directoryProperties.url' | translate }}</span>
         <a [href]="directoryUrl()" class="dialog-properties-value dialog-properties-url">{{ directoryUrl() }}</a>
+      </div>
+      <div class="dialog-properties-row">
+        <span class="dialog-properties-label">{{ 'dialog.directoryProperties.created' | translate }}</span>
+        <span class="dialog-properties-value"
+              [class.skeleton-line]="!properties()">{{ properties()?.createdAt | dateTime:'MMM d, yyyy, h:mm a' }}</span>
+      </div>
+      <div class="dialog-properties-row">
+        <span class="dialog-properties-label">{{ 'dialog.directoryProperties.modified' | translate }}</span>
+        <span class="dialog-properties-value"
+              [class.skeleton-line]="!properties()">{{ properties()?.lastModifiedAt | dateTime:'MMM d, yyyy, h:mm a' }}</span>
       </div>
     </div>
     <div class="dialog-actions">

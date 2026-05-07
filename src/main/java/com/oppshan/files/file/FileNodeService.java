@@ -218,7 +218,7 @@ public class FileNodeService {
         }
 
         final var parentDirectoryFileNode = fileNode.getParentFileNode();
-        return new FilePropertiesView(
+        return new RegularFilePropertiesView(
                 fileNode.getUuid(),
                 fileNode.getName(),
                 fileNode.getMimeType(),

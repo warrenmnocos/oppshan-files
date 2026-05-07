@@ -4,6 +4,7 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 
 @ConfigMapping(prefix = "app.storage")
 public interface ApplicationStorage {
@@ -25,10 +26,11 @@ public interface ApplicationStorage {
     String encryptionCipherAlgorithm();
 
     @NotEmpty
+    @Size(min = 32)
     String encryptionPassphrase();
 
-    @Min(600000)
-    @WithDefault("600000")
+    @Min(1000000)
+    @WithDefault("1000000")
     int encryptionKdfIterations();
 
     @Min(128)

@@ -97,20 +97,24 @@
 
 ## Project Overview
 
-**Files** is a full-stack personal cloud file manager. Authenticated users can upload, organize, download, rename,
-delete, and inspect files and folders through a browser-based interface. It supports nested directory hierarchies,
-**drag-and-drop streaming uploads with per-file progress tracking**, switchable list and grid view modes, and a
-notification center that surfaces operation outcomes in real time. All uploaded file content is **encrypted at
-rest** using **AES/CTR** with **per-file initialization vectors** and a key derived via **PBKDF2**.
+**Files** is a personal cloud file manager I built as my final exam project. Users sign in with Google, and from
+there they can upload, organize, download, rename, delete, and inspect files and folders through a browser-based
+interface. It supports nested directory hierarchies, drag-and-drop streaming uploads with per-file progress
+tracking, switchable list/grid views, and a notification center that surfaces operation outcomes in real time.
+All uploaded file content is encrypted at rest using AES/CTR with per-file initialization vectors and a key derived
+via PBKDF2.
 
-The work behind it covers the full stack. **Six sprints** on a **GitHub Projects** board, **24 user stories**
-tracked end-to-end, and a **wireframe mockup** for every user-facing screen state. The Quarkus 3 backend runs
-every request on a **virtual thread** (via a custom Undertow extension), encrypts file content transparently
-through a **Hibernate `UserType`**, and walks the directory tree with **recursive CTE named native queries**. The
-Angular 21 frontend is **signals-first** and uses a **custom event bus** to keep mutations and reads on separate
-paths (**CQRS**), with **two-way data binding** wired by hand where it's actually needed. Pushing to `main`
-**builds and deploys automatically** — a **GraalVM native ARM binary**, uploaded to S3, rolled out to EC2 via
-SSM. No SSH, no long-lived AWS keys, no human in the loop.
+I tried to go deeper than the surface API wherever I could. The Quarkus 3 backend runs every request on a virtual
+thread (via a custom Undertow extension), encrypts file content transparently through a Hibernate `UserType`, and
+walks the directory tree with recursive CTE named native queries instead of row-by-row fetching. The Angular 21
+frontend is signals-first and uses a custom event bus to keep mutations and reads on separate paths (CQRS), with
+two-way data binding wired by hand where it's actually needed. Pushing to `main` triggers a fully automated deploy:
+GraalVM compiles a native ARM binary, uploads it to S3, and rolls it out to EC2 via SSM. No SSH, no long-lived AWS keys,
+no human in the loop.
+
+I planned the project across seven sprints on a GitHub Projects board, with 28 user stories tracked end-to-end
+and a wireframe mockup for every user-facing screen state. The first six sprints were scoped from the start; a
+seventh was added late to cover polish and responsiveness work that emerged during implementation.
 
 This project is developed as the final exam for **ITMD 504 — Programming and Application Foundations** at
 **Illinois Institute of Technology**.
@@ -128,8 +132,8 @@ This project is developed as the final exam for **ITMD 504 — Programming and A
 The whole project runs on a **web-based Agile workflow** hosted on GitHub: **GitHub Projects** is the Kanban
 board, **GitHub Issues** is the backlog, and **GitHub Milestones** are the sprint containers. Every user story
 is a tracked issue, every implementation lives on a named feature branch, and every merge to `main` goes through
-a reviewed pull request that auto-closes the originating issue. Same web platform for code, board, and reviews —
-that's the **Agile iteration loop**, end to end. The board is available at
+a reviewed pull request that auto-closes the originating issue. Code, board, and reviews all live on the same platform:
+the **Agile iteration loop**, end to end. The board is available at
 [github.com/users/warrenmnocos/projects/1](https://github.com/users/warrenmnocos/projects/1).
 
 ### Board structure
@@ -151,7 +155,7 @@ merge commits use the prefix `refs #<n> Merged feat/EPIC-0x: <description>`.
 
 ### Sprint plan
 
-The project is organized into six sprints targeting a **May 9, 2026** submission deadline.
+I organized the project into seven sprints targeting a **May 9, 2026** submission deadline.
 
 | Sprint | Window          | Epic                                                                                           | User Stories                                                                                                                                  | Status  |
 |--------|-----------------|------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|---------|
@@ -159,15 +163,16 @@ The project is organized into six sprints targeting a **May 9, 2026** submission
 | 2      | Apr 5 – Apr 11  | [[EPIC-02]](https://github.com/warrenmnocos/oppshan-files/issues/9) Navigation and Layout      | [[US-05]](https://github.com/warrenmnocos/oppshan-files/issues/10) through [[US-08]](https://github.com/warrenmnocos/oppshan-files/issues/13) | Done    |
 | 3      | Apr 12 – Apr 18 | [[EPIC-03]](https://github.com/warrenmnocos/oppshan-files/issues/14) Folder Management         | [[US-09]](https://github.com/warrenmnocos/oppshan-files/issues/15) through [[US-12]](https://github.com/warrenmnocos/oppshan-files/issues/18) | Done    |
 | 4      | Apr 19 – Apr 25 | [[EPIC-04]](https://github.com/warrenmnocos/oppshan-files/issues/19) File Management           | [[US-13]](https://github.com/warrenmnocos/oppshan-files/issues/20) through [[US-19]](https://github.com/warrenmnocos/oppshan-files/issues/26) | Done    |
-| 5      | Apr 26 – May 2  | [[EPIC-05]](https://github.com/warrenmnocos/oppshan-files/issues/27) Context Menu              | [[US-20]](https://github.com/warrenmnocos/oppshan-files/issues/28) through [[US-22]](https://github.com/warrenmnocos/oppshan-files/issues/30) | Planned |
-| 6      | May 3 – May 9   | [[EPIC-06]](https://github.com/warrenmnocos/oppshan-files/issues/31) Storage                   | [[US-23]](https://github.com/warrenmnocos/oppshan-files/issues/32) and [[US-24]](https://github.com/warrenmnocos/oppshan-files/issues/33)     | Planned |
+| 5      | Apr 26 – May 2  | [[EPIC-05]](https://github.com/warrenmnocos/oppshan-files/issues/27) Context Menu              | [[US-20]](https://github.com/warrenmnocos/oppshan-files/issues/28) through [[US-22]](https://github.com/warrenmnocos/oppshan-files/issues/30) | Done    |
+| 6      | May 3 – May 9   | [[EPIC-06]](https://github.com/warrenmnocos/oppshan-files/issues/31) Storage                   | [[US-23]](https://github.com/warrenmnocos/oppshan-files/issues/32) and [[US-24]](https://github.com/warrenmnocos/oppshan-files/issues/33)     | Done    |
+| 7      | May 7 – May 9   | [[EPIC-07]](https://github.com/warrenmnocos/oppshan-files/issues/40) Polish & Responsiveness   | [[US-25]](https://github.com/warrenmnocos/oppshan-files/issues/41) through [[US-28]](https://github.com/warrenmnocos/oppshan-files/issues/44) | Planned |
 
 ### Labels and delivery tiers
 
 Stories are organized by epic and priority tier. Epic labels scope each story to its functional area:
 `epic: authentication and account`, `epic: navigation and layout`, `epic: folder management`,
-`epic: file management`, `epic: context menu`, and `epic: storage`. Priority labels indicate delivery criticality.
-Tier assignments are shown in the User Stories table below.
+`epic: file management`, `epic: context menu`, `epic: storage`, and `epic: polish and responsiveness`. Priority labels
+indicate delivery criticality. Tier assignments are shown in the User Stories table below.
 
 ### User Stories
 
@@ -201,7 +206,7 @@ Full acceptance criteria for each story live on the linked GitHub issue.
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/6">[US-04] Profile panel</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/6?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
@@ -222,7 +227,7 @@ Full acceptance criteria for each story live on the linked GitHub issue.
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/13">[US-08] Grid/list view toggle</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/13?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
@@ -233,7 +238,7 @@ Full acceptance criteria for each story live on the linked GitHub issue.
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/16">[US-10] Rename folder</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/16?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
@@ -243,7 +248,7 @@ Full acceptance criteria for each story live on the linked GitHub issue.
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/18">[US-12] Folder properties</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/18?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
@@ -254,7 +259,7 @@ Full acceptance criteria for each story live on the linked GitHub issue.
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/21">[US-14] Upload via drag-and-drop</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/21?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
@@ -269,7 +274,7 @@ Full acceptance criteria for each story live on the linked GitHub issue.
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/24">[US-17] Rename file</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/24?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
@@ -279,23 +284,23 @@ Full acceptance criteria for each story live on the linked GitHub issue.
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/26">[US-19] File properties</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/26?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
       <td rowspan="3"><a href="https://github.com/warrenmnocos/oppshan-files/issues/27">[EPIC-05] Context Menu</a></td>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/28">[US-20] File context menu</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/28?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/29">[US-21] Folder context menu</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/29?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/30">[US-22] Empty-space context menu</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/30?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
@@ -309,6 +314,27 @@ Full acceptance criteria for each story live on the linked GitHub issue.
       <td>Polish</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/33?label=&style=flat-square" alt="status"></td>
     </tr>
+    <tr>
+      <td rowspan="4"><a href="https://github.com/warrenmnocos/oppshan-files/issues/40">[EPIC-07] Polish & Responsiveness</a></td>
+      <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/41">[US-25] Spacing and scale consistency</a></td>
+      <td>Polish</td>
+      <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/41?label=&style=flat-square" alt="status"></td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/42">[US-26] Mobile-first layout</a></td>
+      <td>Polish</td>
+      <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/42?label=&style=flat-square" alt="status"></td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/43">[US-27] Touch-friendly interactions</a></td>
+      <td>Polish</td>
+      <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/43?label=&style=flat-square" alt="status"></td>
+    </tr>
+    <tr>
+      <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/44">[US-28] Documentation update</a></td>
+      <td>Polish</td>
+      <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/44?label=&style=flat-square" alt="status"></td>
+    </tr>
   </tbody>
 </table>
 
@@ -316,42 +342,39 @@ Full acceptance criteria for each story live on the linked GitHub issue.
 
 ## Tech Stack
 
-The backend is **Quarkus 3.34.3** on **Java 25** (Oracle GraalVM). Wherever a framework offers something
-interesting beyond the surface API, the project uses it. JAX-RS endpoints run on the **Undertow** servlet
-container, but the worker pool is swapped out at deployment time by `VirtualThreadServletExtension`, so every
-request handler runs on a **virtual thread** — blocking JDBC and `InputStream` reads cost nothing in
-platform-thread terms. **Hibernate ORM** validates the Flyway-managed schema at startup; breadcrumb walks and
-directory totals are served by `@NamedNativeQuery` with **recursive CTEs** rather than row-by-row navigation. A
-**custom Hibernate `UserType`** (`EncryptedBlobUserType`) sits at the persistence boundary and encrypts/decrypts
-file content **transparently** — the service and endpoint layers never see ciphertext. Google sign-in goes
-through the **Quarkus OIDC extension**, and **Quarkus Dev Services** spins up ephemeral PostgreSQL and Keycloak
-containers for the test profile.
+The backend runs on **Quarkus 3.34.3** with **Java 25** (Oracle GraalVM). JAX-RS endpoints run on the Undertow
+servlet container, but I swapped out the worker pool at deployment time with `VirtualThreadServletExtension` so
+every request handler runs on a **virtual thread**. Blocking JDBC and `InputStream` reads cost nothing in
+platform-thread terms. Hibernate ORM validates the Flyway-managed schema at startup; breadcrumb walks and directory
+totals use `@NamedNativeQuery` with recursive CTEs rather than row-by-row navigation. A custom Hibernate `UserType`
+(`EncryptedBlobUserType`) sits at the persistence boundary and encrypts/decrypts file content transparently. The
+service and endpoint layers never see ciphertext. Google sign-in goes through the Quarkus OIDC extension, and
+Quarkus Dev Services spins up ephemeral PostgreSQL and Keycloak containers for the test profile.
 
-The frontend is **Angular 21**, **standalone-components only**, **signals-first**. State lives in `signal()`
-and `computed()`; component boundaries use `input()` and `output()`. **Two-way data binding** is wired
-explicitly via `[ngModel]` / `(ngModelChange)` against a writable signal — `model()` is avoided on purpose, since
-the input/output pair it generates costs you whether or not the parent ever two-way binds. Reactive lists, dialog
-visibility, and notifications all use the new `@if` / `@for` control flow instead of `*ngIf` / `*ngFor`; routes
-are **lazy-loaded** with `loadComponent`; and `class-transformer` hydrates DTOs with type information preserved.
-The heart of the app is a **custom `MessageBusService` event bus** — 13 single-responsibility listeners react to
-typed events, keeping mutation paths separate from read paths (**CQRS**).
+The frontend is **Angular 21**, standalone-components only, signals-first. State lives in `signal()` and
+`computed()`; component boundaries use `input()` and `output()`. Two-way data binding is wired explicitly via
+`[ngModel]` / `(ngModelChange)` against a writable signal. I avoided `model()` on purpose, since the input/output
+pair it generates costs you whether or not the parent ever two-way binds. Reactive lists, dialog visibility, and
+notifications all use the `@if` / `@for` control flow instead of `*ngIf` / `*ngFor`; routes are lazy-loaded with
+`loadComponent`; and `class-transformer` hydrates DTOs with type information preserved. A custom
+`MessageBusService` event bus sits at the center: dedicated single-responsibility listeners react to typed events,
+keeping mutation paths separate from read paths (CQRS).
 
-The build is driven by **Maven**. The **frontend-maven-plugin** compiles the Angular project and drops the bundle
-into `src/main/resources/META-INF/resources/`, where Quarkus picks it up and serves it as static content. The
-production target is a **GraalVM native image** for ARM64. **JaCoCo** tracks test coverage and **JetBrains
-Qodana** runs static analysis on every PR.
+**Maven** performs the build. The `frontend-maven-plugin` compiles the Angular project and drops the bundle into
+`src/main/resources/META-INF/resources/`, where Quarkus picks it up and serves it as static content. The production
+target is a GraalVM native image for ARM64. JaCoCo tracks test coverage and JetBrains Qodana runs static analysis
+on every PR.
 
-The application is deployed on a single **AWS EC2 t4g.small** (Graviton 2 ARM64) instance running **Amazon Linux 2023**,
-with **PostgreSQL 18 on the same instance**. **Caddy** terminates TLS and proxies to Quarkus on localhost. DNS is
-managed through **AWS Route 53** with an A record pointing to a static EIP.
+The application runs on a single **AWS EC2 t4g.small** (Graviton 2 ARM64) instance with **Amazon Linux 2023** and
+**PostgreSQL 18 on the same host**. Caddy terminates TLS and proxies to Quarkus on localhost. DNS goes through
+AWS Route 53 with an A record pointing to a static EIP.
 
 ---
 
 ## Architecture
 
-Files runs as a **single origin**: the Angular SPA and the Quarkus REST API are served from the same domain
-(`files.oppshan.com`). That removes CORS from the picture entirely and means there's no separate CDN or frontend
-host to manage.
+The Angular SPA and the Quarkus REST API are served from the same domain (`files.oppshan.com`) as a single origin.
+That removes CORS from the picture entirely and means there's no separate CDN or frontend host to manage.
 
 ### Component architecture
 
@@ -360,17 +383,19 @@ The component diagram below shows the internal layers of the application.
 ![Component architecture](docs/diagrams/component-architecture.svg)
 
 The **frontend** is an Angular 21 SPA structured around a **central `MessageBusService` event bus**. User actions
-fire `*Initiated` events; dialogs escalate them to `*Confirmed` commands; **13 single-responsibility listeners**
-receive those commands, call the relevant service, and emit `*Succeeded` or `*Failed` outcomes. `AuthService` and
+fire `*Initiated` events; dialogs escalate them to `*Confirmed` commands; dedicated **single-responsibility
+listeners** receive those commands, call the relevant service, and emit `*Succeeded` or `*Failed` outcomes.
+`AuthService` and
 `FileService` make the HTTP calls; `NotificationService` drives the `NotificationCenter` component. The
 `SessionHttpInterceptor` handles 499 session-expiry responses by redirecting to sign-in.
 
 The **backend** is a Quarkus 3 native binary. Three JAX-RS endpoint classes delegate to three services:
 `FileNodeService` does all file-system mutations inside a single `@Transactional` boundary, `UserAccountService`
-provisions users on the OIDC callback, and `UserSessionManager` caches the authenticated user for the duration of
-the HTTP session (with read/write locking around the cache). Both services lean on a pair of Jakarta Data
-repositories — `FileNodeRepository` and `UserAccountRepository` — that mix JPQL queries with **named native
-queries for recursive CTEs** (breadcrumbs and directory statistics). `EncryptedBlobUserType` sits underneath all
+creates users on the OIDC callback, and `UserSessionManager` caches the authenticated user for the duration of
+the HTTP session (with read/write locking around the cache). The services lean on three Jakarta Data
+repositories (`FileNodeRepository`, `UserAccountRepository`, and `IdpAccountRepository`) that mix JPQL queries
+with **named native queries for recursive CTEs** (breadcrumbs and directory statistics). `EncryptedBlobUserType` sits
+underneath all
 of this and quietly encrypts and decrypts file content as it crosses the Hibernate boundary, prepending a
 **per-file IV** to each Large Object. Every JAX-RS handler runs on a **virtual thread** courtesy of
 `VirtualThreadServletExtension`, so blocking JDBC and streaming I/O cost nothing on the platform-thread side.
@@ -394,13 +419,13 @@ Route 53, then proxies plain HTTP to **Quarkus** on `localhost:8080`. Quarkus di
 zones: `/` serves the pre-compiled Angular bundle, `/api/**` routes to JAX-RS endpoints, `/sso/**` drives the OIDC
 sign-in and sign-out flows with Google as the identity provider, and any remaining URL falls through to
 `FrontendRoutesFilter` which returns `/index.html` so the Angular router owns deep-link navigation. All data is
-persisted in **PostgreSQL 18** running on the same instance. Operator access uses **SSM Session Manager** — no port 22
-is exposed and no SSH key pair is required. The CI/CD pipeline — GitHub Actions building a GraalVM native binary on an
-ARM64 runner, uploading to S3, and deploying via **SSM Run Command** — is shown at the bottom of the diagram.
+persisted in **PostgreSQL 18** running on the same instance. Operator access uses **SSM Session Manager**, so no port 22
+is exposed and no SSH key pair is needed. The CI/CD pipeline (GitHub Actions building a GraalVM native binary on an
+ARM64 runner, uploading to S3, and deploying via **SSM Run Command**) is shown at the bottom of the diagram.
 
 #### Production deployment
 
-The current deployment is intentionally minimal — a single EC2 instance with on-instance PostgreSQL is sufficient
+The current deployment is intentionally minimal: a single EC2 instance with on-instance PostgreSQL is sufficient
 and cost-effective for a university project. A production-grade deployment serving real traffic would replace
 each single point of failure with a managed, multi-AZ equivalent.
 
@@ -427,7 +452,7 @@ the native binary to S3, then triggers the deployment group.
 AZ, all connected to a single **distributed storage volume** that is **replicated six ways across three AZs** at
 the storage layer. A write is durable as soon as four of those six storage nodes acknowledge, which is what lets
 Aurora skip instance-to-instance synchronous replication entirely. If the writer dies, **a reader gets promoted
-in about 30 seconds** and the cluster endpoint flips over — the application never has to know. Extra readers in the
+in about 30 seconds** and the cluster endpoint flips over. The application never has to know. Extra readers in the
 same cluster soak up analytics and reporting traffic through the read endpoint (round-robin across healthy
 readers), and because every reader is reading from the same shared storage, replica lag is sub-second instead of
 "however long it takes to catch up to a primary". Automated backups, continuous incremental backup to S3 with
@@ -461,13 +486,13 @@ auto-scaling policy and page on-call via SNS.
 
 ### Event bus and reactive pattern
 
-The Angular frontend is built around a central `MessageBusService` that owns a `Subject<ApplicationEvent>`. Every
+I built the Angular frontend around a central `MessageBusService`, a single observable event stream. Every
 mutation flows through the bus:
 
 1. A user action fires an `*Initiated` event with a context payload.
 2. A dialog (if needed) fires a `*Confirmed` command event after user confirmation.
 3. A **listener** receives the command, calls the relevant service method, and fires `*Succeeded` or `*Failed`.
-4. Downstream listeners react to the outcome — refreshing directory contents, surfacing notifications, updating
+4. Downstream listeners react to the outcome: refreshing directory contents, surfacing notifications, updating
    progress entries.
 
 **Listeners are single-responsibility and output-only.** Each listener receives one event type and emits event
@@ -477,7 +502,7 @@ upload lifecycle events (`FileUploadInitiated`, `FileUploadProgressUpdated`, `Fi
 `FileUploadFailed`), and a separate `OperationProgressApplicationEventListener` consumes both upload and
 download progress events and translates them into `NotificationService` calls.
 
-The 13 listeners are registered in `app.config.ts` as multi-providers of the `MESSAGE_LISTENERS` injection token, and
+Listeners are registered in `app.config.ts` as multi-providers of the `MESSAGE_LISTENERS` injection token, and
 `MessageReactorService` fans the event stream out to each listener's filter.
 
 ### CQRS split
@@ -492,10 +517,10 @@ All user-facing feedback flows through a unified `NotificationService` and is re
 `NotificationCenter` component fixed at the bottom-right of the screen. Two notification types share a common
 `ApplicationNotification` base interface:
 
-- **`MessageNotification`** — auto-dismissing toast for operation outcomes and errors. It carries a `MessageCode`
+- **`MessageNotification`**: auto-dismissing toast for operation outcomes and errors. It carries a `MessageCode`
   translation key, optional `params: Record<string, unknown>` for interpolation, and severity derived from the key
   prefix (`messages.errors.*` → error, `messages.info.*` → info).
-- **`ProgressNotification`** — live progress entry for long-running operations. It carries a `label` translation
+- **`ProgressNotification`**: live progress entry for long-running operations. It carries a `label` translation
   key, optional `params`, and a `progress: number` (0–100). Feature-agnostic: file uploads, future downloads, and any
   other progress-emitting operation use the same type. Entries are removed on completion; failures are removed
   immediately and surface as `MessageNotification` toasts.
@@ -526,10 +551,10 @@ scroll, or window resize fires `ContextMenuHidden` and the menu disappears.
 
 What the menu shows depends on `target`: `null` (empty space) gets Refresh / New folder / Upload file, a folder
 gets Open / Rename / Properties / Delete, a file gets Download / Rename / Properties / Delete. The interesting
-part is that picking an item doesn't introduce a new domain event — it just re-fires an existing one. Rename
+part is that picking an item doesn't introduce a new domain event; it just re-fires an existing one. Rename
 fires `DirectoryRenameInitiated` or `FileRenameInitiated`, Delete fires `*DeletionInitiated`, Properties fires
 `*PropertiesShown`, Open fires `DirectoryNavigationInitiated`, Refresh fires `DirectoryRefreshInitiated`, New
-folder fires `DirectoryCreateInitiated`, Download fires `FileDownloadConfirmed`. The one exception is Upload —
+folder fires `DirectoryCreateInitiated`, Download fires `FileDownloadConfirmed`. The one exception is Upload:
 the menu has no idea how upload actually works, so it fires a thin `FileUploadPickerShown` bridge event and
 `FileBrowser` (which owns the file picker) decides what to do with it.
 
@@ -539,7 +564,7 @@ Below it, the menu renders as a full-width bottom sheet over a backdrop.
 
 ### Standalone components and signals
 
-Every component is `standalone: true` — there are no NgModules. State is held in signals (`signal`, `input`,
+Every component is `standalone: true` with no NgModules. State is held in signals (`signal`, `input`,
 `input.required`, `computed`, `toSignal` for `Observable` interop); RxJS lives at the edges (HTTP, the bus
 `Subject`, route URL streams). Subscriptions are torn down in `ngOnDestroy`.
 
@@ -551,14 +576,14 @@ src/main/angular/src/app/
 ├── app.routes.ts          # /drive/**, /sso/sign-in, /sso/sign-out
 ├── pages/                 # Drive, SignIn, SignOut (all lazy-loaded)
 ├── components/            # Toolbar, Footer, FileBrowser, Breadcrumb, FileContextMenu,
-│                          # NotificationCenter, ErrorState, 7 dialogs (directory + file
-│                          # each: create, rename, delete, properties; file omits
-│                          # create-dialog and uses the FileBrowser's built-in upload picker)
+│                          # NotificationCenter, ErrorState, FilePreviewDialog,
+│                          # directory + file operation dialogs (create, rename,
+│                          # delete, properties)
 ├── services/              # AuthService, FileService, MessageBusService, NotificationService,
 │                          # MessageReactorService, JsonMapperService
-├── listeners/             # 13 listener classes + AbstractApplicationEventListener +
+├── listeners/             # listener classes + AbstractApplicationEventListener +
 │                          # MessageListener interface
-├── models/                # ApplicationEvent envelope, ApplicationEventType (59 values),
+├── models/                # ApplicationEvent envelope, ApplicationEventType enum,
 │                          # MessageCode, ContextMenuItem, command interfaces, outcome
 │                          # interfaces, view DTOs
 └── misc/                  # auth.guard, SessionHttpInterceptor, pipes, utils
@@ -570,7 +595,7 @@ src/main/angular/src/app/
 
 ### Endpoint structure
 
-REST resources are organized under three roots. `AuthEndpoint` exposes `GET /api/auth/me` to return the current
+I organized REST resources under three roots. `AuthEndpoint` exposes `GET /api/auth/me` to return the current
 `UserAccountView` (or 401). `SsoEndpoint` provides the OIDC entry, callback, and sign-out flows under `/sso/...`.
 `FileSystemEndpoint` exposes the unified file system surface under `/api/files`. See [API Reference](#api-reference)
 for a complete list.
@@ -580,7 +605,8 @@ for a complete list.
 The `FileNode` entity is a unified inode-style record: a row may represent either a file or a directory, controlled
 by the `directory` boolean. As a result, several endpoints are polymorphic. `PATCH /api/files/{uuid}` dispatches to
 `renameDirectory` or `renameFile`; `DELETE /api/files/{uuid}` dispatches to `deleteDirectory` or `deleteFile`;
-`GET /api/files/{uuid}/properties` dispatches to `DirectoryPropertiesView` or `FilePropertiesView`. The endpoint and
+`GET /api/files/{uuid}/properties` dispatches to `DirectoryPropertiesView` or `RegularFilePropertiesView`. The endpoint
+and
 the Angular app both treat the type as runtime data on the same record, so listing a directory returns a `FileNodeView`
 list mixing both kinds.
 
@@ -589,7 +615,7 @@ list mixing both kinds.
 The application runs on **REST Classic** backed by the **Undertow** servlet container.
 `VirtualThreadServletExtension` is registered via `META-INF/services/io.undertow.servlet.ServletExtension` and, at
 deployment time, replaces Undertow's worker and async executors with a `Executors.newThreadPerTaskExecutor(...)`
-backed by `Thread.ofVirtual()`. Every JAX-RS handler — including the upload endpoint — therefore executes on a
+backed by `Thread.ofVirtual()`. Every JAX-RS handler (including the upload endpoint) therefore executes on a
 named virtual thread (`undertow-virtual-thread-N`); no per-method annotation is required. The handler reads the
 servlet `InputStream` directly into the encryption pipeline. Backpressure propagates: if the application reads
 slower than the network delivers, Undertow stops draining the connection's receive buffer, and TCP backpressure
@@ -602,7 +628,7 @@ reaches the client. The file is never buffered in memory or spooled to a temp fi
 `FileNode.content` column. On write, it wraps the incoming stream in an `IncomingBlob` that prepends a fresh 16-byte
 IV and chains a `CipherInputStream` (AES/CTR/NoPadding). On read, it wraps the JDBC stream in an `OutgoingBlob`
 that consumes the IV and chains a decryption cipher. Service code, repository code, and endpoint code never see
-plaintext or ciphertext logic — they treat content as a `Blob`.
+plaintext or ciphertext logic; they treat content as a `Blob`.
 
 ### Named native queries with CTEs
 
@@ -610,12 +636,12 @@ Three operations require recursive traversal of the file tree. Rather than fetch
 implemented as a `@NamedNativeQuery` with a recursive Common Table Expression and a custom
 `@SqlResultSetMapping` to a record:
 
-- **`FileNode.GET_DIRECTORY_STATISTICS`** — recursive CTE descends from a target directory and aggregates
+- **`FileNode.GET_DIRECTORY_STATISTICS`**: recursive CTE descends from a target directory and aggregates
   `folderCount`, `fileCount`, `totalSizeBytes`. Result mapped to `DirectoryStatistics`.
-- **`FileNode.GET_ANCESTORS`** — recursive CTE walks up the parent chain from a target node. Result mapped to a
-  list of `BreadcrumbView`.
-- **`FileNode.RESOLVE_DIRECTORY_PATH`** — splits a path string and walks down the tree to resolve a slash-separated
-  path into a target directory UUID.
+- **`FileNode.GET_BREADCRUMBS_BY_FILE_NODE_UUID`**: recursive CTE walks up the parent chain from a target node.
+  Result mapped to a list of `BreadcrumbView`.
+- **`FileNode.GET_BREADCRUMBS_BY_PATH`**: splits a slash-separated path string and walks down the tree, returning
+  the breadcrumb trail for the resolved directory.
 
 ### Session-scoped user account caching
 
@@ -633,8 +659,8 @@ src/main/java/com/oppshan/files/
 ├── common/      # auditable entity base, route filter, virtual-thread extension, write-repo mixin
 ├── config/      # ApplicationStorage @ConfigMapping
 ├── exception/   # MessageCode enum, BusinessException factories, JAX-RS mapper, ErrorResponse
-├── file/        # FileNode entity, repository, service, endpoint, view records, encryption
-└── user/        # UserAccount, IdpAccount, GoogleAccount, UserStorage, services, repositories
+├── file/        # FileNode entity, UserStorage, repository, service, endpoint, view records, encryption
+└── user/        # UserAccount, IdpAccount, GoogleAccount, services, repositories
 ```
 
 ---
@@ -651,7 +677,7 @@ audit timestamps. It owns one or more `IdpAccount` rows and exactly one `UserSto
 
 **`IdpAccount`** is the abstract base for identity-provider accounts, using JPA joined-inheritance. Fields:
 `uuid`, `providerId` (the external identifier from the IdP), `providerName` (e.g. "google"), and a `userAccount`
-reference. The abstraction exists so adding GitHub or Microsoft is cheap — a new `IdpAccount` subclass plus an
+reference. The abstraction exists so adding GitHub or Microsoft is cheap: a new `IdpAccount` subclass plus an
 OIDC configuration entry, with no schema change to the file or user core.
 
 **`GoogleAccount`** extends `IdpAccount` with the Google-specific fields `email`, `name`, `photoUrl`. It lives in a
@@ -675,22 +701,32 @@ timestamps.
 
 ### View records (DTOs)
 
-Endpoints return immutable Java `record` types — never entities. The principal views:
+Endpoints return immutable Java `record` types, never entities. `FileNodePropertiesView` is a sealed interface
+that `DirectoryPropertiesView` and `RegularFilePropertiesView` implement, so the properties endpoint can return either
+type polymorphically. The full set:
 
 - `UserAccountView(uuid, firstName, lastName, email, photoUrl, usedStorageBytes, maxStorageBytes,
-  maxFileUploadBytes, rootFileNodeUuid, createdAt, lastModifiedAt)` — current authenticated user.
-- `FileNodeView(uuid, name, mimeType, directory, sizeBytes, parentUuid, createdAt, lastModifiedAt)` — a child
+  maxFileUploadBytes, rootFileNodeUuid, createdAt, lastModifiedAt)`: current authenticated user.
+- `UserStorageView(userAccountUuid, maxFileUploadBytes, maxStorageBytes, totalSizeBytes)`: lightweight projection
+  used internally for quota checks without loading the full user.
+- `FileNodeView(uuid, name, mimeType, directory, sizeBytes, parentUuid, createdAt, lastModifiedAt)`: a child
   in a directory listing.
-- `DirectoryContentsView(uuid, name, parentUuid, breadcrumbViews, childrenFileNodeViews)` — the full payload for
-  a directory page; the breadcrumb is embedded so the client never makes a second round trip.
-- `BreadcrumbView(uuid, name)` — one ancestor in the breadcrumb trail.
-- `DirectoryPropertiesView(uuid, name, createdAt, lastModifiedAt, directoryCount, fileCount, totalSizeBytes)` — the
+- `DirectoryContentsView(uuid, name, parentUuid, targetFileUuid, breadcrumbViews, childrenFileNodeViews)`: the
+  full payload for a directory page; the breadcrumb trail is embedded so the client never makes a second round trip,
+  and `targetFileUuid` lets the frontend highlight a specific file after deep-link navigation.
+- `BreadcrumbView(uuid, name, directory)`: one segment in the breadcrumb trail, with a `directory` flag so the
+  frontend can distinguish the final segment when it resolves to a file.
+- `DirectoryStatistics(folderCount, fileCount, totalSizeBytes)`: result type for the `GET_DIRECTORY_STATISTICS`
+  CTE query, used to populate the directory properties dialog.
+- `DirectoryPropertiesView(uuid, name, createdAt, lastModifiedAt, directoryCount, fileCount, totalSizeBytes)`: the
   read-only properties dialog payload for a folder.
-- `FilePropertiesView(uuid, name, mimeType, sizeBytes, parentUuid, parentName, createdAt, lastModifiedAt)` — the
+- `RegularFilePropertiesView(uuid, name, mimeType, sizeBytes, parentUuid, parentName, createdAt, lastModifiedAt)`: the
   read-only properties dialog payload for a file.
+- `FileDownloadView(userAccountUuid, fileNodeUuid, filename, mimeType, sizeBytes, contentInputStream)`: wraps
+  everything the `MessageBodyWriter` needs to stream a decrypted download response.
 
-The TypeScript side of each view shares field names 1:1 (kept in sync as a project discipline), and `class-transformer`
-hydrates nested types via `@Type(() => X)`.
+The TypeScript side mirrors each client-facing view with matching field names (kept in sync as a project discipline),
+and `class-transformer` hydrates nested types via `@Type(() => X)`.
 
 ---
 
@@ -702,7 +738,7 @@ hydrates nested types via `@Type(() => X)`.
 
 After `entityManager.flush()` forces the stream to be drained, `CountingInputStream.getCount()` yields the file's
 original size. The service then verifies the size against `getMaxFileUploadBytes(userAccountUuid)` and the running
-total against `getMaxStorageBytes(userAccountUuid)` — failing the transaction with `fileSizeExceeded` or
+total against `getMaxStorageBytes(userAccountUuid)`, failing the transaction with `fileSizeExceeded` or
 `fileQuotaExceeded` if either is exceeded. The `FileNode.sizeBytes` field receives the counted value and the
 transaction commits atomically. On the client side, `OperationProgressApplicationEventListener` translates
 `HttpEventType.UploadProgress` events into `FileUploadProgressUpdated` outcomes so the `NotificationCenter`'s
@@ -754,7 +790,7 @@ Successful `POST` responses (`/api/files`, `/api/files/{uuid}/upload`) return `2
 `DirectoryContentsView` body; other successes return `200 OK`. Errors are emitted as `400 Bad Request` with body
 `{ "messageCode": "messages.errors.<key>" }` (translated by the Angular app via the i18n table). `GET /api/auth/me`
 returns `401 Unauthorized` when the session is signed out. The Angular app's `SessionHttpInterceptor` watches for
-`499` — a custom status used by the OIDC layer to signal session invalidation mid-request — and redirects to
+`499` (a custom status used by the OIDC layer to signal session invalidation mid-request) and redirects to
 sign-in.
 
 ---
@@ -765,15 +801,15 @@ sign-in.
 
 All authentication runs through **Google OAuth 2.0** via the Quarkus OIDC extension. The application stores no
 passwords. On first login, the backend reads `sub` (Google's unique user identifier), `name`, `email`, and
-`picture` from the ID token claims. If no `UserAccount` exists for that `sub`, the backend creates one — along
-with a matching `GoogleAccount`, a `UserStorage` row, and a root `FileNode` — in a single transaction. Subsequent
+`picture` from the ID token claims. If no `UserAccount` exists for that `sub`, the backend creates one (a matching
+`GoogleAccount`, a `UserStorage` row, and a root `FileNode`) in a single transaction. Subsequent
 logins match by Google `sub` and reuse the existing user. Quarkus manages the OIDC session through HTTP-only
 cookies, so the Angular app never touches a token directly. Token state in the cookie is encrypted with the
 secret in `quarkus.oidc.token-state-manager.encryption-secret`.
 
-The identity-provider abstraction (`IdpAccount` → `GoogleAccount`) is built so adding more providers is cheap.
+I built the identity-provider abstraction (`IdpAccount` → `GoogleAccount`) so adding more providers is cheap.
 Adding GitHub, for example, would mean a new entity extending `IdpAccount`, a claim-extraction lambda, and an OIDC
-config entry — nothing in the user or file core changes.
+config entry. Nothing in the user or file core changes.
 
 ### File encryption
 
@@ -803,9 +839,9 @@ using the Google JWKS endpoint.
 
 ### Startup validation
 
-At application startup, `FileContentCipherService` validates that the encryption passphrase meets a minimum length
-requirement. If the passphrase is too short, the application fails to start with a clear error message instructing
-the operator to generate a proper key.
+At application startup, Quarkus validates the `ApplicationStorage` configuration mapping via Bean Validation. The
+encryption passphrase must be at least 32 characters (`@Size(min = 32)`); if it is too short or missing, the
+application fails to start with a clear validation error.
 
 ### Database role
 
@@ -822,8 +858,8 @@ Objects created by this role are owned by it, so no additional Large Object gran
 The database is **PostgreSQL 18** with all timestamps stored as `TIMESTAMPTZ` in UTC. The server timezone is set
 to UTC and the JDBC connection sends `SET timezone='UTC'` on every connection.
 
-Schema management is handled by **Flyway** via `quarkus.flyway.migrate-at-start=true`. Hibernate's schema strategy
-is `validate` — it checks that the entity mappings match the Flyway-managed schema at startup and halts on error.
+**Flyway** handles schema management via `quarkus.flyway.migrate-at-start=true`. Hibernate's schema strategy
+is `validate`, which checks that the entity mappings match the Flyway-managed schema at startup and halts on error.
 Migration files live in `src/main/resources/db/migration/postgresql/` and are plain PostgreSQL SQL.
 
 ### Migrations
@@ -841,19 +877,17 @@ Migration files live in `src/main/resources/db/migration/postgresql/` and are pl
 
 ## User Experience Design
 
-The visual design was settled before any code got written. There's a **wireframe mockup** for every user-facing
-screen state — one per user story, plus extras for the empty / loading / error variants. The mockups are what
-actually drove implementation: every screen the application renders maps back to a wireframe, and every wireframe
-corresponds to an **acceptance-criterion item on the GitHub issue** — design, requirements, and code stay in lock
-step. The design system uses a teal primary color (`#009688`) for
+I finalized the visual design before writing any code using an AI-assisted design tool to produce wireframe mockups for
+every user-facing screen state: one per user story, plus extras for the empty, loading, and error variants. The
+mockups drove implementation directly: every screen the application renders maps back to a wireframe, and every
+wireframe corresponds to an acceptance criterion on the GitHub issue. The design system uses teal (`#009688`) for
 interactive elements and active states, danger red (`#d93025`) for destructive confirmation, and a neutral palette
-for backgrounds and text. The typography is Inter. Components are built with custom SCSS following the project's
-design-token conventions; the global `styles.scss` defines shared `.dialog-*` and `.skeleton-*` classes (the latter
-for loading shimmer states).
+for backgrounds and text. Typography is Inter. Components are built with custom SCSS following the project's
+design-token conventions; the global `styles.scss` defines shared `.dialog-*` and `.skeleton-*` classes (the
+latter for loading shimmer states).
 
-The wireframes below cover the user flow through all 24 user stories — including planned screens
-for [[EPIC-05]](https://github.com/warrenmnocos/oppshan-files/issues/27)
-and [[EPIC-06]](https://github.com/warrenmnocos/oppshan-files/issues/31).
+The wireframes below cover the first 24 user stories. The remaining four (EPIC-07: Polish & Responsiveness)
+refine existing screens rather than introducing new ones.
 
 ### Sign in ([[US-01]](https://github.com/warrenmnocos/oppshan-files/issues/3))
 
@@ -908,7 +942,7 @@ Open, Rename, Properties, Delete. "Open" replaces "Download" and navigates into 
 
 Right-clicking the empty area inside the directory view opens a contextual menu with Refresh, New folder, and
 Upload file. Refresh re-fetches the current directory contents and shows the loading state during the refetch.
-New folder and Upload file mirror the action-bar buttons. The empty-space variant is desktop-only — touch users
+New folder and Upload file mirror the action-bar buttons. The empty-space variant is desktop-only; touch users
 reach the same actions through the action bar.
 
 ### Create folder dialog ([[US-09]](https://github.com/warrenmnocos/oppshan-files/issues/15))
@@ -944,7 +978,7 @@ type (MIME), size, location, created, modified.
 
 <img alt="Upload progress" src="docs/mockups/12-upload-progress.png" style="width: 75%;">
 
-The upload progress section lives inside the `NotificationCenter` — a unified fixed bottom-right panel that renders
+The upload progress section lives inside the `NotificationCenter`, a unified fixed bottom-right panel that renders
 all application notifications. During active uploads the panel shows an "Uploading N files" header with a collapse
 chevron. Each uploading file is a row with a green status dot, the filename, a teal progress bar with percentage,
 and a × dismiss button. Multiple concurrent uploads are stacked. Completed entries are removed; failed uploads
@@ -956,16 +990,16 @@ entries using the same `ProgressNotification` model.
 <img alt="Profile dropdown" src="docs/mockups/13-profile-dropdown.png" style="width: 75%;">
 
 Clicking the avatar opens a dropdown showing the Google name and email, a Profile link, a storage usage section
-with progress bar and percentage, and a red "Sign out" button. The storage bar will eventually change color based
-on usage ([[US-23]](https://github.com/warrenmnocos/oppshan-files/issues/32), planned): teal for 0–70%, amber for
-70–90%, red for 90–100%.
+with progress bar and percentage, and a red "Sign out" button. The storage bar changes color based on usage
+([[US-23]](https://github.com/warrenmnocos/oppshan-files/issues/32)): teal for 0–70%, amber for 70–90%, red for
+90–100%.
 
 ### Error states and notifications ([[US-15]](https://github.com/warrenmnocos/oppshan-files/issues/22), [[US-24]](https://github.com/warrenmnocos/oppshan-files/issues/33))
 
 <img alt="Error states" src="docs/mockups/15-21-22-24.png" style="width: 75%;">
 
 Validation errors and operation outcomes surface through the `NotificationCenter` toast section. File-too-large
-errors and (planned) storage-quota errors appear as auto-dismissing toasts with severity styling derived from the
+errors and storage-quota errors appear as auto-dismissing toasts with severity styling derived from the
 `MessageCode` prefix (`messages.errors.*` → error). Toasts support i18n interpolation via
 `params: Record<string, unknown>` so messages can include dynamic values such as filenames or sizes. Operation
 successes (folder created, file renamed, file deleted) appear as info-severity toasts in the same panel.
@@ -988,7 +1022,7 @@ Every push and pull request to `main` runs two workflows. Both have to be green 
 
 1. Check out the repository.
 2. Install JDK 25 (GraalVM distribution) with Maven dependency caching.
-3. Run `mvn -B clean install` — compiles the Angular front end via `frontend-maven-plugin`, packages the back end,
+3. Run `mvn -B clean install`, which compiles the Angular front end via `frontend-maven-plugin`, packages the back end,
    and runs the test suite. Tests use Quarkus Dev Services (Testcontainers PostgreSQL 18, ephemeral Keycloak realm)
    so the test profile exercises real PostgreSQL.
 4. On pull requests, post a JaCoCo coverage report as a PR comment via
@@ -1010,20 +1044,28 @@ on manual `workflow_dispatch`:
    against the project, uploading findings to the [Qodana Cloud](https://qodana.cloud) project for trend tracking
    over time.
 
-Findings are surfaced as PR check annotations.
+Findings show up as PR check annotations.
 
 ### Continuous Deployment
 
 Production deployment is **fully automated**: the Maven build emits a **GraalVM native binary**, and a GitHub
-Actions workflow rolls it out to the EC2 instance on **every push to `main`** — no manual step in between.
+Actions workflow rolls it out to the EC2 instance on **every push to `main`** with no manual step in between.
 
 #### Build pipeline
 
-The Maven build is the single source of truth for both the API and the Angular app. The `frontend-maven-plugin` is bound
-to
-the Maven lifecycle: it provisions a project-local Node.js, runs `npm install` and `ng build`, and copies the
-Angular bundle into `src/main/resources/META-INF/resources/`. Quarkus then packages the resulting application as
-an **uber-jar** (`quarkus.package.jar.type=uber-jar`), self-contained and runnable with `java -jar`.
+The frontend and backend share a single repository, but they're compiled independently and packaged into one
+artifact by Maven. The `frontend-maven-plugin` bridges the two ecosystems: during `generate-resources` it installs
+a project-local Node.js and Yarn, runs `yarn install` and `ng build`, and drops the compiled Angular bundle into
+`target/classes/META-INF/resources/`, the classpath location Quarkus looks at for static content. After that,
+Maven compiles the Java backend and Quarkus folds everything (API and SPA) into a single self-contained artifact.
+At runtime, the same process serves both the Angular static files and the REST API on the same origin and port, so
+CORS is never a factor.
+
+![Build pipeline](docs/diagrams/build-pipeline.svg)
+
+The Angular project has its own `package.json`, its own dev server (`ng serve`), and its own dependency tree. It's
+a fully standalone frontend codebase that just happens to live inside the Maven project. One `./mvnw package`
+produces a deployable artifact without any manual coordination between the two builds.
 
 For production, the same project compiles to a **GraalVM native image** targeting **ARM64** with
 `./mvnw -Pnative-release package` (Oracle GraalVM 25, `-march=armv8-a+aes+lse`, G1 GC). The native binary is ~70-90 MB,
@@ -1031,24 +1073,25 @@ starts in under 100 ms, and runs with `-Xmx512m` heap on the deployment target.
 
 #### Deployment target
 
-Production runs on a single **AWS EC2 t4g.small** (Graviton 2 ARM, 2 vCPU, 2 GB RAM) on **Amazon Linux 2023**, with *
-*PostgreSQL 18 on the same instance** (not RDS or Aurora — keeps cost predictable and removes cross-host network
-hops for a personal-scale app). **Caddy** terminates TLS on `:443` with a wildcard `*.oppshan.com` cert acquired
-automatically from
-Let's Encrypt via the **DNS-01 challenge against Route 53** (Caddy `route53` plugin, backed by an EC2 instance role with
+Production runs on a single **AWS EC2 t4g.small** (Graviton 2 ARM, 2 vCPU, 2 GB RAM) on **Amazon Linux 2023**,
+with **PostgreSQL 18 on the same instance** (not RDS or Aurora, which keeps cost predictable and removes cross-host
+network hops for a personal-scale app). **Caddy** terminates TLS on `:443` with a wildcard `*.oppshan.com` cert
+acquired automatically from Let's Encrypt via the **DNS-01 challenge against Route 53** (Caddy `route53` plugin, backed
+by an EC2 instance role with
 scoped Route 53 permissions). The wildcard cert auto-renews ~30 days before expiry; no ALB, no separate certificate
 management.
 
 A single EIP gives the instance a stable public IP. Route 53 holds an A record `files.oppshan.com → <EIP>` and a CAA
-record restricting cert issuance to Let's Encrypt. SSM Session Manager replaces SSH for operator access — no port 22
-exposed, no key-pair management.
+record restricting cert issuance to Let's Encrypt. SSM Session Manager replaces SSH for operator access, so no port 22
+is
+exposed and no key-pair management is needed.
 
 #### Deployment automation
 
 `.github/workflows/deploy.yml` runs on every push to `main` (and manual `workflow_dispatch`): it builds the native
 binary on a `ubuntu-24.04-arm` GitHub-hosted runner, uploads to S3 keyed by short commit SHA, then issues an SSM Run
 Command on the EC2 instance to `systemctl stop`, `aws s3 cp` the new binary, `chmod +x` + `chown`, and
-`systemctl start`. Authentication uses **OIDC federation** — GitHub mints a short-lived JWT, AWS STS exchanges it for
+`systemctl start`. Authentication uses **OIDC federation**: GitHub mints a short-lived JWT, AWS STS exchanges it for
 temporary credentials based on a trust policy scoped to `repo:OWNER/REPO:ref:refs/heads/main`. No long-lived AWS keys
 live in repository secrets.
 
@@ -1058,11 +1101,11 @@ live in repository secrets.
 
 ### Prerequisites
 
-- **Java 25** (Oracle GraalVM 25 required for production native builds — uses `--gc=G1` which is Oracle-only;
+- **Java 25** (Oracle GraalVM 25 required for production native builds because `--gc=G1` is Oracle-only;
   Edition is fine for `quarkus:dev` JVM mode)
 - **Maven 3.9+** (the included `./mvnw` wrapper works without a global install)
-- **Node.js 20+** and **npm** (provisioned automatically by the `frontend-maven-plugin` during the Maven build)
-- **Docker** running locally — required for Quarkus Dev Services (Testcontainers PostgreSQL and Keycloak)
+- **Node.js 22+** and **Yarn** (installed automatically by the `frontend-maven-plugin` during the Maven build)
+- **Docker** running locally, needed for Quarkus Dev Services (Testcontainers PostgreSQL and Keycloak)
 - A **Google Cloud OAuth 2.0 client** with `http://localhost:8080/sso/sign-in/oidc/callback/google` added as an
   authorized redirect URI
 

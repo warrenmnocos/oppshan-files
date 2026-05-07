@@ -72,7 +72,7 @@ class FileNodeServiceTest {
 
         assertThat(view.getUuid(), is(rootDirectoryUuid));
         assertThat(view.getBreadcrumbViews(), hasSize(1));
-        assertThat(view.getBreadcrumbViews().get(0).name(), is("Root"));
+        assertThat(view.getBreadcrumbViews().getFirst().name(), is("Root"));
     }
 
     @Test
@@ -627,7 +627,7 @@ class FileNodeServiceTest {
         final var content = "abcdefghij".getBytes(StandardCharsets.UTF_8);
         final var fileUuid = createRegularFileNode(rootDirectoryUuid, "info.txt", TEXT_MIME_TYPE, content);
 
-        final var properties = (FilePropertiesView) fileNodeService.getFileNodeProperties(userAccountUuid, fileUuid);
+        final var properties = (RegularFilePropertiesView) fileNodeService.getFileNodeProperties(userAccountUuid, fileUuid);
 
         assertThat(properties.uuid(), is(fileUuid));
         assertThat(properties.name(), is("info.txt"));

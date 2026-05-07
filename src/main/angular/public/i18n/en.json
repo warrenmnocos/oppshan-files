@@ -87,6 +87,7 @@
     "directoryProperties": {
       "title": "Folder properties",
       "name": "Name",
+      "location": "Location",
       "created": "Created",
       "modified": "Updated",
       "directories": "Folders",

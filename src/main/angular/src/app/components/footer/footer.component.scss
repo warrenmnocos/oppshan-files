@@ -4,12 +4,12 @@
 }
 
 .footer {
-  padding: 8px 24px 10px;
+  padding: 0.5rem 1.5rem 0.625rem;
   border-top: 1px solid #e0e0e0;
   background: #ffffff;
   color: #5f6368;
   font-family: 'Inter', sans-serif;
-  font-size: 12px;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 
@@ -18,7 +18,7 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px 16px;
+  gap: 0.5rem 1rem;
 }
 
 .footer-tagline {
@@ -29,7 +29,7 @@
 .footer-meta {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
   flex-wrap: wrap;
 }
 
@@ -53,23 +53,23 @@
 }
 
 .footer-academic {
-  margin-top: 2px;
-  font-size: 11px;
+  margin-top: 0.125rem;
+  font-size: 0.6875rem;
   color: #80868b;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 48rem) {
   .footer {
-    padding: 8px 16px 10px;
+    padding: 0.5rem 1rem 0.625rem;
   }
 
   .footer-row {
     flex-direction: column;
     align-items: flex-start;
-    gap: 2px;
+    gap: 0.125rem;
   }
 
   .footer-academic {
-    margin-top: 4px;
+    margin-top: 0.25rem;
   }
 }
