@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Valid
 @RegisterForReflection
-public record FilePropertiesView(
+public record RegularFilePropertiesView(
         @NotNull
         UUID uuid,
 

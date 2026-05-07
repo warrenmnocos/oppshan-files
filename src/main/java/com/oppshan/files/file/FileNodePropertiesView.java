@@ -4,7 +4,8 @@ import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
-public interface FileNodePropertiesView extends Serializable {
+public sealed interface FileNodePropertiesView extends Serializable
+        permits DirectoryPropertiesView, RegularFilePropertiesView {
 
     UUID uuid();
 

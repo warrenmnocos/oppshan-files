@@ -27,8 +27,8 @@ public interface ApplicationStorage {
     @NotEmpty
     String encryptionPassphrase();
 
-    @Min(600000)
-    @WithDefault("600000")
+    @Min(1000000)
+    @WithDefault("1000000")
     int encryptionKdfIterations();
 
     @Min(128)
