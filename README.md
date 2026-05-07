@@ -206,7 +206,7 @@ Full acceptance criteria for each story live on the linked GitHub issue.
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/6">[US-04] Profile panel</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/6?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
@@ -227,7 +227,7 @@ Full acceptance criteria for each story live on the linked GitHub issue.
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/13">[US-08] Grid/list view toggle</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/13?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
@@ -238,7 +238,7 @@ Full acceptance criteria for each story live on the linked GitHub issue.
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/16">[US-10] Rename folder</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/16?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
@@ -248,7 +248,7 @@ Full acceptance criteria for each story live on the linked GitHub issue.
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/18">[US-12] Folder properties</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/18?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
@@ -259,7 +259,7 @@ Full acceptance criteria for each story live on the linked GitHub issue.
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/21">[US-14] Upload via drag-and-drop</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/21?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
@@ -274,7 +274,7 @@ Full acceptance criteria for each story live on the linked GitHub issue.
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/24">[US-17] Rename file</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/24?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
@@ -284,23 +284,23 @@ Full acceptance criteria for each story live on the linked GitHub issue.
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/26">[US-19] File properties</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/26?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
       <td rowspan="3"><a href="https://github.com/warrenmnocos/oppshan-files/issues/27">[EPIC-05] Context Menu</a></td>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/28">[US-20] File context menu</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/28?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/29">[US-21] Folder context menu</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/29?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
       <td><a href="https://github.com/warrenmnocos/oppshan-files/issues/30">[US-22] Empty-space context menu</a></td>
-      <td>Exceeded</td>
+      <td>Enhanced</td>
       <td><img src="https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/30?label=&style=flat-square" alt="status"></td>
     </tr>
     <tr>
@@ -877,7 +877,7 @@ Migration files live in `src/main/resources/db/migration/postgresql/` and are pl
 
 ## User Experience Design
 
-I finalized the visual design before writing any code using an **AI design tool** to produce wireframe mockups for
+I finalized the visual design before writing any code using an AI-assisted design tool to produce wireframe mockups for
 every user-facing screen state: one per user story, plus extras for the empty, loading, and error variants. The
 mockups drove implementation directly: every screen the application renders maps back to a wireframe, and every
 wireframe corresponds to an acceptance criterion on the GitHub issue. The design system uses teal (`#009688`) for
