@@ -49,12 +49,16 @@ public class FileUploadRequest implements Serializable {
     }
 
     public String getContentFilename() {
+        if (contentDisposition == null || contentDisposition.isEmpty()) {
+            return "";
+        }
+
         final var matcher = contentDispositionFilenamePattern.matcher(contentDisposition);
         if (matcher.find()) {
             return URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8);
         }
 
-        return null;
+        return "";
     }
 
     @Override
