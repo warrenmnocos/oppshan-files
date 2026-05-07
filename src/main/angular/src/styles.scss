@@ -133,6 +133,11 @@ html, body {
   height: 1.75rem;
   flex-shrink: 0;
   border-radius: 0.25rem;
+
+  @media (pointer: coarse) {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
 }
 
 .skeleton-grid {

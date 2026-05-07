@@ -128,6 +128,8 @@
   },
   "messages": {
     "info": {
+      "signInSucceeded": "Signed in.",
+      "directoryNavigated": "Folder opened.",
       "directoryCreated": "Folder created.",
       "directoryRenamed": "Folder renamed.",
       "directoryDeleted": "Folder deleted.",
@@ -154,6 +156,7 @@
       "fileNameRequired": "File name is required.",
       "fileSizeExceeded": "File exceeds the upload size limit.",
       "fileQuotaExceeded": "Not enough storage. Delete some files to free up space.",
+      "fileDownloadFailed": "File download failed. Please try again.",
       "folderUploadRejected": "Folders cannot be uploaded.",
       "unknown": "An unexpected error occurred. Please try again."
     }

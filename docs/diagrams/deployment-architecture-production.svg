@@ -246,8 +246,8 @@
 
     <rect x="370" y="686" width="140" height="52" rx="6" fill="#FDFEFE" stroke="#AAB7B8" stroke-width="1"/>
     <text x="440" y="702" text-anchor="middle" font-size="10" font-weight="600" fill="#2C3E50">S3</text>
-    <text x="440" y="715" text-anchor="middle" font-size="9" fill="#717D7E">build artifacts</text>
-    <text x="440" y="728" text-anchor="middle" font-size="9" fill="#717D7E">static asset offload</text>
+    <text x="440" y="715" text-anchor="middle" font-size="9" fill="#717D7E">artifacts · static assets</text>
+    <text x="440" y="728" text-anchor="middle" font-size="9" fill="#717D7E">encrypted file content</text>
 
     <rect x="522" y="686" width="140" height="52" rx="6" fill="#FDFEFE" stroke="#AAB7B8" stroke-width="1"/>
     <text x="592" y="702" text-anchor="middle" font-size="10" font-weight="600" fill="#2C3E50">ACM</text>

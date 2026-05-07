@@ -45,11 +45,12 @@ public final class FileDownloadViewResolver {
 
     @NotNull
     public FileDownloadView getFileDownloadView() {
+        final var fileNode = getFileNode();
+        final var fileNodeContent = fileNode.getContent()
+                .orElseThrow(BusinessException::fileNotFound);
+
         try {
-            final var fileNode = getFileNode();
-            final var contentInputStream = fileNode.getContent()
-                    .orElseThrow(BusinessException::fileNotFound)
-                    .getBinaryStream();
+            final var contentInputStream = fileNodeContent.getBinaryStream();
             return new FileDownloadView(
                     userAccountUuid,
                     fileNodeUuid,

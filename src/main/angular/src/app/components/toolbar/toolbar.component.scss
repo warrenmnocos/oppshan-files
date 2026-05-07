@@ -44,7 +44,7 @@
     font-weight: 500;
     color: #202124;
 
-    @media (max-width: 25rem) {
+    @media (max-width: 37.5rem) {
       display: none;
     }
 
@@ -204,7 +204,7 @@
   min-width: 0;
 
   .dropdown-name {
-    font-size: 0.9375rem;
+    font-size: 1rem;
     font-weight: 600;
     color: #202124;
   }

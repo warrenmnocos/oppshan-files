@@ -139,9 +139,9 @@ the **Agile iteration loop**, end to end. The board is available at
 ### Board structure
 
 The Kanban board uses three columns: **To Do** for stories not yet started, **In Progress** for stories with an active
-branch, and **Done** for stories whose pull request has merged and whose issue has auto-closed. The board is filtered
-with `is:issue` to exclude pull requests from the view, preventing visual duplication since each PR is already linked
-to its corresponding issue.
+branch, and **Done** for stories whose pull request has merged and whose issue has auto-closed. The board is
+filtered with `is:issue` to exclude pull requests from the view, so PRs don't show up twice; each PR is already
+linked to its corresponding issue.
 
 <img alt="Project Board" src="docs/misc/project-board.png" style="width: 75%;">
 
@@ -157,22 +157,22 @@ merge commits use the prefix `refs #<n> Merged feat/EPIC-0x: <description>`.
 
 I organized the project into seven sprints targeting a **May 9, 2026** submission deadline.
 
-| Sprint | Window          | Epic                                                                                           | User Stories                                                                                                                                  | Status  |
-|--------|-----------------|------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|---------|
-| 1      | Mar 25 – Apr 4  | [[EPIC-01]](https://github.com/warrenmnocos/oppshan-files/issues/2) Authentication and Account | [[US-01]](https://github.com/warrenmnocos/oppshan-files/issues/3) through [[US-04]](https://github.com/warrenmnocos/oppshan-files/issues/6)   | Done    |
-| 2      | Apr 5 – Apr 11  | [[EPIC-02]](https://github.com/warrenmnocos/oppshan-files/issues/9) Navigation and Layout      | [[US-05]](https://github.com/warrenmnocos/oppshan-files/issues/10) through [[US-08]](https://github.com/warrenmnocos/oppshan-files/issues/13) | Done    |
-| 3      | Apr 12 – Apr 18 | [[EPIC-03]](https://github.com/warrenmnocos/oppshan-files/issues/14) Folder Management         | [[US-09]](https://github.com/warrenmnocos/oppshan-files/issues/15) through [[US-12]](https://github.com/warrenmnocos/oppshan-files/issues/18) | Done    |
-| 4      | Apr 19 – Apr 25 | [[EPIC-04]](https://github.com/warrenmnocos/oppshan-files/issues/19) File Management           | [[US-13]](https://github.com/warrenmnocos/oppshan-files/issues/20) through [[US-19]](https://github.com/warrenmnocos/oppshan-files/issues/26) | Done    |
-| 5      | Apr 26 – May 2  | [[EPIC-05]](https://github.com/warrenmnocos/oppshan-files/issues/27) Context Menu              | [[US-20]](https://github.com/warrenmnocos/oppshan-files/issues/28) through [[US-22]](https://github.com/warrenmnocos/oppshan-files/issues/30) | Done    |
-| 6      | May 3 – May 9   | [[EPIC-06]](https://github.com/warrenmnocos/oppshan-files/issues/31) Storage                   | [[US-23]](https://github.com/warrenmnocos/oppshan-files/issues/32) and [[US-24]](https://github.com/warrenmnocos/oppshan-files/issues/33)     | Done    |
-| 7      | May 7 – May 9   | [[EPIC-07]](https://github.com/warrenmnocos/oppshan-files/issues/40) Polish & Responsiveness   | [[US-25]](https://github.com/warrenmnocos/oppshan-files/issues/41) through [[US-28]](https://github.com/warrenmnocos/oppshan-files/issues/44) | Planned |
+| Sprint | Window          | Epic                                                                                           | User Stories                                                                                                                                  | Status      |
+|--------|-----------------|------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|-------------|
+| 1      | Mar 25 – Apr 4  | [[EPIC-01]](https://github.com/warrenmnocos/oppshan-files/issues/2) Authentication and Account | [[US-01]](https://github.com/warrenmnocos/oppshan-files/issues/3) through [[US-04]](https://github.com/warrenmnocos/oppshan-files/issues/6)   | Done        |
+| 2      | Apr 5 – Apr 11  | [[EPIC-02]](https://github.com/warrenmnocos/oppshan-files/issues/9) Navigation and Layout      | [[US-05]](https://github.com/warrenmnocos/oppshan-files/issues/10) through [[US-08]](https://github.com/warrenmnocos/oppshan-files/issues/13) | Done        |
+| 3      | Apr 12 – Apr 18 | [[EPIC-03]](https://github.com/warrenmnocos/oppshan-files/issues/14) Folder Management         | [[US-09]](https://github.com/warrenmnocos/oppshan-files/issues/15) through [[US-12]](https://github.com/warrenmnocos/oppshan-files/issues/18) | Done        |
+| 4      | Apr 19 – Apr 25 | [[EPIC-04]](https://github.com/warrenmnocos/oppshan-files/issues/19) File Management           | [[US-13]](https://github.com/warrenmnocos/oppshan-files/issues/20) through [[US-19]](https://github.com/warrenmnocos/oppshan-files/issues/26) | Done        |
+| 5      | Apr 26 – May 2  | [[EPIC-05]](https://github.com/warrenmnocos/oppshan-files/issues/27) Context Menu              | [[US-20]](https://github.com/warrenmnocos/oppshan-files/issues/28) through [[US-22]](https://github.com/warrenmnocos/oppshan-files/issues/30) | Done        |
+| 6      | May 3 – May 9   | [[EPIC-06]](https://github.com/warrenmnocos/oppshan-files/issues/31) Storage                   | [[US-23]](https://github.com/warrenmnocos/oppshan-files/issues/32) and [[US-24]](https://github.com/warrenmnocos/oppshan-files/issues/33)     | Done        |
+| 7      | May 7 – May 9   | [[EPIC-07]](https://github.com/warrenmnocos/oppshan-files/issues/40) Polish & Responsiveness   | [[US-25]](https://github.com/warrenmnocos/oppshan-files/issues/41) through [[US-28]](https://github.com/warrenmnocos/oppshan-files/issues/44) | In Progress |
 
 ### Labels and delivery tiers
 
 Stories are organized by epic and priority tier. Epic labels scope each story to its functional area:
 `epic: authentication and account`, `epic: navigation and layout`, `epic: folder management`,
-`epic: file management`, `epic: context menu`, `epic: storage`, and `epic: polish and responsiveness`. Priority labels
-indicate delivery criticality. Tier assignments are shown in the User Stories table below.
+`epic: file management`, `epic: context menu`, `epic: storage`, and `epic: polish and responsiveness`. Priority
+labels show how important each story is to ship. Tier assignments are shown in the User Stories table below.
 
 ### User Stories
 
@@ -385,19 +385,17 @@ The component diagram below shows the internal layers of the application.
 The **frontend** is an Angular 21 SPA structured around a **central `MessageBusService` event bus**. User actions
 fire `*Initiated` events; dialogs escalate them to `*Confirmed` commands; dedicated **single-responsibility
 listeners** receive those commands, call the relevant service, and emit `*Succeeded` or `*Failed` outcomes.
-`AuthService` and
-`FileService` make the HTTP calls; `NotificationService` drives the `NotificationCenter` component. The
-`SessionHttpInterceptor` handles 499 session-expiry responses by redirecting to sign-in.
+`AuthService` and `FileService` make the HTTP calls; `NotificationService` drives the `NotificationCenter`
+component. The `SessionHttpInterceptor` handles 499 session-expiry responses by redirecting to sign-in.
 
 The **backend** is a Quarkus 3 native binary. Three JAX-RS endpoint classes delegate to three services:
 `FileNodeService` does all file-system mutations inside a single `@Transactional` boundary, `UserAccountService`
 creates users on the OIDC callback, and `UserSessionManager` caches the authenticated user for the duration of
 the HTTP session (with read/write locking around the cache). The services lean on three Jakarta Data
 repositories (`FileNodeRepository`, `UserAccountRepository`, and `IdpAccountRepository`) that mix JPQL queries
-with **named native queries for recursive CTEs** (breadcrumbs and directory statistics). `EncryptedBlobUserType` sits
-underneath all
-of this and quietly encrypts and decrypts file content as it crosses the Hibernate boundary, prepending a
-**per-file IV** to each Large Object. Every JAX-RS handler runs on a **virtual thread** courtesy of
+with **named native queries for recursive CTEs** (breadcrumbs and directory statistics). `EncryptedBlobUserType`
+sits below the stack and quietly encrypts and decrypts file content as it crosses the Hibernate boundary, prepending
+a **per-file IV** to each Large Object. Every JAX-RS handler runs on a **virtual thread** via
 `VirtualThreadServletExtension`, so blocking JDBC and streaming I/O cost nothing on the platform-thread side.
 
 **PostgreSQL 18** holds all state: the unified `file_node` inode table (directories and files share one schema,
@@ -461,6 +459,12 @@ PostgreSQL would force you to do by hand. **RDS Proxy** sits between the ASG and
 database connections so a sudden scale-out doesn't exhaust the connection pool, and it shortens failover time by
 keeping warm connections through promotions.
 
+**Object storage.** A future iteration could move file content out of the database and into **S3**. Quarkus would
+keep its existing AES/CTR/NoPadding encryption pipeline and stream the ciphertext straight to a private bucket; the
+database would shrink to metadata plus an S3 object key. This trades the convenience of a single transactional store
+for cheaper bytes, lower instance memory pressure during large reads, and S3's eleven-nines object durability. The
+current PostgreSQL Large Object path stays the default; the swap happens at the persistence boundary.
+
 **Secrets.** **AWS Secrets Manager** stores the database password, OIDC client credentials, and the encryption
 passphrase. Secrets are fetched at startup via the Quarkus AWS Secrets extension and rotated automatically;
 nothing sensitive lives in environment files or SSM Parameter Store plain text.
@@ -474,6 +478,7 @@ auto-scaling policy and page on-call via SNS.
 | TLS            | Caddy + Let's Encrypt DNS-01       | ACM cert on ALB, auto-renewed                     |
 | Availability   | Single EC2 instance                | ASG across 2 AZs, ALB health checks               |
 | Database       | On-instance PostgreSQL             | Aurora cluster (writer + readers, shared storage) |
+| File content   | PostgreSQL Large Objects           | Optional: S3 bucket (Aurora holds metadata)       |
 | Database proxy | None                               | RDS Proxy (connection pooling, faster failover)   |
 | Scaling        | Manual resize                      | Target-tracking ASG on ALB RPS                    |
 | Secrets        | SSM Parameter Store                | Secrets Manager with auto-rotation                |
@@ -577,8 +582,8 @@ src/main/angular/src/app/
 ├── pages/                 # Drive, SignIn, SignOut (all lazy-loaded)
 ├── components/            # Toolbar, Footer, FileBrowser, Breadcrumb, FileContextMenu,
 │                          # NotificationCenter, ErrorState, FilePreviewDialog,
-│                          # directory + file operation dialogs (create, rename,
-│                          # delete, properties)
+│                          # folder dialogs (create, rename, delete, properties),
+│                          # file dialogs (rename, delete, properties)
 ├── services/              # AuthService, FileService, MessageBusService, NotificationService,
 │                          # MessageReactorService, JsonMapperService
 ├── listeners/             # listener classes + AbstractApplicationEventListener +
@@ -725,8 +730,8 @@ type polymorphically. The full set:
 - `FileDownloadView(userAccountUuid, fileNodeUuid, filename, mimeType, sizeBytes, contentInputStream)`: wraps
   everything the `MessageBodyWriter` needs to stream a decrypted download response.
 
-The TypeScript side mirrors each client-facing view with matching field names (kept in sync as a project discipline),
-and `class-transformer` hydrates nested types via `@Type(() => X)`.
+The TypeScript side mirrors each client-facing view with matching field names (I keep them in sync), and
+`class-transformer` hydrates nested types via `@Type(() => X)`.
 
 ---
 
@@ -787,7 +792,7 @@ events into `ProgressNotification` updates rendered in the `NotificationCenter`'
 | GET    | `/api/files/{uuid}/download`   | Stream a file out; sets `Content-Disposition: attachment` and original `Content-Type`                                     |
 
 Successful `POST` responses (`/api/files`, `/api/files/{uuid}/upload`) return `201 Created` with the updated
-`DirectoryContentsView` body; other successes return `200 OK`. Errors are emitted as `400 Bad Request` with body
+`DirectoryContentsView` body; other successes return `200 OK`. Errors come back as `400 Bad Request` with body
 `{ "messageCode": "messages.errors.<key>" }` (translated by the Angular app via the i18n table). `GET /api/auth/me`
 returns `401 Unauthorized` when the session is signed out. The Angular app's `SessionHttpInterceptor` watches for
 `499` (a custom status used by the OIDC layer to signal session invalidation mid-request) and redirects to
@@ -882,9 +887,14 @@ every user-facing screen state: one per user story, plus extras for the empty, l
 mockups drove implementation directly: every screen the application renders maps back to a wireframe, and every
 wireframe corresponds to an acceptance criterion on the GitHub issue. The design system uses teal (`#009688`) for
 interactive elements and active states, danger red (`#d93025`) for destructive confirmation, and a neutral palette
-for backgrounds and text. Typography is Inter. Components are built with custom SCSS following the project's
+for backgrounds and text. Typography is Inter. I built components in custom SCSS following the project's
 design-token conventions; the global `styles.scss` defines shared `.dialog-*` and `.skeleton-*` classes (the
 latter for loading shimmer states).
+
+For an interactive walkthrough, see
+the [Figma Make prototype](https://figma.com/make/Wkr8DV1ZpKmnbnxNSMVgMs/Oppshan-Files?p=f&fullscreen=1).
+It opens in fullscreen and lets you click through the same flows live; the static wireframes below mirror each of its
+screens.
 
 The wireframes below cover the first 24 user stories. The remaining four (EPIC-07: Polish & Responsiveness)
 refine existing screens rather than introducing new ones.
@@ -981,7 +991,7 @@ type (MIME), size, location, created, modified.
 The upload progress section lives inside the `NotificationCenter`, a unified fixed bottom-right panel that renders
 all application notifications. During active uploads the panel shows an "Uploading N files" header with a collapse
 chevron. Each uploading file is a row with a green status dot, the filename, a teal progress bar with percentage,
-and a × dismiss button. Multiple concurrent uploads are stacked. Completed entries are removed; failed uploads
+and a × dismiss button. The panel stacks multiple concurrent uploads. Completed entries vanish; failed uploads
 disappear and surface as toasts. This section is feature-agnostic: any future progress-emitting operation can add
 entries using the same `ProgressNotification` model.
 
@@ -1076,15 +1086,13 @@ starts in under 100 ms, and runs with `-Xmx512m` heap on the deployment target.
 Production runs on a single **AWS EC2 t4g.small** (Graviton 2 ARM, 2 vCPU, 2 GB RAM) on **Amazon Linux 2023**,
 with **PostgreSQL 18 on the same instance** (not RDS or Aurora, which keeps cost predictable and removes cross-host
 network hops for a personal-scale app). **Caddy** terminates TLS on `:443` with a wildcard `*.oppshan.com` cert
-acquired automatically from Let's Encrypt via the **DNS-01 challenge against Route 53** (Caddy `route53` plugin, backed
-by an EC2 instance role with
-scoped Route 53 permissions). The wildcard cert auto-renews ~30 days before expiry; no ALB, no separate certificate
-management.
+acquired automatically from Let's Encrypt via the **DNS-01 challenge against Route 53** (Caddy `route53` plugin,
+backed by an EC2 instance role with scoped Route 53 permissions). The wildcard cert auto-renews ~30 days before
+expiry; no ALB, no separate certificate management.
 
 A single EIP gives the instance a stable public IP. Route 53 holds an A record `files.oppshan.com → <EIP>` and a CAA
-record restricting cert issuance to Let's Encrypt. SSM Session Manager replaces SSH for operator access, so no port 22
-is
-exposed and no key-pair management is needed.
+record restricting cert issuance to Let's Encrypt. SSM Session Manager replaces SSH for operator access, so no port
+22 is exposed and no key-pair management is needed.
 
 #### Deployment automation
 
