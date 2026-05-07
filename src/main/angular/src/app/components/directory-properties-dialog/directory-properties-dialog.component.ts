@@ -7,6 +7,7 @@ import {MessageBusService} from '../../services/message-bus-service';
 import {ApplicationEventType} from '../../models/application-event-type';
 import {FileService} from '../../services/file-service.service';
 import {FileNodeView} from '../../models/file-node-view';
+import {ActivatedRoute} from '@angular/router';
 
 @Component({
   selector: 'app-directory-properties-dialog',
@@ -18,16 +19,27 @@ export class DirectoryPropertiesDialog implements OnInit {
 
   protected readonly properties: WritableSignal<DirectoryPropertiesView | null>;
 
+  protected readonly location: Signal<string>;
+
   protected readonly directoryUrl: Signal<string>;
 
   private readonly selectedDirectory: Signal<FileNodeView | null>;
 
   constructor(private readonly messageBusService: MessageBusService,
-              private readonly fileService: FileService) {
+              private readonly fileService: FileService,
+              private readonly route: ActivatedRoute) {
     this.properties = signal<DirectoryPropertiesView | null>(null);
     this.selectedDirectory = computed(
       () => this.messageBusService.applicationEventSignal().payload as FileNodeView | null
     );
+    this.location = computed(() => {
+      const path = this.route.snapshot.url
+        .map(segment => decodeURIComponent(segment.path))
+        .join('/');
+      return path.length > 0
+        ? 'My files / ' + path.split('/').join(' / ')
+        : 'My files';
+    });
     this.directoryUrl = computed(() => {
       const uuid = this.selectedDirectory()?.uuid ?? '';
       return `${window.location.origin}/drive/${uuid}`;

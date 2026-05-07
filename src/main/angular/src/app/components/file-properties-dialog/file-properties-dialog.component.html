@@ -25,11 +25,12 @@
         </div>
         <div class="dialog-properties-row">
           <span class="dialog-properties-label">{{ 'dialog.fileProperties.created' | translate }}</span>
-          <span class="dialog-properties-value">{{ selectedFile()?.createdAt | dateTime:'MMM d, yyyy' }}</span>
+          <span class="dialog-properties-value">{{ selectedFile()?.createdAt | dateTime:'MMM d, yyyy, h:mm a' }}</span>
         </div>
         <div class="dialog-properties-row">
           <span class="dialog-properties-label">{{ 'dialog.fileProperties.modified' | translate }}</span>
-          <span class="dialog-properties-value">{{ selectedFile()?.lastModifiedAt | dateTime:'MMM d, yyyy' }}</span>
+          <span
+            class="dialog-properties-value">{{ selectedFile()?.lastModifiedAt | dateTime:'MMM d, yyyy, h:mm a' }}</span>
         </div>
       </div>
     </div>

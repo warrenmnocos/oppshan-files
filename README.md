@@ -112,9 +112,9 @@ two-way data binding wired by hand where it's actually needed. Pushing to `main`
 GraalVM compiles a native ARM binary, uploads it to S3, and rolls it out to EC2 via SSM. No SSH, no long-lived AWS keys,
 no human in the loop.
 
-I planned the project across six sprints on a GitHub Projects board, with 24 user stories tracked end-to-end
-and a wireframe mockup for every user-facing screen state. A seventh sprint was added late to cover polish and
-responsiveness work that emerged during implementation.
+I planned the project across seven sprints on a GitHub Projects board, with 28 user stories tracked end-to-end
+and a wireframe mockup for every user-facing screen state. The first six sprints were scoped from the start; a
+seventh was added late to cover polish and responsiveness work that emerged during implementation.
 
 This project is developed as the final exam for **ITMD 504 — Programming and Application Foundations** at
 **Illinois Institute of Technology**.
@@ -392,9 +392,10 @@ listeners** receive those commands, call the relevant service, and emit `*Succee
 The **backend** is a Quarkus 3 native binary. Three JAX-RS endpoint classes delegate to three services:
 `FileNodeService` does all file-system mutations inside a single `@Transactional` boundary, `UserAccountService`
 creates users on the OIDC callback, and `UserSessionManager` caches the authenticated user for the duration of
-the HTTP session (with read/write locking around the cache). Both services lean on a pair of Jakarta Data
-repositories (`FileNodeRepository` and `UserAccountRepository`) that mix JPQL queries with **named native
-queries for recursive CTEs** (breadcrumbs and directory statistics). `EncryptedBlobUserType` sits underneath all
+the HTTP session (with read/write locking around the cache). The services lean on three Jakarta Data
+repositories (`FileNodeRepository`, `UserAccountRepository`, and `IdpAccountRepository`) that mix JPQL queries
+with **named native queries for recursive CTEs** (breadcrumbs and directory statistics). `EncryptedBlobUserType` sits
+underneath all
 of this and quietly encrypts and decrypts file content as it crosses the Hibernate boundary, prepending a
 **per-file IV** to each Large Object. Every JAX-RS handler runs on a **virtual thread** courtesy of
 `VirtualThreadServletExtension`, so blocking JDBC and streaming I/O cost nothing on the platform-thread side.
@@ -838,9 +839,9 @@ using the Google JWKS endpoint.
 
 ### Startup validation
 
-At application startup, `FileContentCipherService` validates that the encryption passphrase meets a minimum length
-requirement. If the passphrase is too short, the application fails to start with a clear error message instructing
-the operator to generate a proper key.
+At application startup, Quarkus validates the `ApplicationStorage` configuration mapping via Bean Validation. The
+encryption passphrase must be at least 32 characters (`@Size(min = 32)`); if it is too short or missing, the
+application fails to start with a clear validation error.
 
 ### Database role
 
@@ -876,15 +877,17 @@ Migration files live in `src/main/resources/db/migration/postgresql/` and are pl
 
 ## User Experience Design
 
-I finalized the visual design before writing any code. Every user-facing screen state has a wireframe mockup: one
-per user story, plus extras for the empty, loading, and error variants. The mockups drove implementation directly:
-every screen the application renders maps back to a wireframe, and every wireframe corresponds to an acceptance
-criterion on the GitHub issue. The design system uses teal (`#009688`) for interactive elements and active states,
-danger red (`#d93025`) for destructive confirmation, and a neutral palette for backgrounds and text. Typography is
-Inter. Components are built with custom SCSS following the project's design-token conventions; the global
-`styles.scss` defines shared `.dialog-*` and `.skeleton-*` classes (the latter for loading shimmer states).
+I finalized the visual design before writing any code using an **AI design tool** to produce wireframe mockups for
+every user-facing screen state: one per user story, plus extras for the empty, loading, and error variants. The
+mockups drove implementation directly: every screen the application renders maps back to a wireframe, and every
+wireframe corresponds to an acceptance criterion on the GitHub issue. The design system uses teal (`#009688`) for
+interactive elements and active states, danger red (`#d93025`) for destructive confirmation, and a neutral palette
+for backgrounds and text. Typography is Inter. Components are built with custom SCSS following the project's
+design-token conventions; the global `styles.scss` defines shared `.dialog-*` and `.skeleton-*` classes (the
+latter for loading shimmer states).
 
-The wireframes below cover the user flow through all 24 user stories.
+The wireframes below cover the first 24 user stories. The remaining four (EPIC-07: Polish & Responsiveness)
+refine existing screens rather than introducing new ones.
 
 ### Sign in ([[US-01]](https://github.com/warrenmnocos/oppshan-files/issues/3))
 
