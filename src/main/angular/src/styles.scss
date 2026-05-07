@@ -15,6 +15,9 @@ html, body {
 
 img {
   -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  user-select: none;
+  pointer-events: none;
 }
 
 // Skeleton styles
