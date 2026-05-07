@@ -48,6 +48,8 @@ export class FileContextMenu implements OnInit, OnDestroy {
   private readonly mediaQuery: MediaQueryList;
   private readonly mediaListener: (event: MediaQueryListEvent) => void;
 
+  private justOpenedAt: number;
+
   constructor(private readonly messageBusService: MessageBusService) {
     const payloadOf = () =>
       this.messageBusService.applicationEventSignal().payload as ContextMenuShown | null;
@@ -66,6 +68,8 @@ export class FileContextMenu implements OnInit, OnDestroy {
     this.clampedPosition = signal<{ x: number; y: number } | null>(null);
     this.visible = signal<boolean>(false);
 
+    this.justOpenedAt = Date.now();
+
     afterNextRender(() => this.measureAndShow());
     effect(() => {
       this.target();
@@ -83,6 +87,10 @@ export class FileContextMenu implements OnInit, OnDestroy {
 
   @HostListener('document:pointerdown', ['$event'])
   onOutsidePointerDown(event: PointerEvent): void {
+    if (Date.now() - this.justOpenedAt < 300) {
+      return;
+    }
+
     if (this.hostRef.nativeElement.contains(event.target as Node)) {
       return;
     }
