@@ -47,23 +47,17 @@
 .action-btn-primary {
   background: #009688;
   color: #fff;
-
-  .action-btn-icon {
-    width: 1rem;
-    height: 1rem;
-    filter: brightness(0) invert(1);
-  }
 }
 
 .action-btn-secondary {
   background: #e8a735;
   color: #fff;
+}
 
-  .action-btn-icon {
-    width: 1rem;
-    height: 1rem;
-    filter: brightness(0) invert(1);
-  }
+.action-btn-icon {
+  width: 1rem;
+  height: 1rem;
+  filter: brightness(0) invert(1);
 }
 
 .view-toggle {

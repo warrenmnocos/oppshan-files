@@ -61,6 +61,8 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
 
   private longPressTouch: { x: number; y: number; target: FileNodeView } | null;
 
+  private longPressFired: boolean;
+
   private applicationEventSubscription?: Subscription;
 
   constructor(private readonly messageBusService: MessageBusService,
@@ -69,6 +71,7 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
     this.dropTarget = signal(false);
     this.longPressTimer = null;
     this.longPressTouch = null;
+    this.longPressFired = false;
     this.quotaExceeded = computed(() => {
       const account = this.userAccountView();
       if (!account || account.maxStorageBytes === 0) {
@@ -119,6 +122,11 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
   }
 
   onItemClick(event: MouseEvent, item: FileNodeView): void {
+    if (this.longPressFired) {
+      this.longPressFired = false;
+      return;
+    }
+
     event.stopPropagation();
     this.selectItem(item);
   }
@@ -178,6 +186,7 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
   }
 
   onItemTouchStart(event: TouchEvent, target: FileNodeView): void {
+    this.longPressFired = false;
     const touch = event.touches[0];
     this.longPressTouch = {x: touch.clientX, y: touch.clientY, target};
     this.longPressTimer = window.setTimeout(() => this.fireLongPress(), 500);
@@ -342,6 +351,7 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
       return;
     }
 
+    this.longPressFired = true;
     this.openContextMenu(touch.target, {x: touch.x, y: touch.y});
     this.longPressTimer = null;
   }

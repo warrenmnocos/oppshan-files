@@ -1,5 +1,8 @@
 @if (bottomSheet()) {
-  <div class="ctx-backdrop" (click)="onBackdropClick($event)"></div>
+  <div class="ctx-backdrop"
+       (pointerdown)="onBackdropPointerDown($event)"
+       (click)="onBackdropClick($event)">
+  </div>
   <div #host class="ctx-sheet" [class.ctx-visible]="visible()">
     <div class="ctx-grab"></div>
     @for (item of items(); track $index) {

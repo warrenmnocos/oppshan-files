@@ -168,6 +168,10 @@ export class FileContextMenu implements OnInit, OnDestroy {
     }
   }
 
+  protected onBackdropPointerDown(event: PointerEvent): void {
+    event.stopPropagation();
+  }
+
   protected onBackdropClick(event: MouseEvent): void {
     event.stopPropagation();
     this.dismiss();
