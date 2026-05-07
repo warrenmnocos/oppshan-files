@@ -16,7 +16,7 @@
 ## Table of Contents
 
 - [Project Overview](#project-overview)
-    - [Repository](#repository)
+    - [Project Links](#project-links)
 - [Project Management](#project-management)
     - [Board structure](#board-structure)
     - [Branch and pull request convention](#branch-and-pull-request-convention)
@@ -119,11 +119,13 @@ seventh was added late to cover polish and responsiveness work that emerged duri
 This project is developed as the final exam for **ITMD 504 — Programming and Application Foundations** at
 **Illinois Institute of Technology**.
 
-### Repository
+### Project Links
 
-- **Source code:** [github.com/warrenmnocos/oppshan-files](https://github.com/warrenmnocos/oppshan-files)
-- **Project board:** [github.com/users/warrenmnocos/projects/1](https://github.com/users/warrenmnocos/projects/1)
-- **Live application:** [files.oppshan.com](https://files.oppshan.com)
+- **Source Code:** [github.com/warrenmnocos/oppshan-files](https://github.com/warrenmnocos/oppshan-files)
+- **Project Board:** [github.com/users/warrenmnocos/projects/1](https://github.com/users/warrenmnocos/projects/1)
+- **GitHub Actions:
+  ** [github.com/warrenmnocos/oppshan-files/actions](https://github.com/warrenmnocos/oppshan-files/actions)
+- **Live Application:** [files.oppshan.com](https://files.oppshan.com)
 
 ---
 
@@ -132,7 +134,7 @@ This project is developed as the final exam for **ITMD 504 — Programming and A
 The whole project runs on a **web-based Agile workflow** hosted on GitHub: **GitHub Projects** is the Kanban
 board, **GitHub Issues** is the backlog, and **GitHub Milestones** are the sprint containers. Every user story
 is a tracked issue, every implementation lives on a named feature branch, and every merge to `main` goes through
-a reviewed pull request that auto-closes the originating issue. Code, board, and reviews all live on the same platform:
+a pull request that auto-closes the originating issue. Code, board, and reviews all live on the same platform:
 the **Agile iteration loop**, end to end. The board is available at
 [github.com/users/warrenmnocos/projects/1](https://github.com/users/warrenmnocos/projects/1).
 
@@ -147,25 +149,26 @@ linked to its corresponding issue.
 
 ### Branch and pull request convention
 
-Every user story follows a consistent workflow. The branch is created from the GitHub issue sidebar, producing a name
-like `3-us-01-sign-in-with-google` where `3` is the issue number. Commits reference the issue with the format
-`refs #3 Implement Google OIDC callback endpoint`. Pull requests are titled `feat/US-01: Sign In with Google` and
-include `Closes #3` in the body, which triggers auto-close of the issue and moves the card to Done upon merge. Epic
-merge commits use the prefix `refs #<n> Merged feat/EPIC-0x: <description>`.
+Every user story follows a consistent workflow. The branch is created from the GitHub issue sidebar, producing a
+name like `3-us-01-sign-in-with-google` where `3` is the issue number. Commits reference the issue with the format
+`refs #3 Implement Google OIDC callback endpoint`. Pull requests are titled `feat/US-01: Sign In with Google`.
+Because the branch was created from the issue sidebar, GitHub keeps the PR linked to the originating issue in the
+Development panel, so merging auto-closes the issue and moves the card to Done. Epic merge commits use the prefix
+`refs #<n> Merged feat/EPIC-0x: <description>`.
 
 ### Sprint plan
 
 I organized the project into seven sprints targeting a **May 9, 2026** submission deadline.
 
-| Sprint | Window          | Epic                                                                                           | User Stories                                                                                                                                  | Status      |
-|--------|-----------------|------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|-------------|
-| 1      | Mar 25 – Apr 4  | [[EPIC-01]](https://github.com/warrenmnocos/oppshan-files/issues/2) Authentication and Account | [[US-01]](https://github.com/warrenmnocos/oppshan-files/issues/3) through [[US-04]](https://github.com/warrenmnocos/oppshan-files/issues/6)   | Done        |
-| 2      | Apr 5 – Apr 11  | [[EPIC-02]](https://github.com/warrenmnocos/oppshan-files/issues/9) Navigation and Layout      | [[US-05]](https://github.com/warrenmnocos/oppshan-files/issues/10) through [[US-08]](https://github.com/warrenmnocos/oppshan-files/issues/13) | Done        |
-| 3      | Apr 12 – Apr 18 | [[EPIC-03]](https://github.com/warrenmnocos/oppshan-files/issues/14) Folder Management         | [[US-09]](https://github.com/warrenmnocos/oppshan-files/issues/15) through [[US-12]](https://github.com/warrenmnocos/oppshan-files/issues/18) | Done        |
-| 4      | Apr 19 – Apr 25 | [[EPIC-04]](https://github.com/warrenmnocos/oppshan-files/issues/19) File Management           | [[US-13]](https://github.com/warrenmnocos/oppshan-files/issues/20) through [[US-19]](https://github.com/warrenmnocos/oppshan-files/issues/26) | Done        |
-| 5      | Apr 26 – May 2  | [[EPIC-05]](https://github.com/warrenmnocos/oppshan-files/issues/27) Context Menu              | [[US-20]](https://github.com/warrenmnocos/oppshan-files/issues/28) through [[US-22]](https://github.com/warrenmnocos/oppshan-files/issues/30) | Done        |
-| 6      | May 3 – May 9   | [[EPIC-06]](https://github.com/warrenmnocos/oppshan-files/issues/31) Storage                   | [[US-23]](https://github.com/warrenmnocos/oppshan-files/issues/32) and [[US-24]](https://github.com/warrenmnocos/oppshan-files/issues/33)     | Done        |
-| 7      | May 7 – May 9   | [[EPIC-07]](https://github.com/warrenmnocos/oppshan-files/issues/40) Polish & Responsiveness   | [[US-25]](https://github.com/warrenmnocos/oppshan-files/issues/41) through [[US-28]](https://github.com/warrenmnocos/oppshan-files/issues/44) | In Progress |
+| Sprint | Window          | Epic                                                                                           | User Stories                                                                                                                                  | Status                                                                                                              |
+|--------|-----------------|------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------|
+| 1      | Mar 25 – Apr 4  | [[EPIC-01]](https://github.com/warrenmnocos/oppshan-files/issues/2) Authentication and Account | [[US-01]](https://github.com/warrenmnocos/oppshan-files/issues/3) through [[US-04]](https://github.com/warrenmnocos/oppshan-files/issues/6)   | ![status](https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/2?label=&style=flat-square)  |
+| 2      | Apr 5 – Apr 11  | [[EPIC-02]](https://github.com/warrenmnocos/oppshan-files/issues/9) Navigation and Layout      | [[US-05]](https://github.com/warrenmnocos/oppshan-files/issues/10) through [[US-08]](https://github.com/warrenmnocos/oppshan-files/issues/13) | ![status](https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/9?label=&style=flat-square)  |
+| 3      | Apr 12 – Apr 18 | [[EPIC-03]](https://github.com/warrenmnocos/oppshan-files/issues/14) Folder Management         | [[US-09]](https://github.com/warrenmnocos/oppshan-files/issues/15) through [[US-12]](https://github.com/warrenmnocos/oppshan-files/issues/18) | ![status](https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/14?label=&style=flat-square) |
+| 4      | Apr 19 – Apr 25 | [[EPIC-04]](https://github.com/warrenmnocos/oppshan-files/issues/19) File Management           | [[US-13]](https://github.com/warrenmnocos/oppshan-files/issues/20) through [[US-19]](https://github.com/warrenmnocos/oppshan-files/issues/26) | ![status](https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/19?label=&style=flat-square) |
+| 5      | Apr 26 – May 2  | [[EPIC-05]](https://github.com/warrenmnocos/oppshan-files/issues/27) Context Menu              | [[US-20]](https://github.com/warrenmnocos/oppshan-files/issues/28) through [[US-22]](https://github.com/warrenmnocos/oppshan-files/issues/30) | ![status](https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/27?label=&style=flat-square) |
+| 6      | May 3 – May 9   | [[EPIC-06]](https://github.com/warrenmnocos/oppshan-files/issues/31) Storage                   | [[US-23]](https://github.com/warrenmnocos/oppshan-files/issues/32) and [[US-24]](https://github.com/warrenmnocos/oppshan-files/issues/33)     | ![status](https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/31?label=&style=flat-square) |
+| 7      | May 7 – May 9   | [[EPIC-07]](https://github.com/warrenmnocos/oppshan-files/issues/40) Polish & Responsiveness   | [[US-25]](https://github.com/warrenmnocos/oppshan-files/issues/41) through [[US-28]](https://github.com/warrenmnocos/oppshan-files/issues/44) | ![status](https://img.shields.io/github/issues/detail/state/warrenmnocos/oppshan-files/40?label=&style=flat-square) |
 
 ### Labels and delivery tiers
 
@@ -342,32 +345,57 @@ Full acceptance criteria for each story live on the linked GitHub issue.
 
 ## Tech Stack
 
-The backend runs on **Quarkus 3.34.3** with **Java 25** (Oracle GraalVM). JAX-RS endpoints run on the Undertow
+The stack at a glance:
+
+| Layer              | Technology                                                              | Notable capability used                                                                                                               |
+|--------------------|-------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
+| Backend framework  | **Quarkus 3.34.3** on **Java 25** (Oracle GraalVM)                      | Every JAX-RS handler runs on a **virtual thread** via custom `VirtualThreadServletExtension`                                          |
+| Persistence        | **Hibernate ORM** + **Jakarta Data** repositories                       | Custom **Hibernate `UserType`** for transparent AES/CTR encryption; **recursive-CTE `@NamedNativeQuery`** for tree walks              |
+| Cryptography       | **Java Cryptography Architecture (JCA/JCE)**                            | **AES/CTR/NoPadding** + per-file 16-byte IV from `SecureRandom`; key via **PBKDF2WithHmacSHA256** (1M iterations)                     |
+| Database           | **PostgreSQL 18** + **Flyway**                                          | Large Objects for file content; `BEFORE DELETE` trigger calling `lo_unlink`; UUID v7 primary keys                                     |
+| Authentication     | **Quarkus OIDC** + **Google OAuth 2.0**                                 | HTTP-only cookies, encrypted token state, `@SessionScoped` user cache with `@Lock` guards                                             |
+| Design & UX        | **Figma Make** prototype + per-user-story wireframe mockups             | Interactive click-through prototype mirrors 1:1 the screens the app implements; one wireframe per acceptance criterion                |
+| Frontend framework | **Angular 21**                                                          | Signals-first state, standalone components, `@if`/`@for` control flow, **hand-wired two-way data binding**                            |
+| Reactive plumbing  | **RxJS**                                                                | `Subject`-backed event bus exposing typed `Observable` channels for the CQRS event/listener pattern                                   |
+| Build              | **Maven** + **frontend-maven-plugin**                                   | One `./mvnw package` compiles the Angular bundle and packages it with the backend into a single artifact                              |
+| Production binary  | **Oracle GraalVM 25** native image                                      | ARM64-tuned with `-march=armv8-a+aes+lse` and G1 GC; ~70-90 MB, sub-100 ms startup                                                    |
+| Quality            | **Quarkus Dev Services** + **Testcontainers** + **JaCoCo** + **Qodana** | Real PostgreSQL 18 + Keycloak per test run; coverage minimums enforced; static analysis on every PR                                   |
+| Project management | **GitHub Projects** + **Issues** + **Milestones**                       | Web-based Agile board: seven sprints, seven epics, 28 user stories, three priority tiers                                              |
+| Source control     | **GitHub** repository with feature branches and pull requests           | Branches created from the issue sidebar; merging a PR auto-closes the linked issue and moves the card to Done                         |
+| CI/CD              | **GitHub Actions** + **OIDC federation to AWS STS**                     | Three workflows; native ARM64 binary built on `ubuntu-24.04-arm`; no long-lived AWS keys                                              |
+| Hosting            | **AWS EC2 t4g.small** (Graviton 2 ARM64) on **Amazon Linux 2023**       | Single instance with PostgreSQL 18 on the same host                                                                                   |
+| Edge & TLS         | **Caddy** + **Let's Encrypt** + **AWS Route 53**                        | **Route 53** holds the `A` record and `CAA` lock; wildcard `*.oppshan.com` cert acquired via DNS-01; **Caddy** terminates TLS, no ALB |
+| Operations         | **AWS SSM Session Manager** + **SSM Run Command**                       | Replaces SSH; deploys without port 22 ever being exposed                                                                              |
+
+The backend runs on **Quarkus 3.34.3** with **Java 25** (Oracle GraalVM). **JAX-RS** endpoints run on the **Undertow**
 servlet container, but I swapped out the worker pool at deployment time with `VirtualThreadServletExtension` so
-every request handler runs on a **virtual thread**. Blocking JDBC and `InputStream` reads cost nothing in
-platform-thread terms. Hibernate ORM validates the Flyway-managed schema at startup; breadcrumb walks and directory
-totals use `@NamedNativeQuery` with recursive CTEs rather than row-by-row navigation. A custom Hibernate `UserType`
+every request handler runs on a **virtual thread**. Blocking **JDBC** and `InputStream` reads cost nothing in
+platform-thread terms. **Hibernate ORM** validates the **Flyway**-managed schema at startup; breadcrumb walks and
+directory
+totals use `@NamedNativeQuery` with recursive **CTE**s rather than row-by-row navigation. A custom Hibernate `UserType`
 (`EncryptedBlobUserType`) sits at the persistence boundary and encrypts/decrypts file content transparently. The
-service and endpoint layers never see ciphertext. Google sign-in goes through the Quarkus OIDC extension, and
-Quarkus Dev Services spins up ephemeral PostgreSQL and Keycloak containers for the test profile.
+service and endpoint layers never see ciphertext. Google sign-in goes through the Quarkus **OpenID Connect** extension,
+and Quarkus Dev Services spins up ephemeral **PostgreSQL** and Keycloak containers for the test profile.
 
 The frontend is **Angular 21**, standalone-components only, signals-first. State lives in `signal()` and
-`computed()`; component boundaries use `input()` and `output()`. Two-way data binding is wired explicitly via
+`computed()`; component boundaries use `input()` and `output()`. **Two-way data binding** is wired explicitly via
 `[ngModel]` / `(ngModelChange)` against a writable signal. I avoided `model()` on purpose, since the input/output
 pair it generates costs you whether or not the parent ever two-way binds. Reactive lists, dialog visibility, and
 notifications all use the `@if` / `@for` control flow instead of `*ngIf` / `*ngFor`; routes are lazy-loaded with
-`loadComponent`; and `class-transformer` hydrates DTOs with type information preserved. A custom
-`MessageBusService` event bus sits at the center: dedicated single-responsibility listeners react to typed events,
-keeping mutation paths separate from read paths (CQRS).
+`loadComponent`; and `class-transformer` hydrates DTOs with type information preserved. At the center sits a custom
+`MessageBusService` **event bus**, built on an **RxJS** `Subject` that exposes typed `Observable` channels.
+Dedicated single-responsibility listeners subscribe to those channels, keeping mutation paths separate from read paths
+(CQRS).
 
 **Maven** performs the build. The `frontend-maven-plugin` compiles the Angular project and drops the bundle into
 `src/main/resources/META-INF/resources/`, where Quarkus picks it up and serves it as static content. The production
-target is a GraalVM native image for ARM64. JaCoCo tracks test coverage and JetBrains Qodana runs static analysis
+target is a **GraalVM native image** for ARM64. **JaCoCo** tracks test coverage and **JetBrains Qodana** runs static
+analysis
 on every PR.
 
 The application runs on a single **AWS EC2 t4g.small** (Graviton 2 ARM64) instance with **Amazon Linux 2023** and
 **PostgreSQL 18 on the same host**. Caddy terminates TLS and proxies to Quarkus on localhost. DNS goes through
-AWS Route 53 with an A record pointing to a static EIP.
+**AWS Route 53** with an A record pointing to a static EIP.
 
 ---
 
