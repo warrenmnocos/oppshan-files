@@ -375,9 +375,8 @@ The stack at a glance:
 The backend runs on **Quarkus 3.34.3** with **Java 25** (Oracle GraalVM). **JAX-RS** endpoints run on the **Undertow**
 servlet container, but I swapped out the worker pool at deployment time with `VirtualThreadServletExtension` so
 every request handler runs on a **virtual thread**. Blocking **JDBC** and `InputStream` reads cost nothing in
-platform-thread terms. **Hibernate ORM** validates the **Flyway**-managed schema at startup; breadcrumb walks and
-directory
-totals use `@NamedNativeQuery` with recursive **CTE**s rather than row-by-row navigation. A custom Hibernate `UserType`
+platform-thread terms. **Hibernate ORM** validates the **Flyway**-managed schema at startup; breadcrumb walks
+and directory totals use `@NamedNativeQuery` with recursive **CTE**s rather than row-by-row navigation. A custom Hibernate `UserType`
 (`EncryptedBlobUserType`) sits at the persistence boundary and encrypts/decrypts file content transparently. The
 service and endpoint layers never see ciphertext. Google sign-in goes through the Quarkus **OpenID Connect** extension,
 and Quarkus Dev Services spins up ephemeral **PostgreSQL** and Keycloak containers for the test profile.
@@ -394,9 +393,8 @@ Dedicated single-responsibility listeners subscribe to those channels, keeping m
 
 **Maven** performs the build. The `frontend-maven-plugin` compiles the Angular project and drops the bundle into
 `src/main/resources/META-INF/resources/`, where Quarkus picks it up and serves it as static content. The production
-target is a **GraalVM native image** for ARM64. **JaCoCo** tracks test coverage and **JetBrains Qodana** runs static
-analysis
-on every PR.
+target is a **GraalVM native image** for ARM64. **JaCoCo** tracks test coverage and **JetBrains Qodana** runs
+static analysis on every PR.
 
 The application runs on a single **AWS EC2 t4g.small** (Graviton 2 ARM64) instance with **Amazon Linux 2023** and
 **PostgreSQL 18 on the same host**. Caddy terminates TLS and proxies to Quarkus on localhost. DNS goes through
@@ -645,10 +643,9 @@ for a complete list.
 The `FileNode` entity is a unified inode-style record: a row may represent either a file or a directory, controlled
 by the `directory` boolean. As a result, several endpoints are polymorphic. `PATCH /api/files/{uuid}` dispatches to
 `renameDirectory` or `renameFile`; `DELETE /api/files/{uuid}` dispatches to `deleteDirectory` or `deleteFile`;
-`GET /api/files/{uuid}/properties` dispatches to `DirectoryPropertiesView` or `RegularFilePropertiesView`. The endpoint
-and
-the Angular app both treat the type as runtime data on the same record, so listing a directory returns a `FileNodeView`
-list mixing both kinds.
+`GET /api/files/{uuid}/properties` dispatches to `DirectoryPropertiesView` or `RegularFilePropertiesView`. The
+endpoint and the Angular app both treat the type as runtime data on the same record, so listing a directory
+returns a `FileNodeView` list mixing both kinds.
 
 ### Streaming uploads on virtual threads
 
