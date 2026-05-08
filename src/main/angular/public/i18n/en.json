@@ -104,6 +104,15 @@
       "unavailable": "Preview is not available for this file type.",
       "download": "Download",
       "close": "Close"
+    },
+    "profile": {
+      "title": "Profile",
+      "memberSince": "Member since",
+      "storageUsed": "Storage used",
+      "storageLimit": "Storage limit",
+      "maxUploadSize": "Max upload size",
+      "accountId": "Account ID",
+      "close": "Close"
     }
   },
   "misc": {

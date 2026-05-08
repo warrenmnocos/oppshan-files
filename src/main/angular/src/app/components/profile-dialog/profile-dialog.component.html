@@ -1,0 +1,52 @@
+<div (click)="onClose()" class="dialog-overlay">
+  <div (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)" class="dialog">
+    <h2 class="dialog-title">{{ 'dialog.profile.title' | translate }}</h2>
+    <div class="dialog-body">
+      <div class="profile-header">
+        <span class="profile-avatar">
+          @if (photoRetrieved) {
+            <img (error)="onPhotoError()" [alt]="userAccountView()?.firstName"
+                 [src]="userAccountView()?.photoUrl" class="profile-avatar-img">
+          } @else {
+            {{ initials() }}
+          }
+        </span>
+        <div class="profile-header-info">
+          <span class="profile-name">{{ fullName() }}</span>
+          <span class="profile-email">{{ userAccountView()?.email }}</span>
+        </div>
+      </div>
+      <div class="dialog-properties">
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.profile.memberSince' | translate }}</span>
+          <span
+            class="dialog-properties-value">{{ userAccountView()?.createdAt | dateTime:'MMM d, yyyy' }}</span>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.profile.storageUsed' | translate }}</span>
+          <span
+            class="dialog-properties-value">{{ userAccountView()?.usedStorageBytes | fileSize }}</span>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.profile.storageLimit' | translate }}</span>
+          <span
+            class="dialog-properties-value">{{ userAccountView()?.maxStorageBytes | fileSize }}</span>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.profile.maxUploadSize' | translate }}</span>
+          <span
+            class="dialog-properties-value">{{ userAccountView()?.maxFileUploadBytes | fileSize }}</span>
+        </div>
+        <div class="dialog-properties-row">
+          <span class="dialog-properties-label">{{ 'dialog.profile.accountId' | translate }}</span>
+          <span class="dialog-properties-value profile-account-id">{{ userAccountView()?.uuid }}</span>
+        </div>
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <button (click)="onClose()" class="dialog-btn dialog-btn-secondary">
+        {{ 'dialog.profile.close' | translate }}
+      </button>
+    </div>
+  </div>
+</div>
