@@ -137,10 +137,9 @@ seventh was added late to cover polish and responsiveness work that emerged duri
 The whole project runs on a **web-based Agile workflow** hosted on GitHub: **GitHub Projects** is the Kanban
 board, **GitHub Issues** is the backlog, and **GitHub Milestones** are the sprint containers. Every user story
 is a tracked issue grouped under its epic, each epic is implemented on a named feature branch, and every merge
-to `main` goes through a pull request that auto-closes the originating issue. Code, board, and reviews all live on the
-same platform:
-the **Agile iteration loop**, end to end. The board is available at
-[github.com/users/warrenmnocos/projects/1](https://github.com/users/warrenmnocos/projects/1).
+to `main` goes through a pull request that auto-closes the originating issue. Code, board, and reviews all live
+on the same platform, so the full **Agile iteration loop** runs end to end without leaving GitHub. The board is
+available at [github.com/users/warrenmnocos/projects/1](https://github.com/users/warrenmnocos/projects/1).
 
 ### Board structure
 
@@ -598,9 +597,9 @@ folder fires `DirectoryCreateInitiated`, Download fires `FileDownloadConfirmed`.
 the menu has no idea how upload actually works, so it fires a thin `FileUploadPickerShown` bridge event and
 `FileBrowser` (which owns the file picker) decides what to do with it.
 
-Layout flips at 480 px via `window.matchMedia('(max-width: 480px)')`. Above the breakpoint, the menu floats at
-the trigger coordinates and clamps itself to the viewport (via `getBoundingClientRect` after first render).
-Below it, the menu renders as a full-width bottom sheet over a backdrop.
+Layout flips at roughly 599 px (`37.4375rem`) via `window.matchMedia('(max-width: 37.4375rem)')`. Above the
+breakpoint, the menu floats at the trigger coordinates and clamps itself to the viewport (via
+`getBoundingClientRect` after first render). Below it, the menu renders as a full-width bottom sheet over a backdrop.
 
 ### Standalone components and signals
 
@@ -742,8 +741,8 @@ configuration entry, with no schema change to the file or user core.
 <tr><td><code>createdAt</code></td><td><code>Instant</code></td><td>Audit timestamp set on <code>@PrePersist</code>; <code>NOT NULL</code>, not updatable, <code>@NotNull</code>; indexed (<code>idx_user_account_created_at</code>)</td></tr>
 <tr><td><code>lastModifiedAt</code></td><td><code>Instant</code></td><td>Audit timestamp bumped on <code>@PrePersist</code> + <code>@PreUpdate</code>; <code>NOT NULL</code>, <code>@NotNull</code></td></tr>
 <tr><td rowspan="6"><code>IdpAccount</code><br><em>(abstract, JOINED inheritance)</em></td><td><code>uuid</code></td><td><code>UUID</code></td><td>Primary key (UUID v7); <code>NOT NULL</code>, not updatable, <code>@NotNull</code></td></tr>
-<tr><td><code>providerId</code></td><td><code>String</code></td><td>External identifier from the IdP (e.g., Google <code>sub</code>); <code>NOT NULL</code>, <code>@NotEmpty</code>, not updatable; part of <code>(provider_name, provider_id)</code> unique constraint</td></tr>
-<tr><td><code>providerName</code></td><td><code>String</code></td><td>Provider name (e.g., <code>"google"</code>); <code>NOT NULL</code>, <code>@NotEmpty</code>, not updatable; part of <code>(provider_name, provider_id)</code> unique constraint</td></tr>
+<tr><td><code>providerId</code></td><td><code>String</code></td><td>External identifier from the IdP (e.g., Google <code>sub</code>); <code>NOT NULL</code>, <code>@NotEmpty</code>, not updatable; part of <code>(provider_id, provider_name, user_account_uuid)</code> unique constraint</td></tr>
+<tr><td><code>providerName</code></td><td><code>String</code></td><td>Provider name (e.g., <code>"google"</code>); <code>NOT NULL</code>, <code>@NotEmpty</code>, not updatable; part of <code>(provider_id, provider_name, user_account_uuid)</code> unique constraint</td></tr>
 <tr><td><code>userAccount</code></td><td><code>UserAccount</code></td><td>Many-to-one owning user; <code>NOT NULL</code>, not updatable, <code>@NotNull</code>, <code>FetchType.LAZY</code></td></tr>
 <tr><td><code>createdAt</code></td><td><code>Instant</code></td><td>Audit timestamp; <code>NOT NULL</code>, not updatable, <code>@NotNull</code>; indexed (<code>idx_idp_account_created_at</code>)</td></tr>
 <tr><td><code>lastModifiedAt</code></td><td><code>Instant</code></td><td>Audit timestamp; <code>NOT NULL</code>, <code>@NotNull</code></td></tr>
