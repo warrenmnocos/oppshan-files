@@ -7,7 +7,9 @@ import io.smallrye.common.annotation.Identifier;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.SessionScoped;
 import jakarta.enterprise.inject.Alternative;
+import jakarta.enterprise.inject.spi.CDI;
 import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
 
 import static jakarta.interceptor.Interceptor.Priority.APPLICATION;
 
@@ -51,6 +53,16 @@ public class SessionScopedUserSessionManager implements UserSessionManager {
         }
 
         delegate.signOut();
+
+        final var httpSession = CDI.current()
+                .select(HttpServletRequest.class)
+                .get()
+                .getSession(false);
+        if (httpSession != null) {
+            httpSession.invalidate();
+        }
+
+        sessionUserAccountView = UserAccountView.anonymous();
     }
 
     @Override

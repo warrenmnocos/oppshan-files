@@ -115,7 +115,7 @@
         Single Artifact
     </text>
     <text x="360" y="494" text-anchor="middle" font-size="9" fill="#7D3C98">
-        uber-jar (java -jar) · or GraalVM native binary (~70–90 MB)
+        uber-jar (java -jar) · or GraalVM native binary
     </text>
 
     <!-- Arrow artifact→runtime -->
