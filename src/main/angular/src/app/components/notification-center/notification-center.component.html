@@ -11,7 +11,8 @@
           </span>
           <button (click)="toggleUploadCollapsed()" class="icon-btn" type="button"
                   [attr.aria-label]="uploadCollapsed() ? 'Expand' : 'Collapse'">
-            <span class="chevron" [class.chevron--collapsed]="uploadCollapsed()">&#8963;</span>
+            <img alt="" class="chevron" [class.chevron--collapsed]="uploadCollapsed()"
+                 src="/icons/chevron-up.svg"/>
           </button>
         </div>
         @if (!uploadCollapsed()) {
@@ -22,7 +23,8 @@
                 <div class="progress-label-row">
                   <span class="progress-label">{{ notification.label | translate: notification.params }}</span>
                   <button (click)="dismissProgress(notification.id)"
-                          class="icon-btn" type="button" aria-label="Dismiss">&times;
+                          class="icon-btn" type="button" aria-label="Dismiss">
+                    <img alt="" src="/icons/close.svg"/>
                   </button>
                 </div>
                 <div class="progress-bar-row">
@@ -46,7 +48,8 @@
           </span>
           <button (click)="toggleDownloadCollapsed()" class="icon-btn" type="button"
                   [attr.aria-label]="downloadCollapsed() ? 'Expand' : 'Collapse'">
-            <span class="chevron" [class.chevron--collapsed]="downloadCollapsed()">&#8963;</span>
+            <img alt="" class="chevron" [class.chevron--collapsed]="downloadCollapsed()"
+                 src="/icons/chevron-up.svg"/>
           </button>
         </div>
         @if (!downloadCollapsed()) {
@@ -57,7 +60,8 @@
                 <div class="progress-label-row">
                   <span class="progress-label">{{ notification.label | translate: notification.params }}</span>
                   <button (click)="dismissProgress(notification.id)"
-                          class="icon-btn" type="button" aria-label="Dismiss">&times;
+                          class="icon-btn" type="button" aria-label="Dismiss">
+                    <img alt="" src="/icons/close.svg"/>
                   </button>
                 </div>
                 <div class="progress-bar-row">
@@ -79,7 +83,8 @@
           <div [class]="'toast toast--' + notification.severity">
             <span class="toast-message">{{ notification.messageCode | translate: notification.params }}</span>
             <button (click)="dismissMessage(notification.id)"
-                    aria-label="Dismiss" class="icon-btn toast-dismiss" type="button">&times;
+                    aria-label="Dismiss" class="icon-btn toast-dismiss" type="button">
+              <img alt="" src="/icons/close.svg"/>
             </button>
           </div>
         }

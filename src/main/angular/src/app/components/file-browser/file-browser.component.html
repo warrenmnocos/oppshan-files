@@ -114,7 +114,7 @@
              (dblclick)="onItemDoubleClick($event, fileNodeView)"
              (contextmenu)="onItemRightClick($event, fileNodeView)"
              (touchstart)="onItemTouchStart($event, fileNodeView)"
-             (touchend)="onItemTouchEnd()"
+             (touchend)="onItemTouchEnd($event)"
              (touchmove)="onItemTouchEnd()">
           <span class="list-col-name">
             <img [src]="getIcon(fileNodeView)" alt="" class="item-icon"/>
@@ -125,7 +125,9 @@
           <span class="list-col-kebab">
             <button class="kebab-btn"
                     [attr.aria-label]="'fileBrowser.contextMenu.actions' | translate"
-                    (click)="onItemKebabClick($event, fileNodeView)">⋮</button>
+                    (click)="onItemKebabClick($event, fileNodeView)">
+              <img alt="" class="kebab-icon" src="/icons/more-vert.svg"/>
+            </button>
           </span>
         </div>
       }
@@ -139,11 +141,12 @@
              (dblclick)="onItemDoubleClick($event, fileNodeView)"
              (contextmenu)="onItemRightClick($event, fileNodeView)"
              (touchstart)="onItemTouchStart($event, fileNodeView)"
-             (touchend)="onItemTouchEnd()"
+             (touchend)="onItemTouchEnd($event)"
              (touchmove)="onItemTouchEnd()">
           <button class="kebab-btn grid-kebab"
                   [attr.aria-label]="'fileBrowser.contextMenu.actions' | translate"
-                  (click)="onItemKebabClick($event, fileNodeView)">⋮
+                  (click)="onItemKebabClick($event, fileNodeView)">
+            <img alt="" class="kebab-icon" src="/icons/more-vert.svg"/>
           </button>
           <img [src]="getIcon(fileNodeView)" alt="" class="grid-item-icon"/>
           <span class="grid-item-name">{{ fileNodeView.name }}</span>

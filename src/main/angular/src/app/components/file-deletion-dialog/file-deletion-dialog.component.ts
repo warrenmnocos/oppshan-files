@@ -46,4 +46,8 @@ export class FileDeletionDialog {
       this.onCancel();
     }
   }
+
+  onClick(event: MouseEvent): void {
+    event.stopPropagation();
+  }
 }

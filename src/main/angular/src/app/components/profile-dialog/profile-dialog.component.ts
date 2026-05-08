@@ -53,4 +53,8 @@ export class ProfileDialog {
       this.onClose();
     }
   }
+
+  protected onClick(event: MouseEvent): void {
+    event.stopPropagation();
+  }
 }

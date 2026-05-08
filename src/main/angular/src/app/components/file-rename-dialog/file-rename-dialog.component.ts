@@ -1,11 +1,12 @@
 import {Component, computed, OnInit, Signal, signal, WritableSignal} from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import {TranslatePipe} from '@ngx-translate/core';
+import {TranslatePipe, TranslateService} from '@ngx-translate/core';
 import {MessageBusService} from '../../services/message-bus-service';
 import {ApplicationEvent} from '../../models/application-event';
 import {ApplicationEventType} from '../../models/application-event-type';
 import {FileRenameCommand} from '../../models/operation-commands';
 import {FileNodeView} from '../../models/file-node-view';
+import {MessageCode} from '../../models/message-code';
 
 @Component({
   selector: 'app-file-rename-dialog',
@@ -21,7 +22,8 @@ export class FileRenameDialog implements OnInit {
 
   private readonly selectedFile: Signal<FileNodeView | null>;
 
-  constructor(private readonly messageBusService: MessageBusService) {
+  constructor(private readonly messageBusService: MessageBusService,
+              private readonly translateService: TranslateService) {
     this.fileName = signal<string>('');
     this.errorMessage = signal<string | null>(null);
     this.selectedFile = computed(
@@ -36,12 +38,12 @@ export class FileRenameDialog implements OnInit {
   onConfirm(): void {
     const name = this.fileName().trim();
     if (!name) {
-      this.errorMessage.set('File name is required.');
+      this.errorMessage.set(this.translateService.instant(MessageCode.FileNameRequired));
       return;
     }
 
     if (name.length > 255) {
-      this.errorMessage.set('File name must be 255 characters or less.');
+      this.errorMessage.set(this.translateService.instant(MessageCode.FileNameTooLong));
       return;
     }
 
@@ -65,5 +67,9 @@ export class FileRenameDialog implements OnInit {
     if (event.key === 'Escape') {
       this.onCancel();
     }
+  }
+
+  onClick(event: MouseEvent): void {
+    event.stopPropagation();
   }
 }

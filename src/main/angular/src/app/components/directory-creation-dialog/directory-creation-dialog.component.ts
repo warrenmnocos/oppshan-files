@@ -1,10 +1,11 @@
 import {Component, computed, Signal, signal, WritableSignal} from '@angular/core';
 import {FormsModule} from '@angular/forms';
-import {TranslatePipe} from '@ngx-translate/core';
+import {TranslatePipe, TranslateService} from '@ngx-translate/core';
 import {MessageBusService} from '../../services/message-bus-service';
 import {ApplicationEvent} from '../../models/application-event';
 import {ApplicationEventType} from '../../models/application-event-type';
 import {DirectoryCreateCommand} from '../../models/operation-commands';
+import {MessageCode} from '../../models/message-code';
 
 @Component({
   selector: 'app-directory-creation-dialog',
@@ -20,7 +21,8 @@ export class DirectoryCreationDialog {
 
   private readonly parentDirectoryUuid: Signal<string | null>;
 
-  constructor(private readonly messageBusService: MessageBusService) {
+  constructor(private readonly messageBusService: MessageBusService,
+              private readonly translateService: TranslateService) {
     this.directoryName = signal<string>('');
     this.errorMessage = signal<string | null>(null);
     this.parentDirectoryUuid = computed(
@@ -30,13 +32,13 @@ export class DirectoryCreationDialog {
 
   onConfirm(): void {
     const rawName = this.directoryName().trim();
-    const name = rawName || 'Untitled directory';
+    const name = rawName || this.translateService.instant('dialog.createDirectory.placeholder');
     if (!rawName) {
       this.directoryName.set(name);
     }
 
     if (name.length > 255) {
-      this.errorMessage.set('Directory name must be 255 characters or less.');
+      this.errorMessage.set(this.translateService.instant(MessageCode.DirectoryNameTooLong));
       return;
     }
 
@@ -60,5 +62,9 @@ export class DirectoryCreationDialog {
     if (event.key === 'Escape') {
       this.onCancel();
     }
+  }
+
+  onClick(event: MouseEvent): void {
+    event.stopPropagation();
   }
 }

@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 540" width="720" height="540"
+     font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="12">
+    <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 1.5 L8.5 5 L0 8.5 z" fill="#546E7A"/>
+        </marker>
+    </defs>
+
+    <rect width="720" height="540" fill="#FAFAFA"/>
+
+    <!-- Title -->
+    <text x="360" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#212121">Deployment automation
+        flow
+    </text>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 1 — Trigger
+         ═══════════════════════════════════════════════════════════ -->
+    <rect x="270" y="40" width="180" height="40" rx="6" fill="#D6EAF8" stroke="#3498DB" stroke-width="1.5"/>
+    <text x="360" y="58" text-anchor="middle" font-size="11" font-weight="700" fill="#1A5276">Push to main</text>
+    <text x="360" y="72" text-anchor="middle" font-size="9" fill="#2E86C1">or workflow_dispatch</text>
+
+    <line x1="360" y1="80" x2="360" y2="96" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 2 — GitHub Actions
+         ═══════════════════════════════════════════════════════════ -->
+    <rect x="30" y="98" width="660" height="92" rx="10"
+          fill="none" stroke="#90A4AE" stroke-width="1" stroke-dasharray="6 4"/>
+    <text x="44" y="114" font-size="9" fill="#90A4AE">GitHub Actions</text>
+
+    <rect x="44" y="128" width="200" height="46" rx="6" fill="#FDEBD0" stroke="#E67E22" stroke-width="1.5"/>
+    <text x="144" y="148" text-anchor="middle" font-size="11" font-weight="700" fill="#784212">ubuntu-24.04-arm</text>
+    <text x="144" y="162" text-anchor="middle" font-size="9" fill="#A04000">GitHub-hosted runner</text>
+
+    <line x1="244" y1="151" x2="278" y2="151" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <rect x="280" y="128" width="160" height="46" rx="6" fill="#FDEBD0" stroke="#E67E22" stroke-width="1.5"/>
+    <text x="360" y="148" text-anchor="middle" font-size="11" font-weight="700" fill="#784212">Build native</text>
+    <text x="360" y="162" text-anchor="middle" font-size="9" fill="#A04000">./mvnw -Pnative-release</text>
+
+    <line x1="440" y1="151" x2="474" y2="151" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <rect x="476" y="128" width="200" height="46" rx="6" fill="#FDEBD0" stroke="#E67E22" stroke-width="1.5"/>
+    <text x="576" y="148" text-anchor="middle" font-size="11" font-weight="700" fill="#784212">Native binary</text>
+    <text x="576" y="162" text-anchor="middle" font-size="9" fill="#A04000">~70–90 MB · ARM64 · GraalVM 25</text>
+
+    <line x1="360" y1="190" x2="360" y2="208" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+    <text x="368" y="202" font-size="9" fill="#546E7A" font-style="italic">OIDC JWT</text>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 3 — OIDC federation
+         ═══════════════════════════════════════════════════════════ -->
+    <rect x="30" y="210" width="660" height="76" rx="10"
+          fill="none" stroke="#90A4AE" stroke-width="1" stroke-dasharray="6 4"/>
+    <text x="44" y="226" font-size="9" fill="#90A4AE">OIDC federation · no long-lived AWS keys in repo secrets</text>
+
+    <rect x="44" y="238" width="180" height="42" rx="6" fill="#EBDEF0" stroke="#8E44AD" stroke-width="1.5"/>
+    <text x="134" y="256" text-anchor="middle" font-size="11" font-weight="700" fill="#512E5F">GitHub OIDC</text>
+    <text x="134" y="270" text-anchor="middle" font-size="9" fill="#7D3C98">issues short-lived JWT</text>
+
+    <line x1="224" y1="259" x2="258" y2="259" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <rect x="260" y="238" width="180" height="42" rx="6" fill="#EBDEF0" stroke="#8E44AD" stroke-width="1.5"/>
+    <text x="350" y="256" text-anchor="middle" font-size="11" font-weight="700" fill="#512E5F">AWS STS</text>
+    <text x="350" y="270" text-anchor="middle" font-size="9" fill="#7D3C98">AssumeRoleWithWebIdentity</text>
+
+    <line x1="440" y1="259" x2="474" y2="259" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <rect x="476" y="238" width="200" height="42" rx="6" fill="#EBDEF0" stroke="#8E44AD" stroke-width="1.5"/>
+    <text x="576" y="256" text-anchor="middle" font-size="11" font-weight="700" fill="#512E5F">Temp credentials</text>
+    <text x="576" y="270" text-anchor="middle" font-size="9" fill="#7D3C98">trust: …:ref:refs/heads/main</text>
+
+    <line x1="360" y1="286" x2="360" y2="304" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 4 — AWS
+         ═══════════════════════════════════════════════════════════ -->
+    <rect x="30" y="306" width="660" height="160" rx="10"
+          fill="none" stroke="#90A4AE" stroke-width="1" stroke-dasharray="6 4"/>
+    <text x="44" y="322" font-size="9" fill="#90A4AE">AWS · SSM Session Manager replaces SSH (no port 22 exposed)</text>
+
+    <!-- T-split: workflow dispatches to S3 (upload) and SSM (command) -->
+    <line x1="360" y1="306" x2="360" y2="326" stroke="#546E7A" stroke-width="1.5"/>
+    <line x1="190" y1="326" x2="530" y2="326" stroke="#546E7A" stroke-width="1.5"/>
+    <line x1="190" y1="326" x2="190" y2="334" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+    <line x1="530" y1="326" x2="530" y2="334" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+    <text x="220" y="322" font-size="9" fill="#546E7A" font-style="italic">upload</text>
+    <text x="490" y="322" font-size="9" fill="#546E7A" font-style="italic">command</text>
+
+    <rect x="80" y="336" width="220" height="44" rx="6" fill="#D5F5E3" stroke="#27AE60" stroke-width="1.5"/>
+    <text x="190" y="356" text-anchor="middle" font-size="11" font-weight="700" fill="#145A32">S3 artifact bucket</text>
+    <text x="190" y="370" text-anchor="middle" font-size="9" fill="#1E8449">key: native binary by short SHA</text>
+
+    <rect x="420" y="336" width="220" height="44" rx="6" fill="#D5F5E3" stroke="#27AE60" stroke-width="1.5"/>
+    <text x="530" y="356" text-anchor="middle" font-size="11" font-weight="700" fill="#145A32">SSM Run Command</text>
+    <text x="530" y="370" text-anchor="middle" font-size="9" fill="#1E8449">issues inline shell on instance</text>
+
+    <line x1="530" y1="380" x2="530" y2="406" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <rect x="180" y="408" width="380" height="48" rx="6" fill="#D5F5E3" stroke="#27AE60" stroke-width="1.5"/>
+    <text x="370" y="428" text-anchor="middle" font-size="11" font-weight="700" fill="#145A32">EC2 t4g.small · Amazon
+        Linux 2023
+    </text>
+    <text x="370" y="444" text-anchor="middle" font-size="9" fill="#1E8449">systemctl stop · aws s3 cp · chmod +x ·
+        systemctl start
+    </text>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         ROW 5 — Live
+         ═══════════════════════════════════════════════════════════ -->
+    <line x1="360" y1="466" x2="360" y2="484" stroke="#546E7A" stroke-width="1.5" marker-end="url(#arr)"/>
+
+    <rect x="240" y="486" width="240" height="44" rx="6" fill="#E8F8F5" stroke="#1ABC9C" stroke-width="1.5"/>
+    <text x="360" y="506" text-anchor="middle" font-size="11" font-weight="700" fill="#0E6655">files.oppshan.com</text>
+    <text x="360" y="520" text-anchor="middle" font-size="9" fill="#1ABC9C">Caddy :443 → Quarkus :8080</text>
+</svg>

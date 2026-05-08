@@ -1,5 +1,5 @@
 <div (click)="onCancel()" class="dialog-overlay">
-  <div (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)" class="dialog">
+  <div (click)="onClick($event)" (keydown)="onKeyDown($event)" class="dialog">
     <h2 class="dialog-title">{{ 'dialog.deleteDirectory.title' | translate }}</h2>
     <div class="dialog-body">
       <p class="dialog-warning">{{ 'dialog.deleteDirectory.message' | translate:{name: directoryName()} }}</p>

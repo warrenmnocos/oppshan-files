@@ -59,4 +59,8 @@ export class FilePreviewDialog {
       this.onClose();
     }
   }
+
+  onClick(event: MouseEvent): void {
+    event.stopPropagation();
+  }
 }

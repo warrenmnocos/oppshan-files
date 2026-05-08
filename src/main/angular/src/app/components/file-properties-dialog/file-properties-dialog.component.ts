@@ -58,4 +58,8 @@ export class FilePropertiesDialog {
       this.onClose();
     }
   }
+
+  onClick(event: MouseEvent): void {
+    event.stopPropagation();
+  }
 }

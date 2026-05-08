@@ -1,5 +1,5 @@
 <div (click)="onCancel()" class="dialog-overlay">
-  <div (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)" class="dialog">
+  <div (click)="onClick($event)" (keydown)="onKeyDown($event)" class="dialog">
     <h2 class="dialog-title">{{ 'dialog.createDirectory.title' | translate }}</h2>
     <div class="dialog-body">
       <label class="dialog-label" for="directoryName">{{ 'dialog.createDirectory.label' | translate }}</label>

@@ -6,9 +6,6 @@ import {UserAccountView} from '../models/user-account-view';
 import {JsonMapperService} from './json-mapper.service';
 import {MessageBusService} from './message-bus-service';
 import {ApplicationEventType} from '../models/application-event-type';
-import {ApplicationEvent} from '../models/application-event';
-import {SignInSucceeded} from '../models/operation-outcomes';
-import {MessageCode} from '../models/message-code';
 
 @Injectable({
   providedIn: 'root',
@@ -30,11 +27,6 @@ export class AuthService {
 
   signIn(tenant: string): void {
     window.location.href = `/sso/sign-in/oidc/${tenant}`;
-    const signInSucceeded: SignInSucceeded = {
-      messageCode: MessageCode.SignInSucceeded,
-      tenant: tenant
-    };
-    this.messageBusService.fireApplicationEvent(new ApplicationEvent(ApplicationEventType.SignInSucceeded, signInSucceeded));
   }
 
   signOut(): void {

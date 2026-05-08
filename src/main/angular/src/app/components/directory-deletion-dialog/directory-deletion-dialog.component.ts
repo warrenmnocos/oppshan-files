@@ -61,4 +61,8 @@ export class DirectoryDeletionDialog implements OnInit {
       this.onCancel();
     }
   }
+
+  onClick(event: MouseEvent): void {
+    event.stopPropagation();
+  }
 }

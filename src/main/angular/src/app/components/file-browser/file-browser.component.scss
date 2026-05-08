@@ -403,10 +403,6 @@
   background: transparent;
   border: 0;
   border-radius: 0.25rem;
-  color: #5f6368;
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1;
   cursor: pointer;
 
   &:hover {
@@ -417,6 +413,12 @@
     outline: 0.125rem solid #009688;
     outline-offset: 1px;
   }
+}
+
+.kebab-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  opacity: 0.6;
 }
 
 .grid-item .kebab-btn.grid-kebab {
