@@ -124,10 +124,8 @@ seventh was added late to cover polish and responsiveness work that emerged duri
 
 - **Source Code:** [github.com/warrenmnocos/oppshan-files](https://github.com/warrenmnocos/oppshan-files)
 - **Project Board:** [github.com/users/warrenmnocos/projects/1](https://github.com/users/warrenmnocos/projects/1)
-- **GitHub Actions:
-  ** [github.com/warrenmnocos/oppshan-files/actions](https://github.com/warrenmnocos/oppshan-files/actions)
-- **Figma Prototype:
-  ** [figma.com/make/Wkr8DV1ZpKmnbnxNSMVgMs/Oppshan-Files](https://figma.com/make/Wkr8DV1ZpKmnbnxNSMVgMs/Oppshan-Files?p=f&fullscreen=1)
+- **GitHub Actions:** [github.com/warrenmnocos/oppshan-files/actions](https://github.com/warrenmnocos/oppshan-files/actions)
+- **Figma Prototype:** [figma.com/make/Wkr8DV1ZpKmnbnxNSMVgMs/Oppshan-Files](https://figma.com/make/Wkr8DV1ZpKmnbnxNSMVgMs/Oppshan-Files?p=f&fullscreen=1)
 - **Live Application:** [files.oppshan.com](https://files.oppshan.com)
 
 ---
