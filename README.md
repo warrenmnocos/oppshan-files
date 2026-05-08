@@ -13,8 +13,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-blue?logo=postgresql)
 ![AWS](https://img.shields.io/badge/AWS-Graviton_ARM64-orange?logo=amazonaws)
 
-**Quick links:
-** [Live](https://files.oppshan.com) · [Source](https://github.com/warrenmnocos/oppshan-files) · [GitHub Actions](https://github.com/warrenmnocos/oppshan-files/actions) · [Figma](https://figma.com/make/Wkr8DV1ZpKmnbnxNSMVgMs/Oppshan-Files?p=f&fullscreen=1) · [Project Board](https://github.com/users/warrenmnocos/projects/1)
+**Quick links:** [Live](https://files.oppshan.com) · [Source](https://github.com/warrenmnocos/oppshan-files) · [GitHub Actions](https://github.com/warrenmnocos/oppshan-files/actions) · [Figma](https://figma.com/make/Wkr8DV1ZpKmnbnxNSMVgMs/Oppshan-Files?p=f&fullscreen=1) · [Project Board](https://github.com/users/warrenmnocos/projects/1)
 
 ---
 
