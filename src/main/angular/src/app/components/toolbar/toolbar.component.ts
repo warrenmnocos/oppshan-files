@@ -2,6 +2,7 @@ import {Component, HostListener, input, signal, WritableSignal} from '@angular/c
 import {TranslatePipe} from '@ngx-translate/core';
 import {UserAccountView} from '../../models/user-account-view';
 import {StorageBarPipe} from '../../misc/storage-bar.pipe';
+import {ApplicationEvent} from '../../models/application-event';
 import {ApplicationEventType} from '../../models/application-event-type';
 import {MessageBusService} from '../../services/message-bus-service';
 
@@ -51,6 +52,14 @@ export class Toolbar {
   protected signOut(): void {
     this.dropdownOpen.set(false);
     this.messageBusService.fireApplicationEventOfType(ApplicationEventType.SignOutInitiated);
+  }
+
+  protected onProfileClicked(): void {
+    this.dropdownOpen.set(false);
+    this.messageBusService.fireApplicationEvent(new ApplicationEvent(
+      ApplicationEventType.ProfileShown,
+      this.userAccountView() ?? null
+    ));
   }
 
   @HostListener('document:click', ['$event'])

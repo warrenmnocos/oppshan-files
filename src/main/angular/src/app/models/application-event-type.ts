@@ -79,4 +79,7 @@ export enum ApplicationEventType {
 
   FilePreviewInitiated = 'filePreviewInitiated',
   FilePreviewCancelled = 'filePreviewCancelled',
+
+  ProfileShown = 'profileShown',
+  ProfileHidden = 'profileHidden',
 }

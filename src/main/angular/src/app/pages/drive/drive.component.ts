@@ -19,6 +19,7 @@ import {FileDeletionDialog} from '../../components/file-deletion-dialog/file-del
 import {FilePropertiesDialog} from '../../components/file-properties-dialog/file-properties-dialog.component';
 import {FilePreviewDialog} from '../../components/file-preview-dialog/file-preview-dialog.component';
 import {FileContextMenu} from '../../components/file-context-menu/file-context-menu.component';
+import {ProfileDialog} from '../../components/profile-dialog/profile-dialog.component';
 import {Footer} from '../../components/footer/footer.component';
 import {Subscription} from 'rxjs';
 import {DirectoryContentsView} from '../../models/directory-contents-view';
@@ -50,6 +51,7 @@ import {map} from 'rxjs/operators';
     FilePropertiesDialog,
     FilePreviewDialog,
     FileContextMenu,
+    ProfileDialog,
     NotificationCenter,
     Footer,
   ],
@@ -67,9 +69,13 @@ export class Drive implements AfterViewInit, OnDestroy {
   protected readonly ApplicationEventType = ApplicationEventType;
 
   private currentPath?: string | null;
+
   private userSubscription?: Subscription;
+
   private urlSubscription?: Subscription;
+
   private applicationEventSubscription?: Subscription;
+
   private refreshSubscription?: Subscription;
 
   constructor(

@@ -47,10 +47,10 @@
         </div>
 
         <div class="dropdown-section">
-          <div class="dropdown-item">
+          <button (click)="onProfileClicked()" class="dropdown-item profile-btn" type="button">
             <img alt="" class="dropdown-icon" height="18" src="/icons/person.svg" width="18">
             <span>{{ 'toolbar.profile' | translate }}</span>
-          </div>
+          </button>
 
           <div class="dropdown-item dropdown-storage">
             <img alt="" class="dropdown-icon" height="18" src="/icons/storage.svg" width="18">
