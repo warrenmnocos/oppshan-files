@@ -15,6 +15,8 @@
 
 **Quick links:** [Live](https://files.oppshan.com) · [Source](https://github.com/warrenmnocos/oppshan-files) · [GitHub Actions](https://github.com/warrenmnocos/oppshan-files/actions) · [Figma](https://figma.com/make/Wkr8DV1ZpKmnbnxNSMVgMs/Oppshan-Files?p=f&fullscreen=1) · [Project Board](https://github.com/users/warrenmnocos/projects/1)
 
+*Reading this as a PDF? For the pageless version, see the [README on GitHub](https://github.com/warrenmnocos/oppshan-files).*
+
 ---
 
 ## Table of Contents
@@ -363,7 +365,7 @@ The stack at a glance:
 | Frontend framework | **Angular 21**                                                          | Signals-first state, standalone components, `@if`/`@for` control flow, **hand-wired two-way data binding**                            |
 | Reactive plumbing  | **RxJS**                                                                | `Subject`-backed event bus exposing typed `Observable` channels for the CQRS event/listener pattern                                   |
 | Build              | **Maven** + **frontend-maven-plugin**                                   | One `./mvnw package` compiles the Angular bundle and packages it with the backend into a single artifact                              |
-| Production binary  | **Oracle GraalVM 25** native image                                      | ARM64-tuned with `-march=armv8-a+aes+lse` and G1 GC; ~70-90 MB, sub-100 ms startup                                                    |
+| Production binary  | **Oracle GraalVM 25** native image                                      | ARM64-tuned with `-march=armv8-a+aes+lse` and G1 GC; sub-100 ms startup                                                               |
 | Quality            | **Quarkus Dev Services** + **Testcontainers** + **JaCoCo** + **Qodana** | Real PostgreSQL 18 + Keycloak per test run; coverage minimums enforced; static analysis on every PR                                   |
 | Project management | **GitHub Projects** + **Issues** + **Milestones**                       | Web-based Agile board: seven sprints, seven epics, 28 user stories, three priority tiers                                              |
 | Source control     | **GitHub** repository with feature branches and pull requests           | Branches created from the issue sidebar; merging a PR auto-closes the linked issue and moves the card to Done                         |
@@ -1222,8 +1224,8 @@ a fully standalone frontend codebase that just happens to live inside the Maven 
 produces a deployable artifact without any manual coordination between the two builds.
 
 For production, the same project compiles to a **GraalVM native image** targeting **ARM64** with
-`./mvnw -Pnative-release package` (Oracle GraalVM 25, `-march=armv8-a+aes+lse`, G1 GC). The native binary is ~70-90 MB,
-starts in under 100 ms, and runs with `-Xmx512m` heap on the deployment target.
+`./mvnw -Pnative-release package` (Oracle GraalVM 25, `-march=armv8-a+aes+lse`, G1 GC). The native binary starts
+in under 100 ms and runs with `-Xmx512m` heap on the deployment target.
 
 #### Deployment target
 
