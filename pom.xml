@@ -24,6 +24,7 @@
         <angular.cli.version>21.2.5</angular.cli.version>
         <frontend-maven-plugin.version>1.15.1</frontend-maven-plugin.version>
         <guava.version>33.5.0-jre</guava.version>
+        <htmlunit.version>4.13.0</htmlunit.version>
         <jakarta.data-api.version>1.0.1</jakarta.data-api.version>
         <yarn.version>v1.22.22</yarn.version>
         <skipITs>true</skipITs>
@@ -109,8 +110,19 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-test-security</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.htmlunit</groupId>
+            <artifactId>htmlunit</artifactId>
+            <version>${htmlunit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
