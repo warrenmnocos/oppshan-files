@@ -1,0 +1,314 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 830" width="920" height="830"
+     font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="11">
+    <defs>
+        <!-- Crow's-foot markers. markerUnits="userSpaceOnUse" pins them to absolute pixel
+             size (so they don't bloat with stroke width). viewBox dimensions match
+             markerWidth/Height exactly so the symbols aren't squished. refX=14 sits at the
+             right edge so the entire marker stays on the line side of the entity boundary.
+             orient="auto-start-reverse" lets the same marker work at either end of a line. -->
+        <marker id="cf-one-one" viewBox="0 0 14 10" refX="14" refY="5"
+                markerWidth="14" markerHeight="10" markerUnits="userSpaceOnUse"
+                orient="auto-start-reverse">
+            <line x1="13.25" y1="0.5" x2="13.25" y2="9.5" stroke="#546E7A" stroke-width="1.5"/>
+            <line x1="8" y1="0.5" x2="8" y2="9.5" stroke="#546E7A" stroke-width="1.5"/>
+        </marker>
+        <marker id="cf-zero-one" viewBox="0 0 14 10" refX="14" refY="5"
+                markerWidth="14" markerHeight="10" markerUnits="userSpaceOnUse"
+                orient="auto-start-reverse">
+            <line x1="13.25" y1="0.5" x2="13.25" y2="9.5" stroke="#546E7A" stroke-width="1.5"/>
+            <circle cx="5" cy="5" r="2.5" fill="#FAFAFA" stroke="#546E7A" stroke-width="1.2"/>
+        </marker>
+        <marker id="cf-one-many" viewBox="0 0 14 10" refX="14" refY="5"
+                markerWidth="14" markerHeight="10" markerUnits="userSpaceOnUse"
+                orient="auto-start-reverse">
+            <line x1="7" y1="0.5" x2="7" y2="9.5" stroke="#546E7A" stroke-width="1.5"/>
+            <path d="M 7 5 L 13.5 0.5 M 7 5 L 13.5 9.5" stroke="#546E7A" stroke-width="1.5" fill="none"/>
+        </marker>
+        <marker id="cf-zero-many" viewBox="0 0 14 10" refX="14" refY="5"
+                markerWidth="14" markerHeight="10" markerUnits="userSpaceOnUse"
+                orient="auto-start-reverse">
+            <circle cx="3" cy="5" r="2.5" fill="#FAFAFA" stroke="#546E7A" stroke-width="1.2"/>
+            <path d="M 7 5 L 13.5 0.5 M 7 5 L 13.5 9.5" stroke="#546E7A" stroke-width="1.5" fill="none"/>
+        </marker>
+    </defs>
+
+    <rect width="920" height="830" fill="#FAFAFA"/>
+
+    <!-- ── Title ──────────────────────────────────────── -->
+    <text x="460" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#37474F">
+        Data Model
+    </text>
+    <text x="460" y="48" text-anchor="middle" font-size="10" fill="#5D6D7E">
+        PostgreSQL 18 · 5 entities · UUID v7 primary keys · audit timestamps everywhere
+    </text>
+
+    <!-- ── Schema frame ───────────────────────────────── -->
+    <rect x="20" y="62" width="880" height="668" rx="12"
+          fill="#F8F4F8" stroke="#7D3C98" stroke-width="1.5" stroke-dasharray="7 4"/>
+    <text x="36" y="80" font-size="10" font-weight="700" fill="#7D3C98" letter-spacing="0.4">
+        APPLICATION SCHEMA
+    </text>
+
+    <!-- ══════════════════════════════════════════════════
+         user_account  (top center)
+         x=350 y=70  w=220 h=130
+         ══════════════════════════════════════════════════ -->
+    <rect x="350" y="70" width="220" height="130" rx="6"
+          fill="#FFFFFF" stroke="#7D3C98" stroke-width="1.5"/>
+    <rect x="350" y="70" width="220" height="26" rx="6"
+          fill="#E8DAEF" stroke="#7D3C98" stroke-width="1.5"/>
+    <rect x="350" y="90" width="220" height="6" fill="#E8DAEF"/>
+    <text x="460" y="88" text-anchor="middle" font-size="12" font-weight="700" fill="#512E5F">
+        user_account
+    </text>
+
+    <text x="358" y="113" font-size="10" fill="#6C3483" font-weight="700">PK</text>
+    <text x="380" y="113" font-size="11" fill="#212121" font-weight="600">uuid</text>
+    <text x="562" y="113" text-anchor="end" font-size="9" fill="#7D6608">UUID v7</text>
+
+    <text x="380" y="131" font-size="11" fill="#424242">first_name</text>
+    <text x="562" y="131" text-anchor="end" font-size="9" fill="#7D6608">VARCHAR(255)</text>
+
+    <text x="380" y="149" font-size="11" fill="#424242">last_name</text>
+    <text x="562" y="149" text-anchor="end" font-size="9" fill="#7D6608">VARCHAR(255)</text>
+
+    <text x="380" y="167" font-size="11" fill="#5D6D7E">created_at</text>
+    <text x="562" y="167" text-anchor="end" font-size="9" fill="#90A4AE">TIMESTAMPTZ</text>
+
+    <text x="380" y="185" font-size="11" fill="#5D6D7E">last_modified_at</text>
+    <text x="562" y="185" text-anchor="end" font-size="9" fill="#90A4AE">TIMESTAMPTZ</text>
+
+    <!-- ══════════════════════════════════════════════════
+         idp_account  (middle left)
+         x=50 y=262  w=280 h=148
+         ══════════════════════════════════════════════════ -->
+    <rect x="50" y="262" width="280" height="148" rx="6"
+          fill="#FFFFFF" stroke="#7D3C98" stroke-width="1.5"/>
+    <rect x="50" y="262" width="280" height="26" rx="6"
+          fill="#E8DAEF" stroke="#7D3C98" stroke-width="1.5"/>
+    <rect x="50" y="282" width="280" height="6" fill="#E8DAEF"/>
+    <text x="190" y="280" text-anchor="middle" font-size="12" font-weight="700" fill="#512E5F">
+        idp_account
+    </text>
+
+    <text x="58" y="305" font-size="10" fill="#6C3483" font-weight="700">PK</text>
+    <text x="80" y="305" font-size="11" fill="#212121" font-weight="600">uuid</text>
+    <text x="322" y="305" text-anchor="end" font-size="9" fill="#7D6608">UUID v7</text>
+
+    <text x="80" y="323" font-size="11" fill="#424242">provider_id</text>
+    <text x="322" y="323" text-anchor="end" font-size="9" fill="#7D6608">VARCHAR(255)</text>
+
+    <text x="80" y="341" font-size="11" fill="#424242">provider_name</text>
+    <text x="322" y="341" text-anchor="end" font-size="9" fill="#7D6608">VARCHAR(255)</text>
+
+    <text x="58" y="359" font-size="10" fill="#5D6D7E" font-weight="700">FK</text>
+    <text x="80" y="359" font-size="11" fill="#212121">user_account_uuid</text>
+    <text x="322" y="359" text-anchor="end" font-size="9" fill="#7D6608">UUID</text>
+
+    <text x="80" y="377" font-size="11" fill="#5D6D7E">created_at</text>
+    <text x="322" y="377" text-anchor="end" font-size="9" fill="#90A4AE">TIMESTAMPTZ</text>
+
+    <text x="80" y="395" font-size="11" fill="#5D6D7E">last_modified_at</text>
+    <text x="322" y="395" text-anchor="end" font-size="9" fill="#90A4AE">TIMESTAMPTZ</text>
+
+    <!-- ══════════════════════════════════════════════════
+         google_account  (bottom left)
+         x=50 y=490  w=280 h=112
+         ══════════════════════════════════════════════════ -->
+    <rect x="50" y="490" width="280" height="112" rx="6"
+          fill="#FFFFFF" stroke="#7D3C98" stroke-width="1.5"/>
+    <rect x="50" y="490" width="280" height="26" rx="6"
+          fill="#E8DAEF" stroke="#7D3C98" stroke-width="1.5"/>
+    <rect x="50" y="510" width="280" height="6" fill="#E8DAEF"/>
+    <text x="190" y="508" text-anchor="middle" font-size="12" font-weight="700" fill="#512E5F">
+        google_account
+    </text>
+
+    <text x="56" y="533" font-size="9" fill="#6C3483" font-weight="700">PK,FK</text>
+    <text x="92" y="533" font-size="11" fill="#212121" font-weight="600">uuid</text>
+    <text x="322" y="533" text-anchor="end" font-size="9" fill="#7D6608">UUID v7</text>
+
+    <text x="92" y="551" font-size="11" fill="#424242">name</text>
+    <text x="322" y="551" text-anchor="end" font-size="9" fill="#7D6608">VARCHAR(255)</text>
+
+    <text x="92" y="569" font-size="11" fill="#424242">email</text>
+    <text x="322" y="569" text-anchor="end" font-size="9" fill="#7D6608">VARCHAR(255)</text>
+
+    <text x="92" y="587" font-size="11" fill="#424242">photo_url</text>
+    <text x="322" y="587" text-anchor="end" font-size="9" fill="#7D6608">VARCHAR(2048) NULL</text>
+
+    <!-- ══════════════════════════════════════════════════
+         user_storage  (middle right)
+         x=590 y=262  w=280 h=166
+         ══════════════════════════════════════════════════ -->
+    <rect x="590" y="262" width="280" height="166" rx="6"
+          fill="#FFFFFF" stroke="#7D3C98" stroke-width="1.5"/>
+    <rect x="590" y="262" width="280" height="26" rx="6"
+          fill="#E8DAEF" stroke="#7D3C98" stroke-width="1.5"/>
+    <rect x="590" y="282" width="280" height="6" fill="#E8DAEF"/>
+    <text x="730" y="280" text-anchor="middle" font-size="12" font-weight="700" fill="#512E5F">
+        user_storage
+    </text>
+
+    <text x="598" y="305" font-size="10" fill="#6C3483" font-weight="700">PK</text>
+    <text x="620" y="305" font-size="11" fill="#212121" font-weight="600">uuid</text>
+    <text x="862" y="305" text-anchor="end" font-size="9" fill="#7D6608">UUID v7</text>
+
+    <text x="598" y="323" font-size="10" fill="#5D6D7E" font-weight="700">FK</text>
+    <text x="620" y="323" font-size="11" fill="#212121">user_account_uuid</text>
+    <text x="862" y="323" text-anchor="end" font-size="9" fill="#7D6608">UUID UNIQUE</text>
+
+    <text x="620" y="341" font-size="11" fill="#424242">max_storage_bytes</text>
+    <text x="862" y="341" text-anchor="end" font-size="9" fill="#7D6608">BIGINT</text>
+
+    <text x="620" y="359" font-size="11" fill="#424242">max_file_upload_bytes</text>
+    <text x="862" y="359" text-anchor="end" font-size="9" fill="#7D6608">BIGINT</text>
+
+    <text x="598" y="377" font-size="10" fill="#5D6D7E" font-weight="700">FK</text>
+    <text x="620" y="377" font-size="11" fill="#212121">root_file_node_uuid</text>
+    <text x="862" y="377" text-anchor="end" font-size="9" fill="#7D6608">UUID</text>
+
+    <text x="620" y="395" font-size="11" fill="#5D6D7E">created_at</text>
+    <text x="862" y="395" text-anchor="end" font-size="9" fill="#90A4AE">TIMESTAMPTZ</text>
+
+    <text x="620" y="413" font-size="11" fill="#5D6D7E">last_modified_at</text>
+    <text x="862" y="413" text-anchor="end" font-size="9" fill="#90A4AE">TIMESTAMPTZ</text>
+
+    <!-- ══════════════════════════════════════════════════
+         file_node  (bottom right)
+         x=510 y=490  w=360 h=220
+         ══════════════════════════════════════════════════ -->
+    <rect x="510" y="490" width="360" height="220" rx="6"
+          fill="#FFFFFF" stroke="#7D3C98" stroke-width="1.5"/>
+    <rect x="510" y="490" width="360" height="26" rx="6"
+          fill="#E8DAEF" stroke="#7D3C98" stroke-width="1.5"/>
+    <rect x="510" y="510" width="360" height="6" fill="#E8DAEF"/>
+    <text x="690" y="508" text-anchor="middle" font-size="12" font-weight="700" fill="#512E5F">
+        file_node
+    </text>
+
+    <text x="518" y="533" font-size="10" fill="#6C3483" font-weight="700">PK</text>
+    <text x="540" y="533" font-size="11" fill="#212121" font-weight="600">uuid</text>
+    <text x="862" y="533" text-anchor="end" font-size="9" fill="#7D6608">UUID v7</text>
+
+    <text x="540" y="551" font-size="11" fill="#424242">name</text>
+    <text x="862" y="551" text-anchor="end" font-size="9" fill="#7D6608">VARCHAR(255)</text>
+
+    <text x="540" y="569" font-size="11" fill="#424242">mime_type</text>
+    <text x="862" y="569" text-anchor="end" font-size="9" fill="#7D6608">VARCHAR(255)</text>
+
+    <text x="540" y="587" font-size="11" fill="#424242">directory</text>
+    <text x="862" y="587" text-anchor="end" font-size="9" fill="#7D6608">BOOLEAN</text>
+
+    <text x="540" y="605" font-size="11" fill="#424242">size_bytes</text>
+    <text x="862" y="605" text-anchor="end" font-size="9" fill="#7D6608">BIGINT</text>
+
+    <text x="540" y="623" font-size="11" fill="#C0392B" font-weight="600">content</text>
+    <text x="862" y="623" text-anchor="end" font-size="9" fill="#C0392B">OID · encrypted LO</text>
+
+    <text x="518" y="641" font-size="10" fill="#5D6D7E" font-weight="700">FK</text>
+    <text x="540" y="641" font-size="11" fill="#212121">parent_file_node_uuid</text>
+    <text x="862" y="641" text-anchor="end" font-size="9" fill="#7D6608">UUID NULL · self-ref</text>
+
+    <text x="518" y="659" font-size="10" fill="#5D6D7E" font-weight="700">FK</text>
+    <text x="540" y="659" font-size="11" fill="#212121">user_account_uuid</text>
+    <text x="862" y="659" text-anchor="end" font-size="9" fill="#7D6608">UUID</text>
+
+    <text x="540" y="677" font-size="11" fill="#5D6D7E">created_at</text>
+    <text x="862" y="677" text-anchor="end" font-size="9" fill="#90A4AE">TIMESTAMPTZ</text>
+
+    <text x="540" y="695" font-size="11" fill="#5D6D7E">last_modified_at</text>
+    <text x="862" y="695" text-anchor="end" font-size="9" fill="#90A4AE">TIMESTAMPTZ</text>
+
+    <!-- ══════════════════════════════════════════════════
+         RELATIONSHIPS (no crossings)
+         ══════════════════════════════════════════════════ -->
+
+    <!-- idp_account → user_account (FK→PK · zero-or-many at FK, exactly-one at PK) -->
+    <path d="M 190 262 V 230 H 390 V 200" stroke="#546E7A" stroke-width="1.5" fill="none"
+          marker-start="url(#cf-zero-many)" marker-end="url(#cf-one-one)"/>
+    <text x="175" y="254" font-size="10" fill="#37474F" font-weight="600">N</text>
+    <text x="400" y="215" font-size="10" fill="#37474F" font-weight="600">1</text>
+    <text x="290" y="223" text-anchor="middle" font-size="9" fill="#5D6D7E" font-style="italic">
+        belongs to
+    </text>
+
+    <!-- user_storage → user_account (FK→PK · exactly-one both ends; UNIQUE FK) -->
+    <path d="M 730 262 V 230 H 530 V 200" stroke="#546E7A" stroke-width="1.5" fill="none"
+          marker-start="url(#cf-one-one)" marker-end="url(#cf-one-one)"/>
+    <text x="745" y="254" font-size="10" fill="#37474F" font-weight="600">1</text>
+    <text x="520" y="215" font-size="10" fill="#37474F" font-weight="600">1</text>
+    <text x="630" y="223" text-anchor="middle" font-size="9" fill="#5D6D7E" font-style="italic">
+        belongs to
+    </text>
+
+    <!-- google_account → idp_account (FK→PK · zero-or-one at FK, exactly-one at PK) -->
+    <line x1="190" y1="490" x2="190" y2="410" stroke="#546E7A" stroke-width="1.5"
+          marker-start="url(#cf-zero-one)" marker-end="url(#cf-one-one)"/>
+    <text x="202" y="486" font-size="10" fill="#37474F" font-weight="600">1</text>
+    <text x="202" y="418" font-size="10" fill="#37474F" font-weight="600">1</text>
+    <text x="200" y="453" font-size="9" fill="#5D6D7E" font-style="italic">extends</text>
+
+    <!-- user_storage → file_node (FK→PK · zero-or-one at FK, exactly-one at PK) -->
+    <line x1="730" y1="428" x2="730" y2="490" stroke="#546E7A" stroke-width="1.5"
+          marker-start="url(#cf-zero-one)" marker-end="url(#cf-one-one)"/>
+    <text x="742" y="438" font-size="10" fill="#37474F" font-weight="600">1</text>
+    <text x="742" y="486" font-size="10" fill="#37474F" font-weight="600">1</text>
+    <text x="740" y="463" font-size="9" fill="#5D6D7E" font-style="italic">roots at</text>
+
+    <!-- file_node → user_account (FK→PK · one-or-many at FK, exactly-one at PK).
+         Orthogonal route: up out of file_node into the gap below the middle row,
+         left through the central channel between idp_account and user_storage,
+         up to user_account bottom. -->
+    <path d="M 690 490 V 460 H 460 V 200" stroke="#546E7A" stroke-width="1.5" fill="none"
+          marker-start="url(#cf-one-many)" marker-end="url(#cf-one-one)"/>
+    <text x="700" y="484" font-size="10" fill="#37474F" font-weight="600">N</text>
+    <text x="445" y="215" font-size="10" fill="#37474F" font-weight="600">1</text>
+    <text x="575" y="453" text-anchor="middle" font-size="9" fill="#5D6D7E" font-style="italic">
+        belongs to
+    </text>
+
+    <!-- file_node parent self-loop. Orthogonal C-shape on the right edge: tail at
+         parent_file_node_uuid row, head at uuid PK row. -->
+    <path d="M 870 641 H 895 V 533 H 870"
+          stroke="#546E7A" stroke-width="1.5" fill="none"
+          marker-start="url(#cf-zero-many)" marker-end="url(#cf-zero-one)"/>
+    <text x="882" y="654" text-anchor="middle" font-size="10" fill="#37474F" font-weight="600">N</text>
+    <text x="882" y="525" text-anchor="middle" font-size="10" fill="#37474F" font-weight="600">1</text>
+    <text x="884" y="587" text-anchor="middle" font-size="9" fill="#5D6D7E" font-style="italic"
+          transform="rotate(90 884 587)">nests under
+    </text>
+
+    <!-- ══════════════════════════════════════════════════
+         FOOTER NOTES
+         ══════════════════════════════════════════════════ -->
+    <text x="36" y="750" font-size="10" fill="#37474F" font-weight="700" letter-spacing="0.3">
+        LEGEND &amp; CONSTRAINTS
+    </text>
+
+    <text x="36" y="767" font-size="10" fill="#5D6D7E">
+        <tspan font-weight="700" fill="#6C3483">PK</tspan>
+        primary key ·
+        <tspan font-weight="700" fill="#5D6D7E">FK</tspan>
+        foreign key · crow's-foot endpoints (||, |o, |&lt;, o&lt;) carry the cardinality and optionality at each end
+    </text>
+
+    <text x="36" y="784" font-size="10" fill="#5D6D7E">
+        <tspan font-weight="600" fill="#37474F">Surrogate keys are UUID v7.</tspan>
+        <tspan font-weight="600" fill="#37474F">Tenant scope:</tspan>
+        every file_node and user_storage query filters by user_account_uuid.
+        google_account inherits its audit columns from idp_account (joined inheritance).
+    </text>
+
+    <text x="36" y="801" font-size="10" fill="#5D6D7E">
+        <tspan font-weight="600" fill="#37474F">file_node</tspan>
+        UNIQUE NULLS NOT DISTINCT(user_account_uuid, parent_file_node_uuid, name, mime_type) ·
+        CHECK directory ⇒ content NULL · BEFORE DELETE trigger calls lo_unlink(content).
+    </text>
+
+    <text x="36" y="818" font-size="10" fill="#5D6D7E">
+        <tspan font-weight="600" fill="#C0392B">file_node.content</tspan>
+        is a PostgreSQL Large Object (OID); plaintext is never stored — Hibernate writes
+        AES/CTR-encrypted bytes via EncryptedBlobUserType, with a 16-byte IV prepended per file.
+    </text>
+</svg>

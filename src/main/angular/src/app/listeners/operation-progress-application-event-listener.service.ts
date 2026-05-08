@@ -13,6 +13,7 @@ import {
 } from '../models/operation-outcomes';
 import {NotificationService} from '../services/notification-service';
 import {AbstractApplicationEventListener} from './abstract-application-event-listener';
+import {ProgressKind} from "../models/notification";
 
 @Injectable()
 export class OperationProgressApplicationEventListener extends AbstractApplicationEventListener {
@@ -34,7 +35,7 @@ export class OperationProgressApplicationEventListener extends AbstractApplicati
     switch (applicationEvent.type) {
       case ApplicationEventType.FileUploadInitiated: {
         const payload = applicationEvent.payload as FileUploadInitiated;
-        this.notificationService.addProgress('upload', payload.id, payload.label, payload.params);
+        this.notificationService.addProgress(ProgressKind.Upload, payload.id, payload.label, payload.params);
         break;
       }
       case ApplicationEventType.FileUploadProgressUpdated: {
@@ -50,7 +51,7 @@ export class OperationProgressApplicationEventListener extends AbstractApplicati
       }
       case ApplicationEventType.FileDownloadInitiated: {
         const payload = applicationEvent.payload as FileDownloadInitiated;
-        this.notificationService.addProgress('download', payload.id, payload.label, payload.params);
+        this.notificationService.addProgress(ProgressKind.Download, payload.id, payload.label, payload.params);
         break;
       }
       case ApplicationEventType.FileDownloadProgressUpdated: {

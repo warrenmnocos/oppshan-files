@@ -1,6 +1,8 @@
 # Files
 
 > A web-based personal file manager — live at **[files.oppshan.com](https://files.oppshan.com)**.
+>
+> by Warren Nocos for ITMD 504 — Programming and Application Foundations at Illinois Institute of Technology.
 
 [![Coverage](https://raw.githubusercontent.com/warrenmnocos/oppshan-files/main/.github/badges/jacoco.svg)](https://raw.githubusercontent.com/warrenmnocos/oppshan-files/main/.github/badges/jacoco.svg)
 [![Java CI with Maven](https://github.com/warrenmnocos/oppshan-files/actions/workflows/maven.yml/badge.svg)](https://github.com/warrenmnocos/oppshan-files/actions/workflows/maven.yml)
@@ -10,6 +12,9 @@
 ![Angular](https://img.shields.io/badge/Angular-21-red?logo=angular)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-blue?logo=postgresql)
 ![AWS](https://img.shields.io/badge/AWS-Graviton_ARM64-orange?logo=amazonaws)
+
+**Quick links:
+** [Live](https://files.oppshan.com) · [Source](https://github.com/warrenmnocos/oppshan-files) · [GitHub Actions](https://github.com/warrenmnocos/oppshan-files/actions) · [Figma](https://figma.com/make/Wkr8DV1ZpKmnbnxNSMVgMs/Oppshan-Files?p=f&fullscreen=1) · [Project Board](https://github.com/users/warrenmnocos/projects/1)
 
 ---
 
@@ -48,7 +53,7 @@
 - [Data Model](#data-model)
     - [User domain](#user-domain)
     - [File domain](#file-domain)
-    - [View records (DTOs)](#view-records-dtos)
+  - [View types](#view-types)
 - [File Streaming and Encryption](#file-streaming-and-encryption)
     - [Upload pipeline](#upload-pipeline)
     - [Download pipeline](#download-pipeline)
@@ -116,15 +121,14 @@ I planned the project across seven sprints on a GitHub Projects board, with 28 u
 and a wireframe mockup for every user-facing screen state. The first six sprints were scoped from the start; a
 seventh was added late to cover polish and responsiveness work that emerged during implementation.
 
-This project is developed as the final exam for **ITMD 504 — Programming and Application Foundations** at
-**Illinois Institute of Technology**.
-
 ### Project Links
 
 - **Source Code:** [github.com/warrenmnocos/oppshan-files](https://github.com/warrenmnocos/oppshan-files)
 - **Project Board:** [github.com/users/warrenmnocos/projects/1](https://github.com/users/warrenmnocos/projects/1)
 - **GitHub Actions:
   ** [github.com/warrenmnocos/oppshan-files/actions](https://github.com/warrenmnocos/oppshan-files/actions)
+- **Figma Prototype:
+  ** [figma.com/make/Wkr8DV1ZpKmnbnxNSMVgMs/Oppshan-Files](https://figma.com/make/Wkr8DV1ZpKmnbnxNSMVgMs/Oppshan-Files?p=f&fullscreen=1)
 - **Live Application:** [files.oppshan.com](https://files.oppshan.com)
 
 ---
@@ -133,8 +137,9 @@ This project is developed as the final exam for **ITMD 504 — Programming and A
 
 The whole project runs on a **web-based Agile workflow** hosted on GitHub: **GitHub Projects** is the Kanban
 board, **GitHub Issues** is the backlog, and **GitHub Milestones** are the sprint containers. Every user story
-is a tracked issue, every implementation lives on a named feature branch, and every merge to `main` goes through
-a pull request that auto-closes the originating issue. Code, board, and reviews all live on the same platform:
+is a tracked issue grouped under its epic, each epic is implemented on a named feature branch, and every merge
+to `main` goes through a pull request that auto-closes the originating issue. Code, board, and reviews all live on the
+same platform:
 the **Agile iteration loop**, end to end. The board is available at
 [github.com/users/warrenmnocos/projects/1](https://github.com/users/warrenmnocos/projects/1).
 
@@ -149,12 +154,15 @@ linked to its corresponding issue.
 
 ### Branch and pull request convention
 
-Every user story follows a consistent workflow. The branch is created from the GitHub issue sidebar, producing a
-name like `3-us-01-sign-in-with-google` where `3` is the issue number. Commits reference the issue with the format
-`refs #3 Implement Google OIDC callback endpoint`. Pull requests are titled `feat/US-01: Sign In with Google`.
-Because the branch was created from the issue sidebar, GitHub keeps the PR linked to the originating issue in the
-Development panel, so merging auto-closes the issue and moves the card to Done. Epic merge commits use the prefix
-`refs #<n> Merged feat/EPIC-0x: <description>`.
+I work one feature branch per epic, created from the epic's GitHub issue sidebar, with names following the
+pattern `<issue#>-epic-XX-<slug>` (for example, `19-epic-04-file-management`). EPIC-01 is the exception: it
+shipped as two story-level branches (`3-us-01-sign-in-with-google` and `4-us-02-redirect-after-sign-in`) because
+the epic was small enough to land in two clean PRs. Commits reference the parent issue with the format
+`refs #<n> <description>`. Pull request titles match the branch (e.g., `EPIC-04: File Management`); when an epic
+is large enough to ship in multiple PRs, each one carries a `Part N` suffix. EPIC-07 (Polish & Responsiveness)
+spanned five parts. Because every branch is created from an issue sidebar, GitHub keeps the PR linked in the
+originating issue's Development panel, so merging auto-closes the issue and moves the card to Done. Merge commits
+use the prefix `refs #<n> Merged EPIC-0x: <description>`.
 
 ### Sprint plan
 
@@ -528,6 +536,8 @@ mutation flows through the bus:
 4. Downstream listeners react to the outcome: refreshing directory contents, surfacing notifications, updating
    progress entries.
 
+![Event bus and reactive pattern](docs/diagrams/event-bus-pattern.svg)
+
 **Listeners are single-responsibility and output-only.** Each listener receives one event type and emits event
 types as its only output. A listener that performs an HTTP call must not also mutate service state directly; those
 concerns are split across dedicated listeners. For example, `FileCreateConfirmedApplicationEventListener` fires
@@ -645,7 +655,7 @@ list mixing both kinds.
 
 ### Streaming uploads on virtual threads
 
-The application runs on **REST Classic** backed by the **Undertow** servlet container.
+The application runs on **RESTEasy Classic** backed by the **Undertow** servlet container.
 `VirtualThreadServletExtension` is registered via `META-INF/services/io.undertow.servlet.ServletExtension` and, at
 deployment time, replaces Undertow's worker and async executors with a `Executors.newThreadPerTaskExecutor(...)`
 backed by `Thread.ofVirtual()`. Every JAX-RS handler (including the upload endpoint) therefore executes on a
@@ -692,7 +702,7 @@ src/main/java/com/oppshan/files/
 ├── common/      # auditable entity base, route filter, virtual-thread extension, write-repo mixin
 ├── config/      # ApplicationStorage @ConfigMapping
 ├── exception/   # MessageCode enum, BusinessException factories, JAX-RS mapper, ErrorResponse
-├── file/        # FileNode entity, UserStorage, repository, service, endpoint, view records, encryption
+├── file/        # FileNode entity, UserStorage, repository, service, endpoint, view types, encryption
 └── user/        # UserAccount, IdpAccount, GoogleAccount, services, repositories
 ```
 
@@ -703,63 +713,170 @@ src/main/java/com/oppshan/files/
 The application uses five core entities organized across two domains. All primary keys are UUID v7 (time-ordered)
 to keep B-tree indexes locality-friendly while avoiding integer-ID enumeration leaks.
 
+![Data model ERD](docs/diagrams/data-model-erd.svg)
+
 ### User domain
 
-**`UserAccount`** represents a platform user. Fields: `uuid` (UUID v7 primary key), `firstName`, `lastName`,
-audit timestamps. It owns one or more `IdpAccount` rows and exactly one `UserStorage` row.
+**`UserAccount`** represents a platform user; it owns one or more `IdpAccount` rows and exactly one
+`UserStorage` row.
 
-**`IdpAccount`** is the abstract base for identity-provider accounts, using JPA joined-inheritance. Fields:
-`uuid`, `providerId` (the external identifier from the IdP), `providerName` (e.g. "google"), and a `userAccount`
-reference. The abstraction exists so adding GitHub or Microsoft is cheap: a new `IdpAccount` subclass plus an
-OIDC configuration entry, with no schema change to the file or user core.
+**`IdpAccount`** is the abstract base for identity-provider accounts, using JPA joined-inheritance. The
+abstraction exists so adding GitHub or Microsoft is cheap: a new `IdpAccount` subclass plus an OIDC
+configuration entry, with no schema change to the file or user core.
 
-**`GoogleAccount`** extends `IdpAccount` with the Google-specific fields `email`, `name`, `photoUrl`. It lives in a
-separate `google_account` table joined to `idp_account` by primary key, with indexes on `name` and `email`.
+**`GoogleAccount`** extends `IdpAccount` with the Google-specific fields below. It lives in a separate
+`google_account` table joined to `idp_account` by primary key, with indexes on `name` and `email`.
+
+<table>
+<colgroup>
+<col style="width: 22%;">
+<col style="width: 20%;">
+<col style="width: 22%;">
+<col style="width: 36%;">
+</colgroup>
+<thead>
+<tr><th>Type</th><th>Property</th><th>Property type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="7"><code>UserAccount</code></td><td><code>uuid</code></td><td><code>UUID</code></td><td>Primary key (UUID v7); <code>NOT NULL</code>, not updatable, <code>@NotNull</code></td></tr>
+<tr><td><code>firstName</code></td><td><code>String</code></td><td>Given name; <code>NOT NULL</code>, <code>@NotEmpty</code>; indexed (<code>idx_user_account_first_name</code>)</td></tr>
+<tr><td><code>lastName</code></td><td><code>String</code></td><td>Family name; <code>NOT NULL</code>, <code>@NotEmpty</code>; indexed (<code>idx_user_account_last_name</code>)</td></tr>
+<tr><td><code>idpAccounts</code></td><td><code>SortedSet&lt;IdpAccount&gt;</code></td><td>One-to-many; <code>@NotNull</code>, <code>cascade=ALL</code>, <code>orphanRemoval=true</code>, <code>FetchType.LAZY</code></td></tr>
+<tr><td><code>userStorage</code></td><td><code>UserStorage</code></td><td>One-to-one; <code>@NotNull</code>, <code>cascade=ALL</code>, <code>orphanRemoval=true</code>, <code>FetchType.EAGER</code></td></tr>
+<tr><td><code>createdAt</code></td><td><code>Instant</code></td><td>Audit timestamp set on <code>@PrePersist</code>; <code>NOT NULL</code>, not updatable, <code>@NotNull</code>; indexed (<code>idx_user_account_created_at</code>)</td></tr>
+<tr><td><code>lastModifiedAt</code></td><td><code>Instant</code></td><td>Audit timestamp bumped on <code>@PrePersist</code> + <code>@PreUpdate</code>; <code>NOT NULL</code>, <code>@NotNull</code></td></tr>
+<tr><td rowspan="6"><code>IdpAccount</code><br><em>(abstract, JOINED inheritance)</em></td><td><code>uuid</code></td><td><code>UUID</code></td><td>Primary key (UUID v7); <code>NOT NULL</code>, not updatable, <code>@NotNull</code></td></tr>
+<tr><td><code>providerId</code></td><td><code>String</code></td><td>External identifier from the IdP (e.g., Google <code>sub</code>); <code>NOT NULL</code>, <code>@NotEmpty</code>, not updatable; part of <code>(provider_name, provider_id)</code> unique constraint</td></tr>
+<tr><td><code>providerName</code></td><td><code>String</code></td><td>Provider name (e.g., <code>"google"</code>); <code>NOT NULL</code>, <code>@NotEmpty</code>, not updatable; part of <code>(provider_name, provider_id)</code> unique constraint</td></tr>
+<tr><td><code>userAccount</code></td><td><code>UserAccount</code></td><td>Many-to-one owning user; <code>NOT NULL</code>, not updatable, <code>@NotNull</code>, <code>FetchType.LAZY</code></td></tr>
+<tr><td><code>createdAt</code></td><td><code>Instant</code></td><td>Audit timestamp; <code>NOT NULL</code>, not updatable, <code>@NotNull</code>; indexed (<code>idx_idp_account_created_at</code>)</td></tr>
+<tr><td><code>lastModifiedAt</code></td><td><code>Instant</code></td><td>Audit timestamp; <code>NOT NULL</code>, <code>@NotNull</code></td></tr>
+<tr><td rowspan="3"><code>GoogleAccount</code><br><em>extends <code>IdpAccount</code></em></td><td><code>name</code></td><td><code>String</code></td><td>Display name from the Google ID token; <code>NOT NULL</code>, <code>@NotEmpty</code>; indexed (<code>idx_google_account_name</code>)</td></tr>
+<tr><td><code>email</code></td><td><code>String</code></td><td>Email address from the Google ID token; <code>NOT NULL</code>, <code>@NotEmpty</code>; indexed (<code>idx_google_account_email</code>)</td></tr>
+<tr><td><code>photoUrl</code></td><td><code>String</code></td><td>Avatar URL from the Google ID token; <code>NOT NULL</code>, <code>@NotEmpty</code></td></tr>
+</tbody>
+</table>
 
 ### File domain
 
-**`FileNode`** is the unified entity for both files and directories, following an inode-style design. Fields:
-`uuid` (UUID v7 primary key), `userAccount` (`@ManyToOne` tenant scope, joined as `user_account_uuid NOT NULL`),
-`name`, `mimeType`, `directory` (boolean), `sizeBytes`, `content` (`java.sql.Blob` mapped via
-`@Type(EncryptedBlobUserType.class)`, fetched lazily and streamed end-to-end), `parentFileNode` (self-reference,
-null for root), `childFileNodes` (a sorted set), audit timestamps. A database CHECK constraint enforces that
-directories have null content and zero size while files have non-null content. The unique constraint
-`(user_account_uuid, parent_file_node_uuid, name, mime_type) UNIQUE NULLS NOT DISTINCT` prevents duplicate names
-within the same parent even at the root level (where `parent_file_node_uuid IS NULL`); the leading
-`user_account_uuid` keeps each user's namespace isolated.
+**`FileNode`** is the unified entity for both files and directories, following an inode-style design. A database
+CHECK constraint enforces that directories have null content and zero size while files have non-null content.
+The unique constraint `(user_account_uuid, parent_file_node_uuid, name, mime_type) UNIQUE NULLS NOT DISTINCT`
+prevents duplicate names within the same parent even at the root level (where `parent_file_node_uuid IS NULL`);
+the leading `user_account_uuid` keeps each user's namespace isolated.
 
-**`UserStorage`** tracks each user's quota. Fields: `uuid` (UUID v7 primary key), `userAccount` (one-to-one),
-`maxStorageBytes`, `maxFileUploadBytes`, `rootFileNode` (one-to-one to the user's root `FileNode`), audit
-timestamps.
+**`UserStorage`** tracks each user's quota and points to their root folder.
 
-### View records (DTOs)
+<table>
+<colgroup>
+<col style="width: 22%;">
+<col style="width: 20%;">
+<col style="width: 22%;">
+<col style="width: 36%;">
+</colgroup>
+<thead>
+<tr><th>Type</th><th>Property</th><th>Property type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="11"><code>FileNode</code></td><td><code>uuid</code></td><td><code>UUID</code></td><td>Primary key (UUID v7); <code>NOT NULL</code>, not updatable, <code>@NotNull</code></td></tr>
+<tr><td><code>name</code></td><td><code>String</code></td><td>Display name; <code>NOT NULL</code>, <code>@NotEmpty</code>; part of <code>(user_account_uuid, parent_file_node_uuid, name, mime_type) UNIQUE NULLS NOT DISTINCT</code></td></tr>
+<tr><td><code>mimeType</code></td><td><code>String</code></td><td>MIME type; <code>NOT NULL</code>, <code>@NotEmpty</code>; folders use <code>application/vnd.oppshan-files.folder</code>; part of the same unique constraint</td></tr>
+<tr><td><code>directory</code></td><td><code>boolean</code></td><td><code>true</code> for folders, <code>false</code> for regular files; <code>NOT NULL</code>, not updatable</td></tr>
+<tr><td><code>sizeBytes</code></td><td><code>long</code></td><td>File size in bytes; <code>NOT NULL</code>, <code>@PositiveOrZero</code>; CHECK enforces <code>0</code> for folders</td></tr>
+<tr><td><code>content</code></td><td><code>Blob</code></td><td>Encrypted file content via <code>EncryptedBlobUserType</code>; CHECK enforces null for folders, non-null for files; <code>FetchType.LAZY</code> with <code>@LazyGroup</code></td></tr>
+<tr><td><code>parentFileNode</code></td><td><code>FileNode</code></td><td>Many-to-one self-reference; null for the user's root; not updatable, <code>FetchType.LAZY</code>; part of the unique constraint</td></tr>
+<tr><td><code>userAccount</code></td><td><code>UserAccount</code></td><td>Many-to-one tenant scope; <code>user_account_uuid NOT NULL</code>, not updatable, <code>@NotNull</code>, <code>FetchType.LAZY</code>; leading column of the unique constraint</td></tr>
+<tr><td><code>childFileNodes</code></td><td><code>SortedSet&lt;FileNode&gt;</code></td><td>One-to-many self-reference; <code>@NotNull</code>, <code>cascade=ALL</code>, <code>orphanRemoval=true</code>, <code>FetchType.LAZY</code></td></tr>
+<tr><td><code>createdAt</code></td><td><code>Instant</code></td><td>Audit timestamp; <code>NOT NULL</code>, not updatable, <code>@NotNull</code></td></tr>
+<tr><td><code>lastModifiedAt</code></td><td><code>Instant</code></td><td>Audit timestamp; <code>NOT NULL</code>, <code>@NotNull</code></td></tr>
+<tr><td rowspan="7"><code>UserStorage</code></td><td><code>uuid</code></td><td><code>UUID</code></td><td>Primary key (UUID v7); <code>NOT NULL</code>, not updatable, <code>@NotNull</code></td></tr>
+<tr><td><code>userAccount</code></td><td><code>UserAccount</code></td><td>One-to-one owning user; <code>NOT NULL</code>, not updatable, <code>@NotNull</code>, <code>FetchType.LAZY</code></td></tr>
+<tr><td><code>maxStorageBytes</code></td><td><code>long</code></td><td>Per-user storage quota in bytes; <code>NOT NULL</code>, <code>@PositiveOrZero</code></td></tr>
+<tr><td><code>maxFileUploadBytes</code></td><td><code>long</code></td><td>Per-upload size limit in bytes; <code>NOT NULL</code>, <code>@PositiveOrZero</code></td></tr>
+<tr><td><code>rootFileNode</code></td><td><code>FileNode</code></td><td>One-to-one to the user's top-level directory; <code>NOT NULL</code>, not updatable, <code>@NotNull</code>, <code>cascade=ALL</code>, <code>orphanRemoval=true</code>, <code>FetchType.LAZY</code></td></tr>
+<tr><td><code>createdAt</code></td><td><code>Instant</code></td><td>Audit timestamp; <code>NOT NULL</code>, not updatable, <code>@NotNull</code></td></tr>
+<tr><td><code>lastModifiedAt</code></td><td><code>Instant</code></td><td>Audit timestamp; <code>NOT NULL</code>, <code>@NotNull</code></td></tr>
+</tbody>
+</table>
 
-Endpoints return immutable Java `record` types, never entities. `FileNodePropertiesView` is a sealed interface
-that `DirectoryPropertiesView` and `RegularFilePropertiesView` implement, so the properties endpoint can return either
-type polymorphically. The full set:
+### View types
 
-- `UserAccountView(uuid, firstName, lastName, email, photoUrl, usedStorageBytes, maxStorageBytes,
-  maxFileUploadBytes, rootFileNodeUuid, createdAt, lastModifiedAt)`: current authenticated user.
-- `UserStorageView(userAccountUuid, maxFileUploadBytes, maxStorageBytes, totalSizeBytes)`: lightweight projection
-  used internally for quota checks without loading the full user.
-- `FileNodeView(uuid, name, mimeType, directory, sizeBytes, parentUuid, createdAt, lastModifiedAt)`: a child
-  in a directory listing.
-- `DirectoryContentsView(uuid, name, parentUuid, targetFileUuid, breadcrumbViews, childrenFileNodeViews)`: the
-  full payload for a directory page; the breadcrumb trail is embedded so the client never makes a second round trip,
-  and `targetFileUuid` lets the frontend highlight a specific file after deep-link navigation.
-- `BreadcrumbView(uuid, name, directory)`: one segment in the breadcrumb trail, with a `directory` flag so the
-  frontend can distinguish the final segment when it resolves to a file.
-- `DirectoryStatistics(folderCount, fileCount, totalSizeBytes)`: result type for the `GET_DIRECTORY_STATISTICS`
-  CTE query, used to populate the directory properties dialog.
-- `DirectoryPropertiesView(uuid, name, createdAt, lastModifiedAt, directoryCount, fileCount, totalSizeBytes)`: the
-  read-only properties dialog payload for a folder.
-- `RegularFilePropertiesView(uuid, name, mimeType, sizeBytes, parentUuid, parentName, createdAt, lastModifiedAt)`: the
-  read-only properties dialog payload for a file.
-- `FileDownloadView(userAccountUuid, fileNodeUuid, filename, mimeType, sizeBytes, contentInputStream)`: wraps
-  everything the `MessageBodyWriter` needs to stream a decrypted download response.
+Endpoints return immutable view types, never entities. Most are Java `record`s.
+`DirectoryContentsView` is a class with a defensive constructor that null-replaces the children
+list. `FileNodePropertiesView` is a sealed interface that `DirectoryPropertiesView` and
+`RegularFilePropertiesView` implement, so `GET /api/files/{uuid}/properties` can return either
+polymorphically. The TypeScript side mirrors each client-facing view with matching field names,
+and `class-transformer` hydrates nested types via `@Type(() => X)`.
 
-The TypeScript side mirrors each client-facing view with matching field names (I keep them in sync), and
-`class-transformer` hydrates nested types via `@Type(() => X)`.
+<table>
+<colgroup>
+<col style="width: 22%;">
+<col style="width: 20%;">
+<col style="width: 22%;">
+<col style="width: 36%;">
+</colgroup>
+<thead>
+<tr><th>Type</th><th>Property</th><th>Property type</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td rowspan="11"><code>UserAccountView</code></td><td><code>uuid</code></td><td><code>UUID</code></td><td>User identifier (v7)</td></tr>
+<tr><td><code>firstName</code></td><td><code>String</code></td><td>Given name from the IdP</td></tr>
+<tr><td><code>lastName</code></td><td><code>String</code></td><td>Family name from the IdP</td></tr>
+<tr><td><code>email</code></td><td><code>String</code></td><td>Primary email from the IdP</td></tr>
+<tr><td><code>photoUrl</code></td><td><code>String</code></td><td>Avatar URL from the IdP; may be null</td></tr>
+<tr><td><code>usedStorageBytes</code></td><td><code>long</code></td><td>Sum of file sizes owned by this user</td></tr>
+<tr><td><code>maxStorageBytes</code></td><td><code>long</code></td><td>Per-user storage quota</td></tr>
+<tr><td><code>maxFileUploadBytes</code></td><td><code>long</code></td><td>Per-upload size limit</td></tr>
+<tr><td><code>rootFileNodeUuid</code></td><td><code>UUID</code></td><td>UUID of the user's top-level directory</td></tr>
+<tr><td><code>createdAt</code></td><td><code>Instant</code></td><td>When the account was created</td></tr>
+<tr><td><code>lastModifiedAt</code></td><td><code>Instant</code></td><td>When the account was last updated</td></tr>
+<tr><td rowspan="4"><code>UserStorageView</code></td><td><code>userAccountUuid</code></td><td><code>UUID</code></td><td>Owner UUID</td></tr>
+<tr><td><code>maxFileUploadBytes</code></td><td><code>long</code></td><td>Per-upload size limit</td></tr>
+<tr><td><code>maxStorageBytes</code></td><td><code>long</code></td><td>Per-user storage quota</td></tr>
+<tr><td><code>totalSizeBytes</code></td><td><code>long</code></td><td>Live sum of file sizes (scalar subquery, internal)</td></tr>
+<tr><td rowspan="8"><code>FileNodeView</code></td><td><code>uuid</code></td><td><code>UUID</code></td><td>Node identifier</td></tr>
+<tr><td><code>name</code></td><td><code>String</code></td><td>Display name</td></tr>
+<tr><td><code>mimeType</code></td><td><code>String</code></td><td>MIME type; folders use <code>application/vnd.oppshan-files.folder</code></td></tr>
+<tr><td><code>directory</code></td><td><code>boolean</code></td><td>True for folders, false for regular files</td></tr>
+<tr><td><code>sizeBytes</code></td><td><code>long</code></td><td>File size; <code>0</code> for folders</td></tr>
+<tr><td><code>parentUuid</code></td><td><code>UUID</code></td><td>Containing folder UUID</td></tr>
+<tr><td><code>createdAt</code></td><td><code>Instant</code></td><td>Creation timestamp</td></tr>
+<tr><td><code>lastModifiedAt</code></td><td><code>Instant</code></td><td>Last-modified timestamp</td></tr>
+<tr><td rowspan="6"><code>DirectoryContentsView</code></td><td><code>uuid</code></td><td><code>UUID</code></td><td>Directory identifier</td></tr>
+<tr><td><code>name</code></td><td><code>String</code></td><td>Directory display name</td></tr>
+<tr><td><code>parentUuid</code></td><td><code>UUID</code></td><td>Containing folder UUID; null for the user's root</td></tr>
+<tr><td><code>breadcrumbViews</code></td><td><code>List&lt;BreadcrumbView&gt;</code></td><td>Trail from the user's root down to this directory</td></tr>
+<tr><td><code>childrenFileNodeViews</code></td><td><code>List&lt;FileNodeView&gt;</code></td><td>Sorted child entries (folders first, then files, name-ordered)</td></tr>
+<tr><td><code>targetFileUuid</code></td><td><code>UUID</code></td><td>Optional; populated on deep-link navigation so the frontend highlights that entry</td></tr>
+<tr><td rowspan="3"><code>BreadcrumbView</code></td><td><code>uuid</code></td><td><code>UUID</code></td><td>Segment identifier</td></tr>
+<tr><td><code>name</code></td><td><code>String</code></td><td>Segment display name</td></tr>
+<tr><td><code>directory</code></td><td><code>boolean</code></td><td>True for folders; false on the final segment when it resolves to a file</td></tr>
+<tr><td rowspan="3"><code>DirectoryStatistics</code></td><td><code>folderCount</code></td><td><code>long</code></td><td>Subdirectories in the subtree</td></tr>
+<tr><td><code>fileCount</code></td><td><code>long</code></td><td>Files in the subtree</td></tr>
+<tr><td><code>totalSizeBytes</code></td><td><code>long</code></td><td>Sum of all file sizes in the subtree</td></tr>
+<tr><td rowspan="7"><code>DirectoryPropertiesView</code></td><td><code>uuid</code></td><td><code>UUID</code></td><td>Folder identifier</td></tr>
+<tr><td><code>name</code></td><td><code>String</code></td><td>Folder display name</td></tr>
+<tr><td><code>createdAt</code></td><td><code>Instant</code></td><td>Creation timestamp</td></tr>
+<tr><td><code>lastModifiedAt</code></td><td><code>Instant</code></td><td>Last-modified timestamp</td></tr>
+<tr><td><code>directoryCount</code></td><td><code>long</code></td><td>Subdirectories in the subtree</td></tr>
+<tr><td><code>fileCount</code></td><td><code>long</code></td><td>Files in the subtree</td></tr>
+<tr><td><code>totalSizeBytes</code></td><td><code>long</code></td><td>Sum of all file sizes in the subtree</td></tr>
+<tr><td rowspan="8"><code>RegularFilePropertiesView</code></td><td><code>uuid</code></td><td><code>UUID</code></td><td>File identifier</td></tr>
+<tr><td><code>name</code></td><td><code>String</code></td><td>File display name</td></tr>
+<tr><td><code>mimeType</code></td><td><code>String</code></td><td>Content MIME type</td></tr>
+<tr><td><code>sizeBytes</code></td><td><code>long</code></td><td>Decrypted file size</td></tr>
+<tr><td><code>parentUuid</code></td><td><code>UUID</code></td><td>Parent folder UUID</td></tr>
+<tr><td><code>parentName</code></td><td><code>String</code></td><td>Parent folder display name</td></tr>
+<tr><td><code>createdAt</code></td><td><code>Instant</code></td><td>Creation timestamp</td></tr>
+<tr><td><code>lastModifiedAt</code></td><td><code>Instant</code></td><td>Last-modified timestamp</td></tr>
+<tr><td rowspan="6"><code>FileDownloadView</code></td><td><code>userAccountUuid</code></td><td><code>UUID</code></td><td>File owner</td></tr>
+<tr><td><code>fileNodeUuid</code></td><td><code>UUID</code></td><td>Source file UUID</td></tr>
+<tr><td><code>filename</code></td><td><code>String</code></td><td>Filename for <code>Content-Disposition</code></td></tr>
+<tr><td><code>mimeType</code></td><td><code>String</code></td><td>Response <code>Content-Type</code></td></tr>
+<tr><td><code>sizeBytes</code></td><td><code>long</code></td><td>Response <code>Content-Length</code></td></tr>
+<tr><td><code>contentInputStream</code></td><td><code>InputStream</code></td><td>Decrypted plaintext stream piped to <code>StreamingOutput</code></td></tr>
+</tbody>
+</table>
 
 ---
 
@@ -807,24 +924,27 @@ events into `ProgressNotification` updates rendered in the `NotificationCenter`'
 
 ### Authenticated (`@Authenticated`, OIDC HTTP-only cookie)
 
-| Method | Path                           | Purpose                                                                                                                   |
-|--------|--------------------------------|---------------------------------------------------------------------------------------------------------------------------|
-| GET    | `/api/auth/me`                 | Current `UserAccountView` (200 with body, or 401 if unauthenticated)                                                      |
-| GET    | `/api/files/{uuid}/contents`   | Directory contents by UUID                                                                                                |
-| GET    | `/api/files/contents?path=...` | Directory contents by slash-separated path; empty path returns the user's root                                            |
-| POST   | `/api/files`                   | Create a directory; body `{ name, parentUuid }`                                                                           |
-| PATCH  | `/api/files/{uuid}`            | Rename a file or directory; body `{ name }`                                                                               |
-| DELETE | `/api/files/{uuid}`            | Delete a file or directory (recursive for directories)                                                                    |
-| GET    | `/api/files/{uuid}/properties` | Properties of a file or directory                                                                                         |
-| POST   | `/api/files/{uuid}/upload`     | Stream a file into the directory; raw binary body, `Content-Disposition: attachment; filename=...`, `Content-Type` header |
-| GET    | `/api/files/{uuid}/download`   | Stream a file out; sets `Content-Disposition: attachment` and original `Content-Type`                                     |
+| Method | Path                           | Request body                     | Response body            | Purpose                                                                                              |
+|--------|--------------------------------|----------------------------------|--------------------------|------------------------------------------------------------------------------------------------------|
+| GET    | `/api/auth/me`                 | —                                | `UserAccountView`        | Current authenticated user; `401` if signed out                                                      |
+| GET    | `/api/files/{uuid}/contents`   | —                                | `DirectoryContentsView`  | Directory contents by UUID                                                                           |
+| GET    | `/api/files/contents?path=...` | —                                | `DirectoryContentsView`  | Directory contents by slash-separated path; empty path returns the user's root                       |
+| POST   | `/api/files`                   | `CreateDirectoryRequest`         | `DirectoryContentsView`  | Create a directory                                                                                   |
+| PATCH  | `/api/files/{uuid}`            | `RenameFileNodeRequest`          | `DirectoryContentsView`  | Rename a file or directory                                                                           |
+| DELETE | `/api/files/{uuid}`            | —                                | `DirectoryContentsView`  | Delete a file or directory (recursive for directories)                                               |
+| GET    | `/api/files/{uuid}/properties` | —                                | `FileNodePropertiesView` | Properties of a file or directory (sealed: `DirectoryPropertiesView` or `RegularFilePropertiesView`) |
+| POST   | `/api/files/{uuid}/upload`     | `FileUploadRequest` + raw bytes¹ | `DirectoryContentsView`  | Stream a file into the directory                                                                     |
+| GET    | `/api/files/{uuid}/download`   | —                                | binary stream²           | Stream a file out                                                                                    |
 
-Successful `POST` responses (`/api/files`, `/api/files/{uuid}/upload`) return `201 Created` with the updated
-`DirectoryContentsView` body; other successes return `200 OK`. Errors come back as `400 Bad Request` with body
-`{ "messageCode": "messages.errors.<key>" }` (translated by the Angular app via the i18n table). `GET /api/auth/me`
-returns `401 Unauthorized` when the session is signed out. The Angular app's `SessionHttpInterceptor` watches for
-`499` (a custom status used by the OIDC layer to signal session invalidation mid-request) and redirects to
-sign-in.
+¹ `FileUploadRequest` is a `@BeanParam`: the filename comes from `Content-Disposition: attachment; filename=...`
+and the MIME type from `Content-Type`. The request body itself is the raw file bytes.
+² Decrypted plaintext via `FileDownloadView` → `FileDownloadViewMessageBodyWriter`; sets
+`Content-Disposition: attachment` and the original `Content-Type`.
+
+Successful `POST` responses (`/api/files`, `/api/files/{uuid}/upload`) return `201 Created`; other successes
+return `200 OK`. Errors come back as `400 Bad Request` with body `{ "messageCode": "messages.errors.<key>" }`
+(translated by the Angular app via the i18n table). The Angular app's `SessionHttpInterceptor` watches for `499`
+(a custom status used by the OIDC layer to signal session invalidation mid-request) and redirects to sign-in.
 
 ---
 
@@ -839,6 +959,8 @@ passwords. On first login, the backend reads `sub` (Google's unique user identif
 logins match by Google `sub` and reuse the existing user. Quarkus manages the OIDC session through HTTP-only
 cookies, so the Angular app never touches a token directly. Token state in the cookie is encrypted with the
 secret in `quarkus.oidc.token-state-manager.encryption-secret`.
+
+![OIDC sign-in sequence](docs/diagrams/oidc-sign-in.svg)
 
 I built the identity-provider abstraction (`IdpAccount` → `GoogleAccount`) so adding more providers is cheap.
 Adding GitHub, for example, would mean a new entity extending `IdpAccount`, a claim-extraction lambda, and an OIDC
@@ -910,8 +1032,8 @@ Migration files live in `src/main/resources/db/migration/postgresql/` and are pl
 
 ## User Experience Design
 
-I finalized the visual design before writing any code using an AI-assisted design tool to produce wireframe mockups for
-every user-facing screen state: one per user story, plus extras for the empty, loading, and error variants. The
+I finalized the visual design using an AI-assisted design tool and **Figma Make** to produce wireframe mockups for every
+user-facing screen state: one per user story, plus extras for the empty, loading, and error variants. The
 mockups drove implementation directly: every screen the application renders maps back to a wireframe, and every
 wireframe corresponds to an acceptance criterion on the GitHub issue. The design system uses teal (`#009688`) for
 interactive elements and active states, danger red (`#d93025`) for destructive confirmation, and a neutral palette
@@ -1130,6 +1252,8 @@ Command on the EC2 instance to `systemctl stop`, `aws s3 cp` the new binary, `ch
 `systemctl start`. Authentication uses **OIDC federation**: GitHub mints a short-lived JWT, AWS STS exchanges it for
 temporary credentials based on a trust policy scoped to `repo:OWNER/REPO:ref:refs/heads/main`. No long-lived AWS keys
 live in repository secrets.
+
+![Deployment automation flow](docs/diagrams/deployment-automation.svg)
 
 ---
 

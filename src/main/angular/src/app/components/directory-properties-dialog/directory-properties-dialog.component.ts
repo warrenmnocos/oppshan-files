@@ -65,4 +65,8 @@ export class DirectoryPropertiesDialog implements OnInit {
       this.onClose();
     }
   }
+
+  onClick(event: MouseEvent): void {
+    event.stopPropagation();
+  }
 }

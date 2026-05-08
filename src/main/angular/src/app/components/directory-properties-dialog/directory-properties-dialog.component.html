@@ -1,5 +1,5 @@
 <div (click)="onClose()" class="dialog-overlay">
-  <div (click)="$event.stopPropagation()" (keydown)="onKeyDown($event)" class="dialog">
+  <div (click)="onClick($event)" (keydown)="onKeyDown($event)" class="dialog">
     <h2 class="dialog-title">{{ 'dialog.directoryProperties.title' | translate }}</h2>
     <div class="dialog-body">
       <div class="dialog-properties-row">

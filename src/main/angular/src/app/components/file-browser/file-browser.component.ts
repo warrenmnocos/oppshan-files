@@ -192,7 +192,11 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
     this.longPressTimer = window.setTimeout(() => this.fireLongPress(), 500);
   }
 
-  onItemTouchEnd(): void {
+  onItemTouchEnd(event?: TouchEvent): void {
+    if (this.longPressFired) {
+      event?.preventDefault();
+    }
+
     if (this.longPressTimer === null) {
       return;
     }
@@ -219,8 +223,8 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
     this.fileInputRef.nativeElement.click();
   }
 
-  onFilesSelected(fileList: FileList | null): void {
-    if (!fileList || fileList.length === 0) {
+  onFilesSelected(files: FileList | File[] | null): void {
+    if (!files || files.length === 0) {
       return;
     }
 
@@ -235,7 +239,7 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
     const validFiles: File[] = [];
     let projectedUsedBytes = usedStorageBytes;
 
-    for (const file of Array.from(fileList)) {
+    for (const file of Array.from(files)) {
       if (file.size > maxFileUploadBytes) {
         this.messageBusService.fireApplicationEvent(
           new ApplicationEvent(ApplicationEventType.FileCreateFailed, {
@@ -298,7 +302,7 @@ export class FileBrowser implements AfterViewInit, OnDestroy {
     }
 
     if (files.length > 0) {
-      this.onFilesSelected(Object.assign([], files) as unknown as FileList);
+      this.onFilesSelected(files);
     }
   }
 

@@ -61,7 +61,7 @@ export class FileContextMenu implements OnInit, OnDestroy {
 
     this.items = computed(() => this.resolveItems(this.target(), this.quotaExceeded()));
 
-    this.mediaQuery = window.matchMedia('(max-width: 480px)');
+    this.mediaQuery = window.matchMedia('(max-width: 37.4375rem)');
     this.bottomSheet = signal(this.mediaQuery.matches);
     this.mediaListener = (event) => this.bottomSheet.set(event.matches);
 

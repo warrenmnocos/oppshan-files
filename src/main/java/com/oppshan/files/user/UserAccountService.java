@@ -126,12 +126,13 @@ public class UserAccountService {
     }
 
     private UserAccountView toUserAccountView(UserAccount userAccount) {
-        return toUserAccountView(
-                userAccount,
-                idpAccountRepository.stream(userAccount.getUuid())
-                        .findFirst()
-                        .orElseThrow(BusinessException::userNotFound)
-        );
+        try (final var idpAccounts = idpAccountRepository.stream(userAccount.getUuid())) {
+            return toUserAccountView(
+                    userAccount,
+                    idpAccounts.findFirst()
+                            .orElseThrow(BusinessException::userNotFound)
+            );
+        }
     }
 
     private UserAccountView toUserAccountView(IdpAccount idpAccount) {

@@ -87,9 +87,8 @@
         Quarkus classpath location for static content
     </text>
 
-    <!-- Arrow 4→5 -->
-    <line x1="259" y1="324" x2="259" y2="350" stroke="#546E7A" stroke-width="1.2"/>
-    <line x1="259" y1="350" x2="360" y2="396" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+    <!-- Arrow 4→5 (orthogonal: down, right, down) -->
+    <path d="M 259 324 V 380 H 360 V 396" stroke="#546E7A" stroke-width="1.2" fill="none" marker-end="url(#arr)"/>
 
     <!-- ═══════════════════════════════════════════════════════════
          MAVEN compile + package PHASE

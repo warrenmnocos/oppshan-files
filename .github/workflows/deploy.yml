@@ -29,7 +29,10 @@ jobs:
         with:
           java-version: '25'
           distribution: 'graalvm'
-          cache: 'maven'            # cache ~/.m2 across runs
+          cache: 'maven'
+
+      - name: Run tests
+        run: ./mvnw -B test
 
       - name: Build native image
         run: ./mvnw -B -Pnative-release package -DskipTests

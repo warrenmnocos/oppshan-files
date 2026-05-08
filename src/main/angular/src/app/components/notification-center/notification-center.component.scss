@@ -150,25 +150,29 @@
 // ── Shared ────────────────────────────────────────────────────────────────────
 
 .icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
   cursor: pointer;
-  color: #5f6368;
-  font-size: 1rem;
-  line-height: 1;
   padding: 0.125rem 0.25rem;
 
-  &:hover {
-    color: #202124;
+  img {
+    width: 1rem;
+    height: 1rem;
+    opacity: 0.6;
+    transition: opacity 0.15s ease;
+  }
+
+  &:hover img {
+    opacity: 1;
   }
 }
 
-.toast-dismiss {
-  color: rgba(255, 255, 255, 0.7);
-
-  &:hover {
-    color: #fff;
-  }
+.toast-dismiss img {
+  filter: brightness(0) invert(1);
+  opacity: 0.7;
 }
 
 .chevron {

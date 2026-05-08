@@ -1,7 +1,7 @@
 import {Component, computed, Signal, signal, WritableSignal} from '@angular/core';
 import {TranslatePipe} from '@ngx-translate/core';
 import {NotificationService} from '../../services/notification-service';
-import {MessageNotification, ProgressNotification} from '../../models/notification';
+import {MessageNotification, ProgressKind, ProgressNotification} from '../../models/notification';
 
 @Component({
   selector: 'app-notification-center',
@@ -28,14 +28,14 @@ export class NotificationCenter {
       this.notificationService.notifications().filter(
         (applicationNotification): applicationNotification is ProgressNotification =>
           applicationNotification.type === 'progress'
-          && (applicationNotification as ProgressNotification).kind === 'upload'
+          && (applicationNotification as ProgressNotification).kind === ProgressKind.Upload
       )
     );
     this.downloadProgressNotifications = computed<readonly ProgressNotification[]>(() =>
       this.notificationService.notifications().filter(
         (applicationNotification): applicationNotification is ProgressNotification =>
           applicationNotification.type === 'progress'
-          && (applicationNotification as ProgressNotification).kind === 'download'
+          && (applicationNotification as ProgressNotification).kind === ProgressKind.Download
       )
     );
     this.messageNotifications = computed<readonly MessageNotification[]>(() =>
