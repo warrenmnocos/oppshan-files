@@ -376,8 +376,8 @@ The stack at a glance:
 
 The backend runs on **Quarkus 3.34.3** with **Java 25** (Oracle GraalVM). **JAX-RS** endpoints run on the **Undertow**
 servlet container, but I swapped out the worker pool at deployment time with `VirtualThreadServletExtension` so
-every request handler runs on a **virtual thread**. Blocking **JDBC** and `InputStream` reads cost nothing in
-platform-thread terms. **Hibernate ORM** validates the **Flyway**-managed schema at startup; breadcrumb walks
+every request handler runs on a **virtual thread**. Blocking **JDBC** and `InputStream` reads no longer pin
+a platform thread. **Hibernate ORM** validates the **Flyway**-managed schema at startup; breadcrumb walks
 and directory totals use `@NamedNativeQuery` with recursive **CTE**s rather than row-by-row navigation. A custom Hibernate `UserType`
 (`EncryptedBlobUserType`) sits at the persistence boundary and encrypts/decrypts file content transparently. The
 service and endpoint layers never see ciphertext. Google sign-in goes through the Quarkus **OpenID Connect** extension,

@@ -24,6 +24,7 @@
         <angular.cli.version>21.2.5</angular.cli.version>
         <frontend-maven-plugin.version>1.15.1</frontend-maven-plugin.version>
         <guava.version>33.5.0-jre</guava.version>
+        <htmlunit.version>4.13.0</htmlunit.version>
         <jakarta.data-api.version>1.0.1</jakarta.data-api.version>
         <yarn.version>v1.22.22</yarn.version>
         <skipITs>true</skipITs>
@@ -121,7 +122,7 @@
         <dependency>
             <groupId>org.htmlunit</groupId>
             <artifactId>htmlunit</artifactId>
-            <version>4.13.0</version>
+            <version>${htmlunit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

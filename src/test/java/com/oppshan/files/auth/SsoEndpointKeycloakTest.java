@@ -13,7 +13,6 @@ import java.net.URI;
 import java.net.URL;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
@@ -30,8 +29,8 @@ class SsoEndpointKeycloakTest {
 
             final var afterSignIn = signInAsAlice(loginForm);
 
-            assertThat("After Keycloak callback the browser ends up at the SPA shell",
-                    afterSignIn.getUrl().toString(), containsString(applicationRoot.toString()));
+            assertThat("After Keycloak callback the browser lands on the SPA root",
+                    afterSignIn.getUrl().getPath(), is("/"));
             assertThat("OIDC session cookie is set after sign-in",
                     sessionCookieValue(webClient), is(not("")));
 
@@ -40,8 +39,8 @@ class SsoEndpointKeycloakTest {
                     meAfterSignIn.getWebResponse().getStatusCode(), is(200));
 
             final var signOutResponse = postSignOut(webClient);
-            assertThat("Sign-out redirects via 303",
-                    signOutResponse.getWebResponse().getStatusCode(), is(200));
+            assertThat("Sign-out 303 follows to the sign-in landing path",
+                    signOutResponse.getUrl().getPath(), is("/sso/sign-in"));
 
             final var meAfterSignOut = webClient.getPage(applicationRoot + "api/auth/me");
             assertThat("After sign-out /api/auth/me reverts to anonymous",

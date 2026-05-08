@@ -10,15 +10,15 @@
       "protocol": "openid-connect",
       "secret": "secret",
       "redirectUris": [
-        "*"
+        "http://localhost:8081/sso/sign-in/oidc/callback/google"
       ],
       "webOrigins": [
-        "*"
+        "http://localhost:8081"
       ],
       "publicClient": false,
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": true,
+      "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "defaultClientScopes": [
         "profile",

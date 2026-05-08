@@ -6,8 +6,6 @@ import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.not;
 
 @QuarkusTest
 class SsoEndpointTest {
@@ -25,12 +23,13 @@ class SsoEndpointTest {
     }
 
     @Test
-    void shouldDenyAccessWhenAnonymousUserAttemptsSignOut() {
+    void shouldRedirectAnonymousSignOutAttemptToOidcProvider() {
         given()
                 .redirects().follow(false)
                 .when()
                 .post("/sso/sign-out")
                 .then()
-                .statusCode(is(not(303)));
+                .statusCode(302)
+                .header("Location", containsString("/realms/quarkus/protocol/openid-connect/auth"));
     }
 }

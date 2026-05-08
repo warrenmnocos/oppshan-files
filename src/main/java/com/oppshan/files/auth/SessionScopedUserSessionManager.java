@@ -53,6 +53,7 @@ public class SessionScopedUserSessionManager implements UserSessionManager {
         }
 
         delegate.signOut();
+        sessionUserAccountView = UserAccountView.anonymous();
 
         final var httpSession = CDI.current()
                 .select(HttpServletRequest.class)
@@ -61,8 +62,6 @@ public class SessionScopedUserSessionManager implements UserSessionManager {
         if (httpSession != null) {
             httpSession.invalidate();
         }
-
-        sessionUserAccountView = UserAccountView.anonymous();
     }
 
     @Override
