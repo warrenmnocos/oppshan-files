@@ -108,6 +108,7 @@ class SessionScopedUserSessionManagerTest {
                 UUID.randomUUID(),
                 firstName,
                 firstName + "Last",
+                firstName + " " + firstName + "Last",
                 firstName.toLowerCase() + "@example.com",
                 "https://example.com/" + firstName + ".png",
                 0L,

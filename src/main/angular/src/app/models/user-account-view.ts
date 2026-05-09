@@ -5,9 +5,11 @@ export class UserAccountView {
 
   uuid!: string;
 
-  firstName!: string;
+  firstName!: string | null;
 
-  lastName!: string;
+  lastName!: string | null;
+
+  displayName!: string;
 
   email!: string;
 

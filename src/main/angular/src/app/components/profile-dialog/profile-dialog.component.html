@@ -5,7 +5,7 @@
       <div class="profile-header">
         <span class="profile-avatar">
           @if (photoRetrieved) {
-            <img (error)="onPhotoError()" [alt]="userAccountView()?.firstName"
+            <img (error)="onPhotoError()" [alt]="fullName()"
                  [src]="userAccountView()?.photoUrl" class="profile-avatar-img">
           } @else {
             {{ initials() }}

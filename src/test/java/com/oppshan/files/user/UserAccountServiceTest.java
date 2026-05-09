@@ -25,6 +25,7 @@ import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @QuarkusTest
@@ -51,6 +52,7 @@ class UserAccountServiceTest {
         assertThat(view.uuid(), is(seeded.userAccountUuid()));
         assertThat(view.firstName(), is("Alice"));
         assertThat(view.lastName(), is("Wonderland"));
+        assertThat(view.displayName(), is("Alice Wonderland"));
         assertThat(view.email(), is("alice@example.com"));
         assertThat(view.photoUrl(), is("https://example.com/alice.png"));
         assertThat(view.maxStorageBytes(), is(applicationStorage.userMaxBytes()));
@@ -272,6 +274,70 @@ class UserAccountServiceTest {
                 cursor = cursor.getCause();
             }
         }
+    }
+
+    @Test
+    void shouldUseFamilyNameAsDisplayNameWhenGivenNameClaimMissing() {
+        final var newSub = "new-google-sub-" + UUID.randomUUID();
+        final var jwt = new TestGoogleJwt(newSub, Map.of(
+                "family_name", "OnlyLast",
+                "name", "OnlyLast",
+                "email", "missing-given@example.com",
+                "picture", "https://example.com/missing-given.png"
+        ));
+
+        final var view = userAccountService.createOrGetUserAccount(jwt);
+
+        assertThat(view.firstName(), is(nullValue()));
+        assertThat(view.lastName(), is("OnlyLast"));
+        assertThat(view.displayName(), is("OnlyLast"));
+    }
+
+    @Test
+    void shouldUseGivenNameAsDisplayNameWhenFamilyNameClaimMissing() {
+        final var newSub = "new-google-sub-" + UUID.randomUUID();
+        final var jwt = new TestGoogleJwt(newSub, Map.of(
+                "given_name", "OnlyFirst",
+                "name", "OnlyFirst",
+                "email", "missing-family@example.com",
+                "picture", "https://example.com/missing-family.png"
+        ));
+
+        final var view = userAccountService.createOrGetUserAccount(jwt);
+
+        assertThat(view.firstName(), is("OnlyFirst"));
+        assertThat(view.lastName(), is(nullValue()));
+        assertThat(view.displayName(), is("OnlyFirst"));
+    }
+
+    @Test
+    void shouldFallBackToGoogleNameAsDisplayNameWhenGivenAndFamilyNameClaimsMissing() {
+        final var newSub = "new-google-sub-" + UUID.randomUUID();
+        final var jwt = new TestGoogleJwt(newSub, Map.of(
+                "name", "Acme Corp",
+                "email", "contact@acme.example.com",
+                "picture", "https://example.com/acme.png"
+        ));
+
+        final var view = userAccountService.createOrGetUserAccount(jwt);
+
+        assertThat(view.firstName(), is(nullValue()));
+        assertThat(view.lastName(), is(nullValue()));
+        assertThat(view.displayName(), is("Acme Corp"));
+    }
+
+    @Test
+    void shouldFallBackToEmailAsDisplayNameWhenAllNameClaimsMissing() {
+        final var newSub = "new-google-sub-" + UUID.randomUUID();
+        final var jwt = new TestGoogleJwt(newSub, Map.of(
+                "email", "lonely@example.com"
+        ));
+
+        final var view = userAccountService.createOrGetUserAccount(jwt);
+
+        assertThat(view.firstName(), is(nullValue()));
+        assertThat(view.lastName(), is(nullValue()));
+        assertThat(view.displayName(), is("lonely@example.com"));
     }
 
     private static JsonWebToken googleJwt(String sub,

@@ -30,7 +30,13 @@ export class Toolbar {
   }
 
   protected get initials(): string {
-    return ((this.userAccountView()?.firstName?.charAt(0) ?? '') + (this.userAccountView()?.lastName?.charAt(0) ?? '')).toUpperCase();
+    const view = this.userAccountView();
+    const fromFirst = view?.firstName?.charAt(0) ?? '';
+    const fromLast = view?.lastName?.charAt(0) ?? '';
+    if (fromFirst || fromLast) {
+      return (fromFirst + fromLast).toUpperCase();
+    }
+    return (view?.displayName?.charAt(0) ?? '').toUpperCase();
   }
 
   protected get storagePercent(): number {

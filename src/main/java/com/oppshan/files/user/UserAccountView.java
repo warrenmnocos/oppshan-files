@@ -19,11 +19,12 @@ public record UserAccountView(
         @NotNull
         UUID uuid,
 
-        @NotEmpty
         String firstName,
 
-        @NotEmpty
         String lastName,
+
+        @NotEmpty
+        String displayName,
 
         @NotEmpty
         String email,
@@ -53,6 +54,7 @@ public record UserAccountView(
 
     private static final UserAccountView anonymous = new UserAccountView(
             UUID.nameUUIDFromBytes("anonymous".getBytes(StandardCharsets.UTF_8)),
+            "anonymous",
             "anonymous",
             "anonymous",
             "anonymous",
