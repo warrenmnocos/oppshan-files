@@ -16,7 +16,6 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.PostLoad;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.annotations.UuidGenerator.Style;
@@ -38,8 +37,8 @@ import java.util.UUID;
 @Table(name = "user_account",
         indexes = {
                 @Index(name = "idx_user_account_created_at", columnList = "created_at"),
-                @Index(name = "idx_user_account_first_name", columnList = "first_name"),
-                @Index(name = "idx_user_account_last_name", columnList = "last_name"),
+                @Index(name = "idx_user_account_first_name", columnList = "first_name,last_name"),
+                @Index(name = "idx_user_account_last_name", columnList = "last_name,first_name"),
         })
 public class UserAccount
         implements AuditableEntity<UserAccount>, Comparable<UserAccount>, Serializable {
@@ -56,16 +55,10 @@ public class UserAccount
     @NotNull
     private UUID uuid;
 
-    @Basic(optional = false)
-    @Column(name = "first_name",
-            nullable = false)
-    @NotEmpty
+    @Column(name = "first_name")
     private String firstName;
 
-    @Basic(optional = false)
-    @Column(name = "last_name",
-            nullable = false)
-    @NotEmpty
+    @Column(name = "last_name")
     private String lastName;
 
     @OneToMany(
@@ -202,11 +195,13 @@ public class UserAccount
 
     public UserAccountView toUserAccountView(String email,
                                              String photoUrl,
+                                             String displayName,
                                              long usedStorageBytes) {
         return new UserAccountView(
                 uuid,
                 firstName,
                 lastName,
+                displayName,
                 email,
                 photoUrl,
                 usedStorageBytes,

@@ -22,10 +22,7 @@ public class GoogleAccount extends IdpAccount {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    @Basic(optional = false)
-    @Column(name = "name",
-            nullable = false)
-    @NotEmpty
+    @Column(name = "name")
     private String name;
 
     @Basic(optional = false)
@@ -34,10 +31,8 @@ public class GoogleAccount extends IdpAccount {
     @NotEmpty
     private String email;
 
-    @Basic(optional = false)
     @Column(name = "photo_url",
-            nullable = false)
-    @NotEmpty
+            length = 2048)
     private String photoUrl;
 
     @Override

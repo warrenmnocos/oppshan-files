@@ -18,10 +18,10 @@
     </div>
 
     <button (click)="toggleDropdown()" class="profile-trigger">
-      <span class="profile-name">{{ userAccountView()?.firstName }}</span>
+      <span class="profile-name">{{ userAccountView()?.firstName ?? userAccountView()?.displayName }}</span>
       <span class="avatar">
         @if (photoRetrieved) {
-          <img (error)="onPhotoError()" [alt]="userAccountView()?.firstName"
+          <img (error)="onPhotoError()" [alt]="userAccountView()?.displayName"
                [src]="userAccountView()?.photoUrl" class="avatar-img">
         } @else {
           {{ initials }}
@@ -34,14 +34,14 @@
         <div class="dropdown-header">
           <span class="avatar avatar-large">
             @if (photoRetrieved) {
-              <img (error)="onPhotoError()" [alt]="userAccountView()?.firstName"
+              <img (error)="onPhotoError()" [alt]="userAccountView()?.displayName"
                    [src]="userAccountView()?.photoUrl" class="avatar-img">
             } @else {
               {{ initials }}
             }
           </span>
           <div class="dropdown-user-info">
-            <span class="dropdown-name">{{ userAccountView()?.firstName }} {{ userAccountView()?.lastName }}</span>
+            <span class="dropdown-name">{{ userAccountView()?.displayName }}</span>
             <span class="dropdown-email">{{ userAccountView()?.email }}</span>
           </div>
         </div>

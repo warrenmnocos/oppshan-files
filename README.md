@@ -60,7 +60,7 @@
     - [Download pipeline](#download-pipeline)
 - [API Reference](#api-reference)
     - [Public (no authentication)](#public-no-authentication)
-    - [Authenticated endpoints](#authenticated-authenticated-oidc-http-only-cookie)
+    - [Authenticated endpoints](#authenticated-oidc-http-only-cookie)
 - [Security](#security)
     - [Authentication](#authentication)
     - [File encryption](#file-encryption)
@@ -158,7 +158,7 @@ shipped as two story-level branches (`3-us-01-sign-in-with-google` and `4-us-02-
 the epic was small enough to land in two clean PRs. Commits reference the parent issue with the format
 `refs #<n> <description>`. Pull request titles match the branch (e.g., `EPIC-04: File Management`); when an epic
 is large enough to ship in multiple PRs, each one carries a `Part N` suffix. EPIC-07 (Polish & Responsiveness)
-spanned five parts. Because every branch is created from an issue sidebar, GitHub keeps the PR linked in the
+spanned eight parts. Because every branch is created from an issue sidebar, GitHub keeps the PR linked in the
 originating issue's Development panel, so merging auto-closes the issue and moves the card to Done. Merge commits
 use the prefix `refs #<n> Merged EPIC-0x: <description>`.
 
@@ -615,9 +615,10 @@ src/main/angular/src/app/
 ├── app.routes.ts          # /drive/**, /sso/sign-in, /sso/sign-out
 ├── pages/                 # Drive, SignIn, SignOut (all lazy-loaded)
 ├── components/            # Toolbar, Footer, FileBrowser, Breadcrumb, FileContextMenu,
-│                          # NotificationCenter, ErrorState, FilePreviewDialog,
-│                          # folder dialogs (create, rename, delete, properties),
-│                          # file dialogs (rename, delete, properties)
+│                          # NotificationCenter, ErrorState, ProfileDialog,
+│                          # FilePreviewDialog, folder dialogs (create, rename,
+│                          # delete, properties), file dialogs (rename, delete,
+│                          # properties)
 ├── services/              # AuthService, FileService, MessageBusService, NotificationService,
 │                          # MessageReactorService, JsonMapperService
 ├── listeners/             # listener classes + AbstractApplicationEventListener +
@@ -734,8 +735,8 @@ configuration entry, with no schema change to the file or user core.
 </thead>
 <tbody>
 <tr><td rowspan="7"><code>UserAccount</code></td><td><code>uuid</code></td><td><code>UUID</code></td><td>Primary key (UUID v7); <code>NOT NULL</code>, not updatable, <code>@NotNull</code></td></tr>
-<tr><td><code>firstName</code></td><td><code>String</code></td><td>Given name; <code>NOT NULL</code>, <code>@NotEmpty</code>; indexed (<code>idx_user_account_first_name</code>)</td></tr>
-<tr><td><code>lastName</code></td><td><code>String</code></td><td>Family name; <code>NOT NULL</code>, <code>@NotEmpty</code>; indexed (<code>idx_user_account_last_name</code>)</td></tr>
+<tr><td><code>firstName</code></td><td><code>String</code></td><td>Given name from the OIDC <code>given_name</code> claim; nullable (the claim is OIDC-optional); indexed via the composite <code>idx_user_account_first_name (first_name, last_name)</code></td></tr>
+<tr><td><code>lastName</code></td><td><code>String</code></td><td>Family name from the OIDC <code>family_name</code> claim; nullable (the claim is OIDC-optional); indexed via the composite <code>idx_user_account_last_name (last_name, first_name)</code></td></tr>
 <tr><td><code>idpAccounts</code></td><td><code>SortedSet&lt;IdpAccount&gt;</code></td><td>One-to-many; <code>@NotNull</code>, <code>cascade=ALL</code>, <code>orphanRemoval=true</code>, <code>FetchType.LAZY</code></td></tr>
 <tr><td><code>userStorage</code></td><td><code>UserStorage</code></td><td>One-to-one; <code>@NotNull</code>, <code>cascade=ALL</code>, <code>orphanRemoval=true</code>, <code>FetchType.EAGER</code></td></tr>
 <tr><td><code>createdAt</code></td><td><code>Instant</code></td><td>Audit timestamp set on <code>@PrePersist</code>; <code>NOT NULL</code>, not updatable, <code>@NotNull</code>; indexed (<code>idx_user_account_created_at</code>)</td></tr>
@@ -746,9 +747,9 @@ configuration entry, with no schema change to the file or user core.
 <tr><td><code>userAccount</code></td><td><code>UserAccount</code></td><td>Many-to-one owning user; <code>NOT NULL</code>, not updatable, <code>@NotNull</code>, <code>FetchType.LAZY</code></td></tr>
 <tr><td><code>createdAt</code></td><td><code>Instant</code></td><td>Audit timestamp; <code>NOT NULL</code>, not updatable, <code>@NotNull</code>; indexed (<code>idx_idp_account_created_at</code>)</td></tr>
 <tr><td><code>lastModifiedAt</code></td><td><code>Instant</code></td><td>Audit timestamp; <code>NOT NULL</code>, <code>@NotNull</code></td></tr>
-<tr><td rowspan="3"><code>GoogleAccount</code><br><em>extends <code>IdpAccount</code></em></td><td><code>name</code></td><td><code>String</code></td><td>Display name from the Google ID token; <code>NOT NULL</code>, <code>@NotEmpty</code>; indexed (<code>idx_google_account_name</code>)</td></tr>
-<tr><td><code>email</code></td><td><code>String</code></td><td>Email address from the Google ID token; <code>NOT NULL</code>, <code>@NotEmpty</code>; indexed (<code>idx_google_account_email</code>)</td></tr>
-<tr><td><code>photoUrl</code></td><td><code>String</code></td><td>Avatar URL from the Google ID token; <code>NOT NULL</code>, <code>@NotEmpty</code></td></tr>
+<tr><td rowspan="3"><code>GoogleAccount</code><br><em>extends <code>IdpAccount</code></em></td><td><code>name</code></td><td><code>String</code></td><td>Display name from the Google ID token <code>name</code> claim; nullable (claim is OIDC-optional); indexed (<code>idx_google_account_name</code>)</td></tr>
+<tr><td><code>email</code></td><td><code>String</code></td><td>Email address from the Google ID token; <code>NOT NULL</code>, <code>@NotEmpty</code> (the <code>email</code> OAuth scope guarantees the claim); indexed (<code>idx_google_account_email</code>)</td></tr>
+<tr><td><code>photoUrl</code></td><td><code>String</code></td><td>Avatar URL from the Google ID token <code>picture</code> claim; <code>VARCHAR(2048)</code>, nullable (claim is OIDC-optional)</td></tr>
 </tbody>
 </table>
 
@@ -814,9 +815,10 @@ and `class-transformer` hydrates nested types via `@Type(() => X)`.
 <tr><th>Type</th><th>Property</th><th>Property type</th><th>Description</th></tr>
 </thead>
 <tbody>
-<tr><td rowspan="11"><code>UserAccountView</code></td><td><code>uuid</code></td><td><code>UUID</code></td><td>User identifier (v7)</td></tr>
-<tr><td><code>firstName</code></td><td><code>String</code></td><td>Given name from the IdP</td></tr>
-<tr><td><code>lastName</code></td><td><code>String</code></td><td>Family name from the IdP</td></tr>
+<tr><td rowspan="12"><code>UserAccountView</code></td><td><code>uuid</code></td><td><code>UUID</code></td><td>User identifier (v7)</td></tr>
+<tr><td><code>firstName</code></td><td><code>String</code></td><td>Given name from the IdP; may be null when the <code>given_name</code> OIDC claim is absent</td></tr>
+<tr><td><code>lastName</code></td><td><code>String</code></td><td>Family name from the IdP; may be null when the <code>family_name</code> OIDC claim is absent</td></tr>
+<tr><td><code>displayName</code></td><td><code>String</code></td><td>Always-non-empty resolved name for UI rendering; backend chains <code>firstName + lastName</code> (trimmed) → Google <code>name</code> claim → email</td></tr>
 <tr><td><code>email</code></td><td><code>String</code></td><td>Primary email from the IdP</td></tr>
 <tr><td><code>photoUrl</code></td><td><code>String</code></td><td>Avatar URL from the IdP; may be null</td></tr>
 <tr><td><code>usedStorageBytes</code></td><td><code>long</code></td><td>Sum of file sizes owned by this user</td></tr>
@@ -917,7 +919,7 @@ events into `ProgressNotification` updates rendered in the `NotificationCenter`'
 | GET    | `/sso/sign-in/oidc/callback/{idpProviderName}` | OIDC callback                       |
 | POST   | `/sso/sign-out`                                | Terminate session                   |
 
-### Authenticated (`@Authenticated`, OIDC HTTP-only cookie)
+### Authenticated (OIDC HTTP-only cookie)
 
 | Method | Path                           | Request body                     | Response body            | Purpose                                                                                              |
 |--------|--------------------------------|----------------------------------|--------------------------|------------------------------------------------------------------------------------------------------|
@@ -1006,7 +1008,8 @@ Objects created by this role are owned by it, so no additional Large Object gran
 ## Database
 
 The database is **PostgreSQL 18** with all timestamps stored as `TIMESTAMPTZ` in UTC. The server timezone is set
-to UTC and the JDBC connection sends `SET timezone='UTC'` on every connection.
+to UTC and the JDBC connection sends `SET timezone='UTC'` on every connection. For the entity-relationship
+diagram and a walkthrough of each table, see [Data Model](#data-model) above.
 
 **Flyway** handles schema management via `quarkus.flyway.migrate-at-start=true`. Hibernate's schema strategy
 is `validate`, which checks that the entity mappings match the Flyway-managed schema at startup and halts on error.
@@ -1022,6 +1025,8 @@ Migration files live in `src/main/resources/db/migration/postgresql/` and are pl
 | V4      | `switch_to_uuid_pk.sql`                      | Migrates primary keys from BIGINT to UUID v7; updates foreign keys                                                                                  |
 | V5      | `add_user_names.sql`                         | Splits `user_account.name` into `first_name` and `last_name`                                                                                        |
 | V6      | `add_user_storage_file_upload_max_bytes.sql` | Adds per-user file upload size limit (default 100 MB)                                                                                               |
+| V7      | `index_idp_fk_and_restore_unique_constraints.sql` | Indexes `idp_account.user_account_uuid` (FKs aren't auto-indexed in PostgreSQL); restores three UNIQUE constraints that V4 silently dropped (`uc_idp_account_provider`, `uc_file_node_name`, `uc_user_storage_user`) when same-table column drops cascaded; renames pre-existing duplicate `file_node` rows |
+| V8      | `user_account_name_nullable.sql`             | Relaxes `user_account.first_name`, `user_account.last_name`, `google_account.name`, and `google_account.photo_url` to nullable (the source OIDC claims are all spec-optional); promotes `idx_user_account_first_name` and `idx_user_account_last_name` to composite indexes |
 
 ---
 

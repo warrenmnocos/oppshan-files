@@ -12,6 +12,7 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -143,14 +144,29 @@ public class UserAccountService {
                                               IdpAccount idpAccount) {
         String email = null;
         String photoUrl = null;
-        final var google = idpAccount.asGoogleAccount();
-        if (google.isPresent()) {
-            email = google.get().getEmail();
-            photoUrl = google.get().getPhotoUrl();
+        String googleName = null;
+        final var nullableGoogleAccount = idpAccount.asGoogleAccount();
+        if (nullableGoogleAccount.isPresent()) {
+            final var googleAccount = nullableGoogleAccount.get();
+            email = googleAccount.getEmail();
+            photoUrl = googleAccount.getPhotoUrl();
+            googleName = googleAccount.getName();
+        }
+
+        final var firstName = Objects.requireNonNullElse(user.getFirstName(), "");
+        final var lastName = Objects.requireNonNullElse(user.getLastName(), "");
+        final var trimmedFullName = (firstName + " " + lastName).trim();
+        final String displayName;
+        if (!trimmedFullName.isEmpty()) {
+            displayName = trimmedFullName;
+        } else if (googleName != null && !googleName.isBlank()) {
+            displayName = googleName;
+        } else {
+            displayName = email;
         }
 
         final var usedBytes = fileNodeRepository.getTotalSizeBytes(user.getUuid());
-        return user.toUserAccountView(email, photoUrl, usedBytes);
+        return user.toUserAccountView(email, photoUrl, displayName, usedBytes);
     }
 
     private String getProviderName() {

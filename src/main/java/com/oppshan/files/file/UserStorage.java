@@ -13,8 +13,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.UuidGenerator;
 import org.hibernate.annotations.UuidGenerator.Style;
 
@@ -44,7 +46,15 @@ import java.util.UUID;
                 WHERE userStorage.userAccount.uuid = :userAccountUuid""",
         resultClass = UserStorageView.class
 )
-@Table(name = "user_storage")
+@Table(name = "user_storage",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uc_user_storage_user",
+                        columnNames = {
+                                "user_account_uuid"
+                        }
+                ),
+        })
 public class UserStorage
         implements AuditableEntity<UserStorage>, Comparable<UserStorage>, Serializable {
 
@@ -81,6 +91,7 @@ public class UserStorage
 
     @Column(name = "max_file_upload_bytes",
             nullable = false)
+    @ColumnDefault("104857600")
     @PositiveOrZero
     private long maxFileUploadBytes;
 

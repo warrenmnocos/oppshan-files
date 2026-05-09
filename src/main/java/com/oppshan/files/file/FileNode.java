@@ -7,6 +7,7 @@ import com.oppshan.files.exception.BusinessException;
 import com.oppshan.files.user.UserAccount;
 import jakarta.persistence.Basic;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CheckConstraint;
 import jakarta.persistence.Column;
 import jakarta.persistence.ColumnResult;
 import jakarta.persistence.ConstructorResult;
@@ -27,6 +28,7 @@ import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.LazyGroup;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UuidGenerator;
@@ -69,6 +71,14 @@ import java.util.stream.Stream;
                                 "name",
                                 "mime_type"
                         }
+                ),
+        },
+        check = {
+                @CheckConstraint(
+                        name = "chk_file_node_content",
+                        constraint = """
+                                (directory = true AND content IS NULL AND size_bytes = 0)
+                                OR (directory = false AND content IS NOT NULL)"""
                 ),
         }
 )
@@ -220,11 +230,13 @@ public class FileNode
     @Column(name = "directory",
             nullable = false,
             updatable = false)
+    @ColumnDefault("false")
     private boolean directory;
 
     @Basic(optional = false)
     @Column(name = "size_bytes",
             nullable = false)
+    @ColumnDefault("0")
     @PositiveOrZero
     private long sizeBytes;
 

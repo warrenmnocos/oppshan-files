@@ -23,15 +23,16 @@ export class ProfileDialog {
     this.userAccountView = computed(
       () => this.messageBusService.applicationEventSignal().payload as UserAccountView | null
     );
-    this.fullName = computed(() => {
-      const firstName = this.userAccountView()?.firstName ?? '';
-      const lastName = this.userAccountView()?.lastName ?? '';
-      return `${firstName} ${lastName}`.trim();
-    });
+    this.fullName = computed(() => this.userAccountView()?.displayName ?? '');
     this.initials = computed(() => {
-      const firstChar = this.userAccountView()?.firstName?.charAt(0) ?? '';
-      const lastChar = this.userAccountView()?.lastName?.charAt(0) ?? '';
-      return (firstChar + lastChar).toUpperCase();
+      const view = this.userAccountView();
+      const fromFirst = view?.firstName?.charAt(0) ?? '';
+      const fromLast = view?.lastName?.charAt(0) ?? '';
+      if (fromFirst || fromLast) {
+        return (fromFirst + fromLast).toUpperCase();
+      }
+
+      return (view?.displayName?.charAt(0) ?? '').toUpperCase();
     });
     this.photoFailed = signal(false);
   }
