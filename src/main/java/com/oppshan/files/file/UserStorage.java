@@ -9,6 +9,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.NamedQuery;
 import jakarta.persistence.OneToOne;
@@ -47,6 +48,12 @@ import java.util.UUID;
         resultClass = UserStorageView.class
 )
 @Table(name = "user_storage",
+        indexes = {
+                @Index(
+                        name = "idx_user_storage_root_file_node",
+                        columnList = "root_file_node_uuid"
+                ),
+        },
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "uc_user_storage_user",
@@ -54,7 +61,8 @@ import java.util.UUID;
                                 "user_account_uuid"
                         }
                 ),
-        })
+        }
+)
 public class UserStorage
         implements AuditableEntity<UserStorage>, Comparable<UserStorage>, Serializable {
 

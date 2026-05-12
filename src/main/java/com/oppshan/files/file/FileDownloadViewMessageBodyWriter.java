@@ -35,7 +35,7 @@ public class FileDownloadViewMessageBodyWriter implements MessageBodyWriter<File
 
     @Override
     @Transactional
-    @TransactionConfiguration(timeout = 12_000)
+    @TransactionConfiguration(timeout = 3_600)
     public void writeTo(FileDownloadViewResolver fileDownloadViewResolver,
                         Class<?> type,
                         Type genericType,

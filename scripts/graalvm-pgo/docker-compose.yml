@@ -1,0 +1,54 @@
+# Docker Compose definition for the PGO workflow's Postgres + Keycloak.
+# Mirrors what the GitHub Actions `services:` block provides in CI.
+# Host ports default to 55432 (Postgres) / 8180 (Keycloak); override via env
+# vars PG_HOST_PORT / KC_HOST_PORT if those collide with other local services.
+# Container-internal ports are fixed (5432 / 8180) — the binary reaches the
+# containers via published host ports set by the orchestrator-injected
+# QUARKUS_DATASOURCE_JDBC_URL and QUARKUS_OIDC_GOOGLE_AUTH_SERVER_URL env vars.
+
+services:
+  postgres:
+    image: postgres:18
+    # Tuned for the PGO load workload (10 concurrent users × 5 min, file sizes weighted 1 KB-100 MB).
+    # Vanilla postgres:18 defaults leave shared_buffers at 128 MB and wal_buffers at 16 MB, both too
+    # small for 10 concurrent BLOB commits — slow-query log fills with WAL-fsync-bound UPDATEs that
+    # PGO can't speed up. These values match prod parity (CLAUDE.md C.4 documents 256 MB
+    # shared_buffers on the t4g.small) while giving WAL enough headroom for the burst write pattern.
+    # synchronous_commit stays on for prod-realistic durability semantics.
+    command:
+      - postgres
+      - -c
+      - shared_buffers=256MB
+      - -c
+      - max_wal_size=2GB
+      - -c
+      - wal_buffers=64MB
+      - -c
+      - max_connections=60
+      - -c
+      - synchronous_commit=on
+    environment:
+      POSTGRES_DB: oppshan_pgo
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "${PG_HOST_PORT:-55432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d oppshan_pgo"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.5.4
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: "8180"
+    ports:
+      - "${KC_HOST_PORT:-8180}:8180"
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8180; echo -e 'GET /realms/master HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3; head -n 1 <&3 | grep -q '200\\|301\\|302'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12

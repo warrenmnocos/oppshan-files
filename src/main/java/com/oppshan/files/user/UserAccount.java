@@ -36,9 +36,18 @@ import java.util.UUID;
 })
 @Table(name = "user_account",
         indexes = {
-                @Index(name = "idx_user_account_created_at", columnList = "created_at"),
-                @Index(name = "idx_user_account_first_name", columnList = "first_name,last_name"),
-                @Index(name = "idx_user_account_last_name", columnList = "last_name,first_name"),
+                @Index(
+                        name = "idx_user_account_created_at",
+                        columnList = "created_at"
+                ),
+                @Index(
+                        name = "idx_user_account_first_name",
+                        columnList = "first_name,last_name"
+                ),
+                @Index(
+                        name = "idx_user_account_last_name",
+                        columnList = "last_name,first_name"
+                ),
         })
 public class UserAccount
         implements AuditableEntity<UserAccount>, Comparable<UserAccount>, Serializable {

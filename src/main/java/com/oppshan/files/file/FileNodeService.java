@@ -84,7 +84,7 @@ public class FileNodeService {
 
     @Valid
     @NotNull
-    @TransactionConfiguration(timeout = 12_000)
+    @TransactionConfiguration(timeout = 3_600)
     public DirectoryContentsView createRegularFileNode(@NotNull UUID userAccountUuid,
                                                        @NotNull UUID parentUuid,
                                                        @NotNull String filename,

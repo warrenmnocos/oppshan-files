@@ -47,13 +47,13 @@ class SessionScopedUserSessionManagerTest {
     }
 
     @Test
-    void shouldEarlyReturnFromSignOutWhenCacheAnonymous() {
+    void shouldDelegateSignOutEvenWhenCacheAnonymous() {
         final var delegate = new RecordingUserSessionManager();
         final var manager = new SessionScopedUserSessionManager(delegate);
 
         manager.signOut();
 
-        assertThat(delegate.signOutInvocations(), is(0));
+        assertThat(delegate.signOutInvocations(), is(1));
     }
 
     @Test

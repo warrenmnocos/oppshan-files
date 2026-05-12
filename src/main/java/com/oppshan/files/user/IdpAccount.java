@@ -34,8 +34,14 @@ import java.util.UUID;
 })
 @Table(name = "idp_account",
         indexes = {
-                @Index(name = "idx_idp_account_created_at", columnList = "created_at"),
-                @Index(name = "idx_idp_account_user_account_uuid", columnList = "user_account_uuid"),
+                @Index(
+                        name = "idx_idp_account_created_at",
+                        columnList = "created_at"
+                ),
+                @Index(
+                        name = "idx_idp_account_user_account_uuid",
+                        columnList = "user_account_uuid"
+                ),
         },
         uniqueConstraints = {
                 @UniqueConstraint(

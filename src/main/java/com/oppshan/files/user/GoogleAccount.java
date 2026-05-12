@@ -14,8 +14,14 @@ import java.util.UUID;
 @Entity
 @Table(name = "google_account",
         indexes = {
-                @Index(name = "idx_google_account_name", columnList = "name"),
-                @Index(name = "idx_google_account_email", columnList = "email"),
+                @Index(
+                        name = "idx_google_account_name",
+                        columnList = "name"
+                ),
+                @Index(
+                        name = "idx_google_account_email",
+                        columnList = "email"
+                ),
         })
 public class GoogleAccount extends IdpAccount {
 

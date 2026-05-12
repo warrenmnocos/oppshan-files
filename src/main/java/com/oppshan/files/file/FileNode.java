@@ -57,10 +57,26 @@ import java.util.stream.Stream;
 })
 @Table(name = "file_node",
         indexes = {
-                @Index(name = "idx_file_node_created_at", columnList = "user_account_uuid,created_at,name,mime_type,size_bytes"),
-                @Index(name = "idx_file_node_last_modified_at", columnList = "user_account_uuid,last_modified_at,name,mime_type,size_bytes"),
-                @Index(name = "idx_file_node_name", columnList = "user_account_uuid,parent_file_node_uuid,name,mime_type,last_modified_at"),
-                @Index(name = "idx_file_node_size_bytes", columnList = "user_account_uuid,parent_file_node_uuid,size_bytes,name,mime_type"),
+                @Index(
+                        name = "idx_file_node_created_at",
+                        columnList = "user_account_uuid,created_at,name,mime_type,size_bytes"
+                ),
+                @Index(
+                        name = "idx_file_node_last_modified_at",
+                        columnList = "user_account_uuid,last_modified_at,name,mime_type,size_bytes"
+                ),
+                @Index(
+                        name = "idx_file_node_name",
+                        columnList = "user_account_uuid,parent_file_node_uuid,name,mime_type,last_modified_at"
+                ),
+                @Index(
+                        name = "idx_file_node_size_bytes",
+                        columnList = "user_account_uuid,parent_file_node_uuid,size_bytes,name,mime_type"
+                ),
+                @Index(
+                        name = "idx_file_node_parent",
+                        columnList = "parent_file_node_uuid"
+                ),
         },
         uniqueConstraints = {
                 @UniqueConstraint(

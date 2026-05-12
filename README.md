@@ -8,7 +8,7 @@
 [![Java CI with Maven](https://github.com/warrenmnocos/oppshan-files/actions/workflows/maven.yml/badge.svg)](https://github.com/warrenmnocos/oppshan-files/actions/workflows/maven.yml)
 [![Qodana](https://github.com/warrenmnocos/oppshan-files/actions/workflows/qodana_code_quality.yml/badge.svg)](https://github.com/warrenmnocos/oppshan-files/actions/workflows/qodana_code_quality.yml)
 ![Java](https://img.shields.io/badge/Java-25-orange?logo=openjdk)
-![Quarkus](https://img.shields.io/badge/Quarkus-3.34.3-blue?logo=quarkus)
+![Quarkus](https://img.shields.io/badge/Quarkus-3.35.1-blue?logo=quarkus)
 ![Angular](https://img.shields.io/badge/Angular-21-red?logo=angular)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-blue?logo=postgresql)
 ![AWS](https://img.shields.io/badge/AWS-Graviton_ARM64-orange?logo=amazonaws)
@@ -355,7 +355,7 @@ The stack at a glance:
 
 | Layer              | Technology                                                              | Notable capability used                                                                                                               |
 |--------------------|-------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| Backend framework  | **Quarkus 3.34.3** on **Java 25** (Oracle GraalVM)                      | Every JAX-RS handler runs on a **virtual thread** via custom `VirtualThreadServletExtension`                                          |
+| Backend framework  | **Quarkus 3.35.1** on **Java 25** (Oracle GraalVM)                      | Every JAX-RS handler runs on a **virtual thread** via custom `VirtualThreadServletExtension`                                          |
 | Persistence        | **Hibernate ORM** + **Jakarta Data** repositories                       | Custom **Hibernate `UserType`** for transparent AES/CTR encryption; **recursive-CTE `@NamedNativeQuery`** for tree walks              |
 | Cryptography       | **Java Cryptography Architecture (JCA/JCE)**                            | **AES/CTR/NoPadding** + per-file 16-byte IV from `SecureRandom`; key via **PBKDF2WithHmacSHA256** (1M iterations)                     |
 | Database           | **PostgreSQL 18** + **Flyway**                                          | Large Objects for file content; `BEFORE DELETE` trigger calling `lo_unlink`; UUID v7 primary keys                                     |
@@ -373,7 +373,7 @@ The stack at a glance:
 | Edge & TLS         | **Caddy** + **Let's Encrypt** + **AWS Route 53**                        | **Route 53** holds the `A` record and `CAA` lock; wildcard `*.oppshan.com` cert acquired via DNS-01; **Caddy** terminates TLS, no ALB |
 | Operations         | **AWS SSM Session Manager** + **SSM Run Command**                       | Replaces SSH; deploys without port 22 ever being exposed                                                                              |
 
-The backend runs on **Quarkus 3.34.3** with **Java 25** (Oracle GraalVM). **JAX-RS** endpoints run on the **Undertow**
+The backend runs on **Quarkus 3.35.1** with **Java 25** (Oracle GraalVM). **JAX-RS** endpoints run on the **Undertow**
 servlet container, but I swapped out the worker pool at deployment time with `VirtualThreadServletExtension` so
 every request handler runs on a **virtual thread**. Blocking **JDBC** and `InputStream` reads no longer pin
 a platform thread. **Hibernate ORM** validates the **Flyway**-managed schema at startup; breadcrumb walks
@@ -1027,6 +1027,7 @@ Migration files live in `src/main/resources/db/migration/postgresql/` and are pl
 | V6      | `add_user_storage_file_upload_max_bytes.sql` | Adds per-user file upload size limit (default 100 MB)                                                                                               |
 | V7      | `index_idp_fk_and_restore_unique_constraints.sql` | Indexes `idp_account.user_account_uuid` (FKs aren't auto-indexed in PostgreSQL); restores three UNIQUE constraints that V4 silently dropped (`uc_idp_account_provider`, `uc_file_node_name`, `uc_user_storage_user`) when same-table column drops cascaded; renames pre-existing duplicate `file_node` rows |
 | V8      | `user_account_name_nullable.sql`             | Relaxes `user_account.first_name`, `user_account.last_name`, `google_account.name`, and `google_account.photo_url` to nullable (the source OIDC claims are all spec-optional); promotes `idx_user_account_first_name` and `idx_user_account_last_name` to composite indexes |
+| V9      | `index_unindexed_fk_columns.sql`             | Adds `idx_file_node_parent` on `file_node(parent_file_node_uuid)` and `idx_user_storage_root_file_node` on `user_storage(root_file_node_uuid)` to cover the two FK columns PostgreSQL doesn't auto-index; speeds up `LEFT JOIN FETCH` child walks and `ON DELETE RESTRICT` enforcement on file deletes |
 
 ---
 
@@ -1231,14 +1232,26 @@ For production, the same project compiles to a **GraalVM native image** targetin
 `./mvnw -Pnative-release package` (Oracle GraalVM 25, `-march=armv8-a+aes+lse`, G1 GC). The native binary starts
 in under 100 ms and runs with `-Xmx512m` heap on the deployment target.
 
+For a **profile-guided-optimized** native binary with an empirical A/B/C comparison, run
+`mvn install -Pnative-release-pgo -DskipTests`. Maven lifecycle phases drive the whole pipeline in a single
+invocation: build the **normal** native binary, run a 10-worker × 5-minute load workload against it and capture
+metrics; build the **instrumented** native binary, run the same workload against it and capture both metrics and
+the `default.iprof` profile data; build the **optimized** native binary using `--pgo=<captured.iprof>`, run the
+same workload against it and capture metrics. A comparison table prints all three side-by-side, covering binary
+size, worker success rate, total iterations, iters/sec, workload duration, and slow-query counts. The winner of
+normal-vs-optimized ships as `target/oppshan-files-*-runner`; the throwaway instrumented binary is deleted.
+Single Maven reactor, no nested mvn. Requires Docker running on the build host.
+
 #### Deployment target
 
 Production runs on a single **AWS EC2 t4g.small** (Graviton 2 ARM, 2 vCPU, 2 GB RAM) on **Amazon Linux 2023**,
 with **PostgreSQL 18 on the same instance** (not RDS or Aurora, which keeps cost predictable and removes cross-host
-network hops for a personal-scale app). **Caddy** terminates TLS on `:443` with a wildcard `*.oppshan.com` cert
-acquired automatically from Let's Encrypt via the **DNS-01 challenge against Route 53** (Caddy `route53` plugin,
-backed by an EC2 instance role with scoped Route 53 permissions). The wildcard cert auto-renews ~30 days before
-expiry; no ALB, no separate certificate management.
+network hops for a personal-scale app). Graviton over x86 was an easy call. ARM is meaningfully more power-efficient 
+than equivalent Intel or AMD chips, and `t4g.small` is cheaper per hour than the comparable `t3.small`. On an instance 
+running 24/7, that lower power draw also adds up to a small but real environmental win. **Caddy** terminates TLS on 
+`:443` with a wildcard `*.oppshan.com` cert acquired automatically from Let's Encrypt via the **DNS-01 challenge against
+Route 53** (Caddy `route53` plugin, backed by an EC2 instance role with scoped Route 53 permissions). The wildcard cert 
+auto-renews ~30 days before expiry; no ALB, no separate certificate management.
 
 A single EIP gives the instance a stable public IP. Route 53 holds an A record `files.oppshan.com → <EIP>` and a CAA
 record restricting cert issuance to Let's Encrypt. SSM Session Manager replaces SSH for operator access, so no port
@@ -1246,12 +1259,13 @@ record restricting cert issuance to Let's Encrypt. SSM Session Manager replaces 
 
 #### Deployment automation
 
-`.github/workflows/deploy.yml` runs on every push to `main` (and manual `workflow_dispatch`): it builds the native
-binary on a `ubuntu-24.04-arm` GitHub-hosted runner, uploads to S3 keyed by short commit SHA, then issues an SSM Run
-Command on the EC2 instance to `systemctl stop`, `aws s3 cp` the new binary, `chmod +x` + `chown`, and
-`systemctl start`. Authentication uses **OIDC federation**: GitHub mints a short-lived JWT, AWS STS exchanges it for
-temporary credentials based on a trust policy scoped to `repo:OWNER/REPO:ref:refs/heads/main`. No long-lived AWS keys
-live in repository secrets.
+`.github/workflows/deploy.yml` runs on every push to `main` (and manual `workflow_dispatch`): it builds the
+**PGO-optimized native binary** on a `ubuntu-24.04-arm` GitHub-hosted runner (the full profile-guided pipeline
+described in [Build pipeline](#build-pipeline) runs inline as part of the `mvn verify` lifecycle), uploads the result
+to S3 keyed by short commit SHA, then issues an SSM Run Command on the EC2 instance to `systemctl stop`,
+`aws s3 cp` the new binary, `chmod +x` + `chown`, and `systemctl start`. Authentication uses **OIDC federation**:
+GitHub mints a short-lived JWT, AWS STS exchanges it for temporary credentials based on a trust policy scoped to
+`repo:OWNER/REPO:ref:refs/heads/main`. No long-lived AWS keys live in repository secrets.
 
 ![Deployment automation flow](docs/diagrams/deployment-automation.svg)
 

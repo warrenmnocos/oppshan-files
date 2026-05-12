@@ -32,7 +32,9 @@ public class SessionScopedUserSessionManager implements UserSessionManager {
     @Override
     @Lock(Type.WRITE)
     public UserAccountView getSessionUserAccount() {
-        if (sessionUserAccountView.isAnonymous()) {
+        if (delegate.isSignedOut()) {
+            sessionUserAccountView = UserAccountView.anonymous();
+        } else if (sessionUserAccountView.isAnonymous()) {
             sessionUserAccountView = delegate.getSessionUserAccount();
         }
 
@@ -48,19 +50,19 @@ public class SessionScopedUserSessionManager implements UserSessionManager {
     @Override
     @Lock(Type.WRITE)
     public void signOut() {
-        if (sessionUserAccountView.isAnonymous()) {
-            return;
-        }
-
         delegate.signOut();
         sessionUserAccountView = UserAccountView.anonymous();
 
-        final var httpSession = CDI.current()
-                .select(HttpServletRequest.class)
-                .get()
-                .getSession(false);
-        if (httpSession != null) {
-            httpSession.invalidate();
+        try {
+            final var httpSession = CDI.current()
+                    .select(HttpServletRequest.class)
+                    .get()
+                    .getSession(false);
+            if (httpSession != null) {
+                httpSession.invalidate();
+            }
+        } catch (IllegalStateException ex) {
+            // Ignored
         }
     }
 
