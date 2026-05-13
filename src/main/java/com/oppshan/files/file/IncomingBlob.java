@@ -3,6 +3,7 @@ package com.oppshan.files.file;
 import jakarta.enterprise.inject.spi.CDI;
 
 import javax.crypto.CipherInputStream;
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -12,6 +13,13 @@ import java.sql.SQLException;
 import java.util.Objects;
 
 public class IncomingBlob implements Blob {
+
+    // Same rationale as OutgoingBlob: CipherInputStream's 512-byte ibuffer caps
+    // each .read() call. PG JDBC's createBlob reads from this stream when
+    // writing to pg_largeobject; without buffering, every lo_write protocol
+    // call carries only ~512 bytes. The wrap below accumulates encrypted bytes
+    // into 64 KB chunks so PG JDBC sees fewer, larger writes.
+    private static final int STREAM_BUFFER_BYTES = 64 * 1024;
 
     private final InputStream sourceStream;
 
@@ -39,7 +47,7 @@ public class IncomingBlob implements Blob {
             final var cipher = fileContentCipherService.getEncryptCipher(iv);
             final var ivStream = new ByteArrayInputStream(iv);
             final var encrypted = new CipherInputStream(sourceStream, cipher);
-            return new SequenceInputStream(ivStream, encrypted);
+            return new BufferedInputStream(new SequenceInputStream(ivStream, encrypted), STREAM_BUFFER_BYTES);
         } catch (Exception ex) {
             throw new SQLException("Encryption failed", ex);
         }

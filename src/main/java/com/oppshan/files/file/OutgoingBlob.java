@@ -3,6 +3,7 @@ package com.oppshan.files.file;
 import jakarta.enterprise.inject.spi.CDI;
 
 import javax.crypto.CipherInputStream;
+import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Blob;
@@ -10,6 +11,14 @@ import java.sql.SQLException;
 import java.util.Objects;
 
 public class OutgoingBlob implements Blob {
+
+    // CipherInputStream's internal ibuffer is hardcoded to 512 bytes, so each
+    // .read() call returns at most ~512 bytes regardless of how much the caller
+    // asks for. The BufferedInputStream below accumulates those 512-byte gulps
+    // into 64 KB chunks before they reach transferTo()'s servlet-output write
+    // loop, collapsing ~160,000 small writes per 80 MB download into ~1,250
+    // large writes.
+    private static final int STREAM_BUFFER_BYTES = 64 * 1024;
 
     private final Blob delegate;
 
@@ -26,7 +35,7 @@ public class OutgoingBlob implements Blob {
             final var raw = delegate.getBinaryStream();
             final var iv = raw.readNBytes(fileContentCipherService.getIvLength());
             final var cipher = fileContentCipherService.getDecryptCipher(iv);
-            return new CipherInputStream(raw, cipher);
+            return new BufferedInputStream(new CipherInputStream(raw, cipher), STREAM_BUFFER_BYTES);
         } catch (Exception ex) {
             throw new SQLException("Decryption failed", ex);
         }

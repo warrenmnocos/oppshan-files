@@ -68,6 +68,9 @@ COMMANDS=(
     "echo"
     "echo '=== Disk ==='"
     "df -h --output=target,size,used,avail,pcent -x tmpfs -x devtmpfs -x squashfs -x overlay -x devpts -x proc -x sysfs"
+    "echo"
+    "echo '=== I/O (cumulative since boot, per block device) ==='"
+    "awk '\$3 !~ /^(loop|ram|dm-|md|nbd)/ && (\$6 + \$10) > 0 { printf \"  %-12s read %8.2f GiB / %12d ops   write %8.2f GiB / %12d ops\\n\", \$3, \$6*512/1073741824, \$4, \$10*512/1073741824, \$8 }' /proc/diskstats"
 )
 
 # Prod-only: per-service RAM via cgroup v2 (systemd MemoryCurrent). Reports
@@ -82,7 +85,14 @@ if [[ "$MODE" == "prod" ]]; then
         "TOTAL_BYTES=\$((TOTAL_KB * 1024))"
         "APP_BYTES=\$(systemctl show -p MemoryCurrent --value oppshan-files.service 2>/dev/null)"
         "PG_BYTES=\$(systemctl show -p MemoryCurrent --value postgresql.service 2>/dev/null)"
-        "awk -v app=\"\$APP_BYTES\" -v pg=\"\$PG_BYTES\" -v tot=\"\$TOTAL_BYTES\" 'BEGIN { app+=0; pg+=0; printf \"  oppshan-files %7.1f MiB (%5.1f%% of RAM)\\n\", app/1048576, app/tot*100; printf \"  postgresql    %7.1f MiB (%5.1f%% of RAM)\\n\", pg/1048576, pg/tot*100; printf \"  combined      %7.1f MiB (%5.1f%% of RAM)\\n \", (app+pg)/1048576, (app+pg)/tot*100 }'"
+        "CADDY_BYTES=\$(systemctl show -p MemoryCurrent --value caddy.service 2>/dev/null)"
+        "awk -v app=\"\$APP_BYTES\" -v pg=\"\$PG_BYTES\" -v caddy=\"\$CADDY_BYTES\" -v tot=\"\$TOTAL_BYTES\" 'BEGIN { app+=0; pg+=0; caddy+=0; printf \"  oppshan-files %7.1f MiB (%5.1f%% of RAM)\\n\", app/1048576, app/tot*100; printf \"  postgresql    %7.1f MiB (%5.1f%% of RAM)\\n\", pg/1048576, pg/tot*100; printf \"  caddy         %7.1f MiB (%5.1f%% of RAM)\\n\", caddy/1048576, caddy/tot*100; printf \"  combined      %7.1f MiB (%5.1f%% of RAM)\\n\", (app+pg+caddy)/1048576, (app+pg+caddy)/tot*100 }'"
+        "echo"
+        "echo '=== Services (I/O since service start, from cgroup v2 io.stat) ==='"
+        "PER_APP_IO() { local cg=/sys/fs/cgroup/system.slice/\$1.service/io.stat; if sudo test -r \"\$cg\"; then sudo cat \"\$cg\" | awk -v s=\"\$1\" '{ for (i=2;i<=NF;i++) { split(\$i, p, \"=\"); if (p[1]==\"rbytes\") rb=p[2]; else if (p[1]==\"wbytes\") wb=p[2]; else if (p[1]==\"rios\") ri=p[2]; else if (p[1]==\"wios\") wi=p[2] } printf \"  %-14s read %7.1f MiB / %5d ops   write %7.1f MiB / %5d ops\\n\", s\":\", rb/1048576, ri, wb/1048576, wi }'; fi; }"
+        "PER_APP_IO oppshan-files"
+        "PER_APP_IO postgresql"
+        "PER_APP_IO caddy"
     )
 fi
 

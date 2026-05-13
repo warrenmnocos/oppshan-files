@@ -20,6 +20,8 @@ services:
       - -c
       - shared_buffers=256MB
       - -c
+      - work_mem=16MB
+      - -c
       - max_wal_size=2GB
       - -c
       - wal_buffers=64MB
@@ -27,11 +29,28 @@ services:
       - max_connections=60
       - -c
       - synchronous_commit=on
+      # random_page_cost=1.1 matches the prod EBS gp3 SSD planner setting so
+      # the PGO test exercises the same query plans prod will. wal_buffers
+      # stays at 64 MB intentionally — higher than prod's 16 MB because the
+      # test workload is heavier than prod (10 concurrent users vs ~1) and
+      # WAL sizing doesn't change which JVM code paths PGO profiles, only how
+      # often they fire.
+      - -c
+      - random_page_cost=1.1
+      # pg_stat_statements provides per-query timing during the load run, so
+      # slow paths surfaced by the workload can be diagnosed without a re-run.
+      # Costs ~8 MB shared memory. The matching CREATE EXTENSION is in
+      # pg-init/01-extensions.sql, run once by the postgres image's
+      # /docker-entrypoint-initdb.d/ hook on first container start.
+      - -c
+      - shared_preload_libraries=pg_stat_statements
     environment:
       POSTGRES_DB: oppshan_pgo
       POSTGRES_PASSWORD: postgres
     ports:
       - "${PG_HOST_PORT:-55432}:5432"
+    volumes:
+      - ./pg-init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d oppshan_pgo"]
       interval: 5s
