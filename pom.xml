@@ -28,6 +28,7 @@
         <htmlunit.version>4.21.0</htmlunit.version>
         <jakarta.data-api.version>1.0.1</jakarta.data-api.version>
         <yarn.version>v1.22.22</yarn.version>
+        <skipTests>false</skipTests>
         <skipITs>true</skipITs>
         <native.march>-march=compatibility</native.march>
         <native.resources.includes>
@@ -324,7 +325,18 @@
                         </goals>
                         <phase>generate-resources</phase>
                         <configuration>
-                            <arguments>build --configuration development</arguments>
+                            <arguments>build</arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>yarn-test</id>
+                        <goals>
+                            <goal>yarn</goal>
+                        </goals>
+                        <phase>test</phase>
+                        <configuration>
+                            <arguments>test --no-watch</arguments>
+                            <skip>${skipTests}</skip>
                         </configuration>
                     </execution>
                 </executions>
