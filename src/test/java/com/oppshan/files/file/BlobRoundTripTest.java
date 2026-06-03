@@ -78,9 +78,55 @@ class BlobRoundTripTest {
         assertThat(outgoingBlob.length(), is((long) plaintext.length));
     }
 
+    @Test
+    void shouldThrowDescriptiveSqlExceptionWhenBlobHasFewerBytesThanIvLength() throws Exception {
+        final var shortDelegate = new SerialBlob(new byte[] {0x01, 0x02, 0x03});
+        final var outgoingBlob = new OutgoingBlob(shortDelegate);
+
+        final var thrown = org.junit.jupiter.api.Assertions.assertThrows(
+                SQLException.class,
+                outgoingBlob::getBinaryStream
+        );
+        assertThat(thrown.getMessage(), org.hamcrest.Matchers.startsWith("Truncated blob"));
+    }
+
+    @Test
+    void shouldThrowFailedToReadIvSqlExceptionWhenDelegateStreamRaisesIoException() throws Exception {
+        final var throwingBlob = new ThrowingDelegateBlob();
+        final var outgoingBlob = new OutgoingBlob(throwingBlob);
+
+        final var thrown = org.junit.jupiter.api.Assertions.assertThrows(
+                SQLException.class,
+                outgoingBlob::getBinaryStream
+        );
+        assertThat(thrown.getMessage(), is(equalTo("Failed to read IV from blob")));
+    }
+
     private static byte[] readAllBytes(java.sql.Blob blob) throws Exception {
         try (final var stream = blob.getBinaryStream()) {
             return stream.readAllBytes();
+        }
+    }
+
+    private static final class ThrowingDelegateBlob extends SerialBlob {
+
+        ThrowingDelegateBlob() throws SQLException {
+            super(new byte[0]);
+        }
+
+        @Override
+        public java.io.InputStream getBinaryStream() {
+            return new java.io.InputStream() {
+                @Override
+                public int read() throws java.io.IOException {
+                    throw new java.io.IOException("simulated IO failure");
+                }
+
+                @Override
+                public int read(byte[] buffer, int offset, int length) throws java.io.IOException {
+                    throw new java.io.IOException("simulated IO failure");
+                }
+            };
         }
     }
 }

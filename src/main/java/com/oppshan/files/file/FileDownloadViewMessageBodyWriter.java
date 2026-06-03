@@ -1,6 +1,5 @@
 package com.oppshan.files.file;
 
-import com.oppshan.files.exception.BusinessException;
 import io.quarkus.narayana.jta.runtime.TransactionConfiguration;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
@@ -52,7 +51,7 @@ public class FileDownloadViewMessageBodyWriter implements MessageBodyWriter<File
         try (final var contentInputStream = fileDownloadView.contentInputStream()) {
             contentInputStream.transferTo(contentOutputStream);
         } catch (IOException ex) {
-            throw BusinessException.fileDownloadFailed(ex);
+            throw new WebApplicationException(ex);
         }
     }
 }

@@ -11,10 +11,14 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -27,8 +31,11 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.BDDMockito.given;
 
 @QuarkusTest
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class UserAccountServiceTest {
 
     @Inject
@@ -40,11 +47,14 @@ class UserAccountServiceTest {
     @Inject
     EntityManager entityManager;
 
+    @Mock
+    JsonWebToken jwt;
+
     @Test
     void shouldGetExistingUserWhenIdentityProviderAccountAlreadyPresent() {
         final var seeded = seedExistingUser("Alice", "Wonderland", "alice@example.com",
                 "Alice Wonderland", "https://example.com/alice.png");
-        final var jwt = googleJwt(seeded.providerId(), "Alice", "Wonderland",
+        stubGoogleJwt(seeded.providerId(), "Alice", "Wonderland",
                 "Alice Wonderland", "alice@example.com", "https://example.com/alice.png");
 
         final var view = userAccountService.createOrGetUserAccount(jwt);
@@ -64,7 +74,7 @@ class UserAccountServiceTest {
     void shouldUpdateFirstNameWhenJsonWebTokenClaimChanged() {
         final var seeded = seedExistingUser("OldFirst", "Surname", "user@example.com",
                 "OldFirst Surname", "https://example.com/u.png");
-        final var jwt = googleJwt(seeded.providerId(), "NewFirst", "Surname",
+        stubGoogleJwt(seeded.providerId(), "NewFirst", "Surname",
                 "NewFirst Surname", "user@example.com", "https://example.com/u.png");
 
         final var view = userAccountService.createOrGetUserAccount(jwt);
@@ -78,7 +88,7 @@ class UserAccountServiceTest {
     void shouldUpdateLastNameWhenJsonWebTokenClaimChanged() {
         final var seeded = seedExistingUser("First", "OldSurname", "user@example.com",
                 "First OldSurname", "https://example.com/u.png");
-        final var jwt = googleJwt(seeded.providerId(), "First", "NewSurname",
+        stubGoogleJwt(seeded.providerId(), "First", "NewSurname",
                 "First NewSurname", "user@example.com", "https://example.com/u.png");
 
         final var view = userAccountService.createOrGetUserAccount(jwt);
@@ -92,7 +102,7 @@ class UserAccountServiceTest {
     void shouldBeIdempotentWhenJsonWebTokenClaimsUnchanged() {
         final var seeded = seedExistingUser("Stable", "User", "stable@example.com",
                 "Stable User", "https://example.com/s.png");
-        final var jwt = googleJwt(seeded.providerId(), "Stable", "User",
+        stubGoogleJwt(seeded.providerId(), "Stable", "User",
                 "Stable User", "stable@example.com", "https://example.com/s.png");
 
         final var first = userAccountService.createOrGetUserAccount(jwt);
@@ -109,7 +119,7 @@ class UserAccountServiceTest {
     void shouldReturnExistingUserWhenGettingByJsonWebToken() {
         final var seeded = seedExistingUser("Carol", "Curie", "carol@example.com",
                 "Carol Curie", "https://example.com/c.png");
-        final var jwt = googleJwt(seeded.providerId(), "Carol", "Curie",
+        stubGoogleJwt(seeded.providerId(), "Carol", "Curie",
                 "Carol Curie", "carol@example.com", "https://example.com/c.png");
 
         final var view = userAccountService.getUserAccount(jwt);
@@ -121,7 +131,7 @@ class UserAccountServiceTest {
 
     @Test
     void shouldThrowUserNotFoundWhenJsonWebTokenSubjectUnknown() {
-        final var jwt = googleJwt("unknown-sub-" + UUID.randomUUID(),
+        stubGoogleJwt("unknown-sub-" + UUID.randomUUID(),
                 "Ghost", "User", "Ghost User", "ghost@example.com", "https://example.com/g.png");
 
         final var businessException = assertThrows(
@@ -172,13 +182,13 @@ class UserAccountServiceTest {
     void shouldSeeAuditBumpFromFirstUpdateOnSecondCall() {
         final var seeded = seedExistingUser("Old", "Name", "auditbump@example.com",
                 "Old Name", "https://example.com/o.png");
-        final var renamingJwt = googleJwt(seeded.providerId(), "New", "Name",
+        stubGoogleJwt(seeded.providerId(), "New", "Name",
                 "New Name", "auditbump@example.com", "https://example.com/o.png");
-        final var firstView = userAccountService.createOrGetUserAccount(renamingJwt);
+        final var firstView = userAccountService.createOrGetUserAccount(jwt);
 
         // Second invocation with the *same* (new) claims shouldn't trigger another update,
         // but the persisted user must keep the rename from the first invocation.
-        final var secondView = userAccountService.createOrGetUserAccount(renamingJwt);
+        final var secondView = userAccountService.createOrGetUserAccount(jwt);
 
         assertThat(secondView.uuid(), is(firstView.uuid()));
         assertThat(secondView.firstName(), is("New"));
@@ -189,7 +199,7 @@ class UserAccountServiceTest {
     @Test
     void shouldCreateNewUserFromJsonWebTokenWhenIdentityProviderAccountAbsent() {
         final var newSub = "new-google-sub-" + UUID.randomUUID();
-        final var jwt = googleJwt(newSub, "Eve", "Newton",
+        stubGoogleJwt(newSub, "Eve", "Newton",
                 "Eve Newton", "eve@example.com", "https://example.com/eve.png");
 
         final var view = userAccountService.createOrGetUserAccount(jwt);
@@ -210,7 +220,7 @@ class UserAccountServiceTest {
     @Test
     void shouldCreateRootWithFourDefaultSubdirectoriesForNewUser() {
         final var newSub = "new-google-sub-" + UUID.randomUUID();
-        final var jwt = googleJwt(newSub, "Frank", "Frost",
+        stubGoogleJwt(newSub, "Frank", "Frost",
                 "Frank Frost", "frank@example.com", "https://example.com/frank.png");
 
         final var view = userAccountService.createOrGetUserAccount(jwt);
@@ -232,7 +242,7 @@ class UserAccountServiceTest {
         final var newSub = "new-google-sub-" + UUID.randomUUID();
         // Map.of() leaves "given_name" out entirely; idToken.getClaim("given_name") returns null
         // — exactly the production scenario where the comparator NPE'd.
-        final var jwt = new TestGoogleJwt(newSub, Map.of(
+        stubJwtClaims(newSub, Map.of(
                 "family_name", "OnlyLast",
                 "name", "OnlyLast",
                 "email", "missing-given@example.com",
@@ -257,7 +267,7 @@ class UserAccountServiceTest {
     @Test
     void shouldNotThrowNullPointerExceptionWhenFamilyNameClaimMissing() {
         final var newSub = "new-google-sub-" + UUID.randomUUID();
-        final var jwt = new TestGoogleJwt(newSub, Map.of(
+        stubJwtClaims(newSub, Map.of(
                 "given_name", "OnlyFirst",
                 "name", "OnlyFirst",
                 "email", "missing-family@example.com",
@@ -279,7 +289,7 @@ class UserAccountServiceTest {
     @Test
     void shouldUseFamilyNameAsDisplayNameWhenGivenNameClaimMissing() {
         final var newSub = "new-google-sub-" + UUID.randomUUID();
-        final var jwt = new TestGoogleJwt(newSub, Map.of(
+        stubJwtClaims(newSub, Map.of(
                 "family_name", "OnlyLast",
                 "name", "OnlyLast",
                 "email", "missing-given@example.com",
@@ -296,7 +306,7 @@ class UserAccountServiceTest {
     @Test
     void shouldUseGivenNameAsDisplayNameWhenFamilyNameClaimMissing() {
         final var newSub = "new-google-sub-" + UUID.randomUUID();
-        final var jwt = new TestGoogleJwt(newSub, Map.of(
+        stubJwtClaims(newSub, Map.of(
                 "given_name", "OnlyFirst",
                 "name", "OnlyFirst",
                 "email", "missing-family@example.com",
@@ -313,7 +323,7 @@ class UserAccountServiceTest {
     @Test
     void shouldFallBackToGoogleNameAsDisplayNameWhenGivenAndFamilyNameClaimsMissing() {
         final var newSub = "new-google-sub-" + UUID.randomUUID();
-        final var jwt = new TestGoogleJwt(newSub, Map.of(
+        stubJwtClaims(newSub, Map.of(
                 "name", "Acme Corp",
                 "email", "contact@acme.example.com",
                 "picture", "https://example.com/acme.png"
@@ -329,7 +339,7 @@ class UserAccountServiceTest {
     @Test
     void shouldFallBackToEmailAsDisplayNameWhenAllNameClaimsMissing() {
         final var newSub = "new-google-sub-" + UUID.randomUUID();
-        final var jwt = new TestGoogleJwt(newSub, Map.of(
+        stubJwtClaims(newSub, Map.of(
                 "email", "lonely@example.com"
         ));
 
@@ -340,20 +350,26 @@ class UserAccountServiceTest {
         assertThat(view.displayName(), is("lonely@example.com"));
     }
 
-    private static JsonWebToken googleJwt(String sub,
-                                          String givenName,
-                                          String familyName,
-                                          String name,
-                                          String email,
-                                          String picture) {
-        final var claims = Map.of(
+    private void stubGoogleJwt(String sub,
+                               String givenName,
+                               String familyName,
+                               String name,
+                               String email,
+                               String picture) {
+        stubJwtClaims(sub, Map.of(
                 "given_name", givenName == null ? "" : givenName,
                 "family_name", familyName == null ? "" : familyName,
                 "name", name == null ? "" : name,
                 "email", email == null ? "" : email,
                 "picture", picture == null ? "" : picture
-        );
-        return new TestGoogleJwt(sub, claims);
+        ));
+    }
+
+    private void stubJwtClaims(String sub, Map<String, String> claims) {
+        given(jwt.getSubject()).willReturn(sub);
+        given(jwt.<String>getClaim("sub")).willReturn(sub);
+        claims.forEach((claimName, claimValue) ->
+                given(jwt.<String>getClaim(claimName)).willReturn(claimValue));
     }
 
     private SeededUser seedExistingUser(String firstName,
@@ -410,67 +426,5 @@ class UserAccountServiceTest {
     }
 
     private record SeededUser(UUID userAccountUuid, String providerId) {
-    }
-
-    private record TestGoogleJwt(String subject, Map<String, String> claims) implements JsonWebToken {
-
-        @Override
-        public String getName() {
-            return subject;
-        }
-
-        @Override
-        public Set<String> getClaimNames() {
-            return claims.keySet();
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public <T> T getClaim(String claimName) {
-            if ("sub".equals(claimName)) {
-                return (T) subject;
-            }
-            return (T) claims.get(claimName);
-        }
-
-        @Override
-        public String getRawToken() {
-            return "";
-        }
-
-        @Override
-        public String getIssuer() {
-            return "https://test.invalid";
-        }
-
-        @Override
-        public Set<String> getAudience() {
-            return Set.of();
-        }
-
-        @Override
-        public long getExpirationTime() {
-            return Instant.now().plusSeconds(3600).getEpochSecond();
-        }
-
-        @Override
-        public long getIssuedAtTime() {
-            return Instant.now().getEpochSecond();
-        }
-
-        @Override
-        public String getSubject() {
-            return subject;
-        }
-
-        @Override
-        public String getTokenID() {
-            return UUID.randomUUID().toString();
-        }
-
-        @Override
-        public Set<String> getGroups() {
-            return Set.of();
-        }
     }
 }

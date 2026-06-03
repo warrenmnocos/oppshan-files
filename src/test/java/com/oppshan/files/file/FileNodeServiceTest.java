@@ -340,9 +340,7 @@ class FileNodeServiceTest {
 
         final var view = fileNodeService.createRegularFileNode(
                 userAccountUuid,
-                rootDirectoryUuid,
-                "fox.txt",
-                TEXT_MIME_TYPE,
+                newUploadRequest(rootDirectoryUuid, "fox.txt", TEXT_MIME_TYPE, (long) content.length),
                 new ByteArrayInputStream(content)
         );
 
@@ -364,9 +362,7 @@ class FileNodeServiceTest {
                 BusinessException.class,
                 () -> fileNodeService.createRegularFileNode(
                         userAccountUuid,
-                        rootDirectoryUuid,
-                        "   ",
-                        TEXT_MIME_TYPE,
+                        newUploadRequest(rootDirectoryUuid, "   ", TEXT_MIME_TYPE, 3L),
                         new ByteArrayInputStream(new byte[] {1, 2, 3})
                 )
         );
@@ -381,9 +377,7 @@ class FileNodeServiceTest {
                 BusinessException.class,
                 () -> fileNodeService.createRegularFileNode(
                         userAccountUuid,
-                        UUID.randomUUID(),
-                        "fox.txt",
-                        TEXT_MIME_TYPE,
+                        newUploadRequest(UUID.randomUUID(), "fox.txt", TEXT_MIME_TYPE, 3L),
                         new ByteArrayInputStream(new byte[] {1, 2, 3})
                 )
         );
@@ -400,13 +394,47 @@ class FileNodeServiceTest {
                 BusinessException.class,
                 () -> fileNodeService.createRegularFileNode(
                         userAccountUuid,
-                        rootDirectoryUuid,
-                        "report.txt",
-                        TEXT_MIME_TYPE,
+                        newUploadRequest(rootDirectoryUuid, "report.txt", TEXT_MIME_TYPE, (long) content.length),
                         new ByteArrayInputStream(content)
                 )
         );
         assertThat(businessException.getErrorCode(), is(MessageCode.FILE_NAME_NOT_UNIQUE));
+    }
+
+    @Test
+    void shouldThrowFileSizeExceededBeforeStreamingWhenContentLengthExceedsLimit() {
+        seedUser(DEFAULT_MAX_STORAGE_BYTES, 32L);
+        final var unreadableStream = new ThrowingInputStream();
+
+        final var businessException = assertThrows(
+                BusinessException.class,
+                () -> fileNodeService.createRegularFileNode(
+                        userAccountUuid,
+                        newUploadRequest(rootDirectoryUuid, "huge.txt", TEXT_MIME_TYPE, 64L),
+                        unreadableStream
+                )
+        );
+        assertThat(businessException.getErrorCode(), is(MessageCode.FILE_SIZE_EXCEEDED));
+        assertThat(unreadableStream.wasRead(), is(false));
+    }
+
+    @Test
+    void shouldThrowFileQuotaExceededBeforeStreamingWhenContentLengthExceedsQuota() {
+        seedUser(80L, 80L);
+        final var fortyBytes = new byte[40];
+        createRegularFileNode(rootDirectoryUuid, "first.txt", TEXT_MIME_TYPE, fortyBytes);
+        final var unreadableStream = new ThrowingInputStream();
+
+        final var businessException = assertThrows(
+                BusinessException.class,
+                () -> fileNodeService.createRegularFileNode(
+                        userAccountUuid,
+                        newUploadRequest(rootDirectoryUuid, "second.txt", TEXT_MIME_TYPE, 60L),
+                        unreadableStream
+                )
+        );
+        assertThat(businessException.getErrorCode(), is(MessageCode.FILE_QUOTA_EXCEEDED));
+        assertThat(unreadableStream.wasRead(), is(false));
     }
 
     @Test
@@ -417,9 +445,7 @@ class FileNodeServiceTest {
                 BusinessException.class,
                 () -> fileNodeService.createRegularFileNode(
                         userAccountUuid,
-                        rootDirectoryUuid,
-                        "huge.txt",
-                        TEXT_MIME_TYPE,
+                        newUploadRequest(rootDirectoryUuid, "huge.txt", TEXT_MIME_TYPE, null),
                         new ByteArrayInputStream(new byte[64])
                 )
         );
@@ -436,13 +462,97 @@ class FileNodeServiceTest {
                 BusinessException.class,
                 () -> fileNodeService.createRegularFileNode(
                         userAccountUuid,
-                        rootDirectoryUuid,
-                        "second.txt",
-                        TEXT_MIME_TYPE,
+                        newUploadRequest(rootDirectoryUuid, "second.txt", TEXT_MIME_TYPE, null),
                         new ByteArrayInputStream(new byte[60])
                 )
         );
         assertThat(businessException.getErrorCode(), is(MessageCode.FILE_QUOTA_EXCEEDED));
+    }
+
+    @Test
+    void shouldPersistFileWhenContentLengthMatchesUploadLimitExactly() {
+        seedUser(DEFAULT_MAX_STORAGE_BYTES, 32L);
+        final var content = new byte[32];
+
+        final var view = fileNodeService.createRegularFileNode(
+                userAccountUuid,
+                newUploadRequest(rootDirectoryUuid, "edge.bin", TEXT_MIME_TYPE, (long) content.length),
+                new ByteArrayInputStream(content)
+        );
+
+        final var uploaded = view.getChildrenFileNodeViews().stream()
+                .filter(child -> child.name().equals("edge.bin"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(uploaded.sizeBytes(), is(32L));
+    }
+
+    @Test
+    void shouldPersistFileWhenContentLengthFillsRemainingQuotaExactly() {
+        seedUser(80L, 80L);
+        createRegularFileNode(rootDirectoryUuid, "first.txt", TEXT_MIME_TYPE, new byte[40]);
+        final var fillBytes = new byte[40];
+
+        final var view = fileNodeService.createRegularFileNode(
+                userAccountUuid,
+                newUploadRequest(rootDirectoryUuid, "second.txt", TEXT_MIME_TYPE, (long) fillBytes.length),
+                new ByteArrayInputStream(fillBytes)
+        );
+
+        final var uploaded = view.getChildrenFileNodeViews().stream()
+                .filter(child -> child.name().equals("second.txt"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(uploaded.sizeBytes(), is(40L));
+    }
+
+    @Test
+    void shouldFallBackToPostStreamCheckWhenContentLengthUnderReportsActualSize() {
+        seedUser(DEFAULT_MAX_STORAGE_BYTES, 32L);
+
+        final var businessException = assertThrows(
+                BusinessException.class,
+                () -> fileNodeService.createRegularFileNode(
+                        userAccountUuid,
+                        newUploadRequest(rootDirectoryUuid, "liar.bin", TEXT_MIME_TYPE, 1L),
+                        new ByteArrayInputStream(new byte[64])
+                )
+        );
+        assertThat(businessException.getErrorCode(), is(MessageCode.FILE_SIZE_EXCEEDED));
+    }
+
+    @Test
+    void shouldFallBackToPostStreamCheckWhenContentLengthUnderReportsAndQuotaExceeds() {
+        seedUser(80L, 80L);
+        createRegularFileNode(rootDirectoryUuid, "first.txt", TEXT_MIME_TYPE, new byte[40]);
+
+        final var businessException = assertThrows(
+                BusinessException.class,
+                () -> fileNodeService.createRegularFileNode(
+                        userAccountUuid,
+                        newUploadRequest(rootDirectoryUuid, "second.txt", TEXT_MIME_TYPE, 1L),
+                        new ByteArrayInputStream(new byte[60])
+                )
+        );
+        assertThat(businessException.getErrorCode(), is(MessageCode.FILE_QUOTA_EXCEEDED));
+    }
+
+    @Test
+    void shouldSkipPreStreamCheckWhenContentLengthIsAbsent() {
+        seedUser();
+        final var content = "chunked upload".getBytes(StandardCharsets.UTF_8);
+
+        final var view = fileNodeService.createRegularFileNode(
+                userAccountUuid,
+                newUploadRequest(rootDirectoryUuid, "chunked.txt", TEXT_MIME_TYPE, null),
+                new ByteArrayInputStream(content)
+        );
+
+        final var uploaded = view.getChildrenFileNodeViews().stream()
+                .filter(child -> child.name().equals("chunked.txt"))
+                .findFirst()
+                .orElseThrow();
+        assertThat(uploaded.sizeBytes(), is((long) content.length));
     }
 
     @Test
@@ -460,9 +570,7 @@ class FileNodeServiceTest {
             final var slowFuture = CompletableFuture.supplyAsync(
                     () -> fileNodeService.createRegularFileNode(
                             userAccountUuid,
-                            rootDirectoryUuid,
-                            "slow.txt",
-                            TEXT_MIME_TYPE,
+                            newUploadRequest(rootDirectoryUuid, "slow.txt", TEXT_MIME_TYPE, (long) slowContent.length),
                             new InitialDelayInputStream(new ByteArrayInputStream(slowContent), slowDelayMillis)
                     ),
                     executor
@@ -474,9 +582,7 @@ class FileNodeServiceTest {
 
             final var fastView = fileNodeService.createRegularFileNode(
                     userAccountUuid,
-                    rootDirectoryUuid,
-                    "fast.txt",
-                    TEXT_MIME_TYPE,
+                    newUploadRequest(rootDirectoryUuid, "fast.txt", TEXT_MIME_TYPE, (long) fastContent.length),
                     new ByteArrayInputStream(fastContent)
             );
 
@@ -821,9 +927,7 @@ class FileNodeServiceTest {
                                        byte[] content) {
         final var view = fileNodeService.createRegularFileNode(
                 userAccountUuid,
-                parentUuid,
-                name,
-                mimeType,
+                newUploadRequest(parentUuid, name, mimeType, (long) content.length),
                 new ByteArrayInputStream(content)
         );
         final var uuid = view.getChildrenFileNodeViews()
@@ -834,6 +938,17 @@ class FileNodeServiceTest {
                 .orElse(null);
         assertThat(uuid, is(notNullValue()));
         return uuid;
+    }
+
+    private static FileUploadRequest newUploadRequest(UUID parentUuid,
+                                                      String filename,
+                                                      String mimeType,
+                                                      Long contentLength) {
+        return new FileUploadRequest()
+                .setParentFileNodeUuid(parentUuid)
+                .setContentType(mimeType)
+                .setContentDisposition("attachment; filename=\"" + filename + "\"")
+                .setContentLength(contentLength);
     }
 
     private static final class InitialDelayInputStream extends InputStream {
@@ -871,6 +986,27 @@ class FileNodeServiceTest {
                 Thread.currentThread().interrupt();
                 throw new IOException("interrupted", ex);
             }
+        }
+    }
+
+    private static final class ThrowingInputStream extends InputStream {
+
+        private boolean read;
+
+        @Override
+        public int read() throws IOException {
+            read = true;
+            throw new IOException("stream should not be read");
+        }
+
+        @Override
+        public int read(byte[] buffer, int offset, int length) throws IOException {
+            read = true;
+            throw new IOException("stream should not be read");
+        }
+
+        boolean wasRead() {
+            return read;
         }
     }
 }

@@ -38,6 +38,7 @@ public interface ApplicationStorage {
     int encryptionKdfKeyLength();
 
     @NotEmpty
+    @Size(min = 8)
     String encryptionKdfSalt();
 
     @Min(16)

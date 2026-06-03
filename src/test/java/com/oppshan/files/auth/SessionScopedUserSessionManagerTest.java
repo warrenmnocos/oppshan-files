@@ -1,106 +1,129 @@
 package com.oppshan.files.auth;
 
 import com.oppshan.files.user.UserAccountView;
+import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Instant;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.sameInstance;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.atMostOnce;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class SessionScopedUserSessionManagerTest {
+
+    @Mock
+    UserSessionManager delegate;
+
+    @Mock
+    HttpSession httpSession;
 
     @Test
     void shouldReturnAnonymousUserAccountWhenNeverPopulated() {
-        final var delegate = new RecordingUserSessionManager();
-        final var manager = new SessionScopedUserSessionManager(delegate);
+        given(delegate.isSignedOut()).willReturn(true);
+        final var manager = new SessionScopedUserSessionManager(delegate, httpSession);
 
         assertThat(manager.getSessionUserAccount().isAnonymous(), is(true));
+        verify(delegate, atMostOnce()).isSignedOut();
     }
 
     @Test
     void shouldPopulateCacheFromDelegateOnFirstSessionUserAccountLookup() {
-        final var delegate = new RecordingUserSessionManager();
-        delegate.setSessionUserAccount(signedInView("Alice"));
-        final var manager = new SessionScopedUserSessionManager(delegate);
+        final var alice = signedInView("Alice");
+        given(delegate.getSessionUserAccount()).willReturn(alice);
+        final var manager = new SessionScopedUserSessionManager(delegate, httpSession);
 
         final var view = manager.getSessionUserAccount();
 
         assertThat(view.firstName(), is("Alice"));
-        assertThat(delegate.getSessionUserAccountInvocations(), is(1));
+        verify(delegate, atMostOnce()).getSessionUserAccount();
     }
 
     @Test
     void shouldServeCachedSessionUserAccountOnSubsequentLookups() {
-        final var delegate = new RecordingUserSessionManager();
-        delegate.setSessionUserAccount(signedInView("Bob"));
-        final var manager = new SessionScopedUserSessionManager(delegate);
+        final var bob = signedInView("Bob");
+        given(delegate.getSessionUserAccount()).willReturn(bob);
+        final var manager = new SessionScopedUserSessionManager(delegate, httpSession);
 
         final var first = manager.getSessionUserAccount();
         final var second = manager.getSessionUserAccount();
 
         assertThat(second, is(sameInstance(first)));
-        assertThat(delegate.getSessionUserAccountInvocations(), is(1));
+        verify(delegate, atMostOnce()).getSessionUserAccount();
     }
 
     @Test
     void shouldDelegateSignOutEvenWhenCacheAnonymous() {
-        final var delegate = new RecordingUserSessionManager();
-        final var manager = new SessionScopedUserSessionManager(delegate);
+        final var manager = new SessionScopedUserSessionManager(delegate, httpSession);
 
         manager.signOut();
 
-        assertThat(delegate.signOutInvocations(), is(1));
+        verify(delegate, atMostOnce()).isSignedOut();
+        verify(delegate, atMostOnce()).signOut();
     }
 
     @Test
-    void shouldReportSignedOutWhenCacheAnonymousEvenWhileDelegateSignedIn() {
-        final var delegate = new RecordingUserSessionManager();
-        delegate.setSignedOut(false);
-        final var manager = new SessionScopedUserSessionManager(delegate);
+    void shouldReportNotSignedOutWhenDelegateSignedInEvenWhileCacheAnonymous() {
+        given(delegate.isSignedOut()).willReturn(false);
+        final var manager = new SessionScopedUserSessionManager(delegate, httpSession);
 
-        assertThat(manager.isSignedOut(), is(true));
+        assertThat(manager.isSignedOut(), is(false));
+        verify(delegate, atMostOnce()).isSignedOut();
     }
 
     @Test
     void shouldReportNotSignedOutWhenCachePopulatedAndDelegateSignedIn() {
-        final var delegate = new RecordingUserSessionManager();
-        delegate.setSessionUserAccount(signedInView("Carol"));
-        delegate.setSignedOut(false);
-        final var manager = new SessionScopedUserSessionManager(delegate);
-        manager.getSessionUserAccount();
+        final var carol = signedInView("Carol");
+        given(delegate.getSessionUserAccount()).willReturn(carol);
+        given(delegate.isSignedOut()).willReturn(false);
+
+        final var manager = new SessionScopedUserSessionManager(delegate, httpSession);
+        assertThat(manager.getSessionUserAccount(), is(sameInstance(carol)));
+        clearInvocations(delegate);
 
         assertThat(manager.isSignedOut(), is(false));
+        verify(delegate, atMostOnce()).isSignedOut();
     }
 
     @Test
     void shouldReportSignedOutWhenDelegateLosesIdentityAfterCachePopulated() {
-        final var delegate = new RecordingUserSessionManager();
-        delegate.setSessionUserAccount(signedInView("Dave"));
-        delegate.setSignedOut(false);
-        final var manager = new SessionScopedUserSessionManager(delegate);
-        manager.getSessionUserAccount();
+        final var dave = signedInView("Dave");
+        given(delegate.getSessionUserAccount()).willReturn(dave);
+        given(delegate.isSignedOut()).willReturn(false);
 
-        // OIDC tokens expire / are cleared by another path; cache is still populated.
-        delegate.setSignedOut(true);
+        final var manager = new SessionScopedUserSessionManager(delegate, httpSession);
+        assertThat(manager.getSessionUserAccount(), is(sameInstance(dave)));
+
+        given(delegate.isSignedOut()).willReturn(true);
 
         assertThat(manager.isSignedOut(), is(true));
     }
 
     @Test
     void shouldRefreshCacheFromDelegateOnExplicitRefresh() {
-        final var delegate = new RecordingUserSessionManager();
-        delegate.setSessionUserAccount(signedInView("Initial"));
-        final var manager = new SessionScopedUserSessionManager(delegate);
-        manager.getSessionUserAccount();
-        delegate.setSessionUserAccount(signedInView("Updated"));
+        final var eve = signedInView("Eve");
+        given(delegate.getSessionUserAccount()).willReturn(eve);
+
+        final var manager = new SessionScopedUserSessionManager(delegate, httpSession);
+        assertThat(manager.getSessionUserAccount(), is(sameInstance(eve)));
+
+        final var felix = signedInView("Felix");
+        given(delegate.getSessionUserAccount()).willReturn(felix);
+
+        assertThat(manager.getSessionUserAccount(), is(sameInstance(eve)));
 
         manager.refreshSessionUserAccount();
 
-        assertThat(manager.getSessionUserAccount().firstName(), is("Updated"));
+        assertThat(manager.getSessionUserAccount(), is(sameInstance(felix)));
     }
 
     private static UserAccountView signedInView(String firstName) {
@@ -118,51 +141,5 @@ class SessionScopedUserSessionManagerTest {
                 Instant.now(),
                 Instant.now()
         );
-    }
-
-    private static class RecordingUserSessionManager implements UserSessionManager {
-
-        private final AtomicInteger getSessionUserAccountCount = new AtomicInteger();
-
-        private final AtomicInteger signOutCount = new AtomicInteger();
-
-        private UserAccountView sessionUserAccount = UserAccountView.anonymous();
-
-        private boolean signedOut = true;
-
-        @Override
-        public UserAccountView getSessionUserAccount() {
-            getSessionUserAccountCount.incrementAndGet();
-            return sessionUserAccount;
-        }
-
-        @Override
-        public boolean isSignedOut() {
-            return signedOut;
-        }
-
-        @Override
-        public void signOut() {
-            signOutCount.incrementAndGet();
-            sessionUserAccount = UserAccountView.anonymous();
-            signedOut = true;
-        }
-
-        void setSessionUserAccount(UserAccountView view) {
-            this.sessionUserAccount = view;
-            this.signedOut = view.isAnonymous();
-        }
-
-        void setSignedOut(boolean signedOut) {
-            this.signedOut = signedOut;
-        }
-
-        int getSessionUserAccountInvocations() {
-            return getSessionUserAccountCount.get();
-        }
-
-        int signOutInvocations() {
-            return signOutCount.get();
-        }
     }
 }

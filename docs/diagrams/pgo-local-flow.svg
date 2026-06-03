@@ -1,0 +1,232 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 980" width="760" height="980"
+     font-family="Segoe UI, system-ui, -apple-system, sans-serif" font-size="12">
+    <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M0 1.5 L8.5 5 L0 8.5 z" fill="#546E7A"/>
+        </marker>
+    </defs>
+
+    <rect width="760" height="980" fill="#FAFAFA"/>
+
+    <!-- Title -->
+    <text x="380" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="#212121">Local PGO build (Phase
+        A)
+    </text>
+    <text x="380" y="40" text-anchor="middle" font-size="9" fill="#90A4AE">scripts/graalvm-pgo/local.sh · runs on x64
+        developer machine
+    </text>
+
+    <!-- Orchestrator scope (dashed outer) -->
+    <rect x="20" y="56" width="500" height="888" rx="10"
+          fill="none" stroke="#90A4AE" stroke-width="1" stroke-dasharray="6 4"/>
+    <text x="36" y="72" font-size="9" fill="#90A4AE">scripts/graalvm-pgo/local.sh (bash orchestrator)</text>
+
+    <!-- Phase: Setup -->
+    <text x="36" y="92" font-size="9" fill="#2980B9" font-weight="600">Phase: Setup</text>
+
+    <!-- Step 1 -->
+    <rect x="36" y="98" width="468" height="50" rx="6" fill="#D6EAF8" stroke="#2980B9" stroke-width="1.5"/>
+    <text x="270" y="116" text-anchor="middle" font-size="11" font-weight="700" fill="#1A5276">① Install cleanup trap
+    </text>
+    <text x="270" y="132" text-anchor="middle" font-size="9" fill="#2980B9">trap cleanup EXIT INT TERM — runs on every
+        exit path
+    </text>
+    <line x1="270" y1="148" x2="270" y2="166" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+
+    <!-- Step 2 -->
+    <rect x="36" y="168" width="468" height="50" rx="6" fill="#D6EAF8" stroke="#2980B9" stroke-width="1.5"/>
+    <text x="270" y="186" text-anchor="middle" font-size="11" font-weight="700" fill="#1A5276">② Start fresh
+        containers
+    </text>
+    <text x="270" y="202" text-anchor="middle" font-size="9" fill="#2980B9">docker compose down -v &amp;&amp; docker
+        compose up -d
+    </text>
+    <line x1="270" y1="218" x2="270" y2="236" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+
+    <!-- Step 3 -->
+    <rect x="36" y="238" width="468" height="50" rx="6" fill="#D6EAF8" stroke="#2980B9" stroke-width="1.5"/>
+    <text x="270" y="256" text-anchor="middle" font-size="11" font-weight="700" fill="#1A5276">③ Wait for readiness
+    </text>
+    <text x="270" y="272" text-anchor="middle" font-size="9" fill="#2980B9">pg_isready · GET /realms/master · up to 60s
+        each
+    </text>
+    <line x1="270" y1="288" x2="270" y2="306" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+
+    <!-- Step 4 -->
+    <rect x="36" y="308" width="468" height="50" rx="6" fill="#D6EAF8" stroke="#2980B9" stroke-width="1.5"/>
+    <text x="270" y="326" text-anchor="middle" font-size="11" font-weight="700" fill="#1A5276">④ Bootstrap Keycloak
+    </text>
+    <text x="270" y="342" text-anchor="middle" font-size="9" fill="#2980B9">graalvm-pgo/keycloak-bootstrap.sh · realm +
+        client + user (emailVerified=true)
+    </text>
+    <line x1="270" y1="358" x2="270" y2="378" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+
+    <!-- Phase: Instrument -->
+    <text x="36" y="374" font-size="9" fill="#E67E22" font-weight="600">Phase: Instrumented build</text>
+
+    <!-- Step 5 -->
+    <rect x="36" y="380" width="468" height="50" rx="6" fill="#FDEBD0" stroke="#E67E22" stroke-width="1.5"/>
+    <text x="270" y="398" text-anchor="middle" font-size="11" font-weight="700" fill="#784212">⑤ Build instrumented
+        binary
+    </text>
+    <text x="270" y="414" text-anchor="middle" font-size="9" fill="#A04000">./mvnw -B -Pnative-pgo-instrument package
+        -DskipTests · ~10-15 min
+    </text>
+    <line x1="270" y1="430" x2="270" y2="450" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+
+    <!-- Phase: Profile collect -->
+    <text x="36" y="446" font-size="9" fill="#7D3C98" font-weight="600">Phase: Profile collection</text>
+
+    <!-- Step 6 -->
+    <rect x="36" y="452" width="468" height="50" rx="6" fill="#F4ECF7" stroke="#7D3C98" stroke-width="1.5"/>
+    <text x="270" y="470" text-anchor="middle" font-size="11" font-weight="700" fill="#512E5F">⑥ Launch instrumented
+        binary
+    </text>
+    <text x="270" y="486" text-anchor="middle" font-size="9" fill="#7D3C98">cd target/pgo-run · QUARKUS_PROFILE=pgo ·
+        wait for /api/auth/me → 401
+    </text>
+    <line x1="270" y1="502" x2="270" y2="520" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+
+    <!-- Step 7 -->
+    <rect x="36" y="522" width="468" height="50" rx="6" fill="#F4ECF7" stroke="#7D3C98" stroke-width="1.5"/>
+    <text x="270" y="540" text-anchor="middle" font-size="11" font-weight="700" fill="#512E5F">⑦ Drive workload</text>
+    <text x="270" y="556" text-anchor="middle" font-size="9" fill="#7D3C98">graalvm-pgo/workload.sh · bootstrap + 60s
+        11-op loop + teardown
+    </text>
+    <line x1="270" y1="572" x2="270" y2="590" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+
+    <!-- Step 8 -->
+    <rect x="36" y="592" width="468" height="50" rx="6" fill="#F4ECF7" stroke="#7D3C98" stroke-width="1.5"/>
+    <text x="270" y="610" text-anchor="middle" font-size="11" font-weight="700" fill="#512E5F">⑧ SIGTERM + verify
+        default.iprof
+    </text>
+    <text x="270" y="626" text-anchor="middle" font-size="9" fill="#7D3C98">kill -TERM · 15s grace · test -s
+        target/pgo-run/default.iprof
+    </text>
+    <line x1="270" y1="642" x2="270" y2="662" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+
+    <!-- Phase: Optimize -->
+    <text x="36" y="658" font-size="9" fill="#E67E22" font-weight="600">Phase: Optimized build</text>
+
+    <!-- Step 9 -->
+    <rect x="36" y="664" width="468" height="50" rx="6" fill="#FDEBD0" stroke="#E67E22" stroke-width="1.5"/>
+    <text x="270" y="682" text-anchor="middle" font-size="11" font-weight="700" fill="#784212">⑨ Build optimized
+        binary
+    </text>
+    <text x="270" y="698" text-anchor="middle" font-size="9" fill="#A04000">./mvnw -Pnative-release-pgo package
+        -Dpgo.profile.path=…default.iprof
+    </text>
+    <line x1="270" y1="714" x2="270" y2="734" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+
+    <!-- Phase: Cleanup -->
+    <text x="36" y="730" font-size="9" fill="#546E7A" font-weight="600">Phase: Cleanup (automatic via trap)</text>
+
+    <!-- Step 10 -->
+    <rect x="36" y="736" width="468" height="50" rx="6" fill="#ECEFF1" stroke="#546E7A" stroke-width="1.5"/>
+    <text x="270" y="754" text-anchor="middle" font-size="11" font-weight="700" fill="#263238">⑩ Trap fires on script
+        exit
+    </text>
+    <text x="270" y="770" text-anchor="middle" font-size="9" fill="#546E7A">docker compose down -v · kill binary if
+        alive · images preserved
+    </text>
+    <line x1="270" y1="786" x2="270" y2="806" stroke="#546E7A" stroke-width="1.2" marker-end="url(#arr)"/>
+
+    <!-- Result -->
+    <rect x="120" y="808" width="300" height="50" rx="6" fill="#D5F5E3" stroke="#27AE60" stroke-width="1.5"/>
+    <text x="270" y="826" text-anchor="middle" font-size="11" font-weight="700" fill="#145A32">Result: PGO-optimized x64
+        binary
+    </text>
+    <text x="270" y="842" text-anchor="middle" font-size="9" fill="#27AE60">target/oppshan-files-*-runner · feeds Phase
+        A gate decision
+    </text>
+
+    <!-- Benchmark mode annotation -->
+    <text x="270" y="884" text-anchor="middle" font-size="9" font-style="italic" fill="#90A4AE">With PGO_BENCHMARK=1:
+        also builds non-PGO release, runs workload
+    </text>
+    <text x="270" y="898" text-anchor="middle" font-size="9" font-style="italic" fill="#90A4AE">against both, reports
+        p50/p95 per endpoint → Phase A gate input
+    </text>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         Side: Docker containers (right column)
+         ═══════════════════════════════════════════════════════════ -->
+    <rect x="540" y="98" width="200" height="220" rx="10"
+          fill="none" stroke="#90A4AE" stroke-width="1" stroke-dasharray="6 4"/>
+    <text x="555" y="114" font-size="9" fill="#90A4AE">docker-compose.pgo.yml</text>
+
+    <!-- Postgres container -->
+    <rect x="554" y="124" width="172" height="46" rx="6" fill="#E8F8F5" stroke="#1ABC9C" stroke-width="1.5"/>
+    <text x="640" y="142" text-anchor="middle" font-size="11" font-weight="700" fill="#0E6655">postgres:18</text>
+    <text x="640" y="158" text-anchor="middle" font-size="9" fill="#1ABC9C">localhost:55432 · POSTGRES_DB=oppshan</text>
+
+    <!-- Keycloak container -->
+    <rect x="554" y="180" width="172" height="46" rx="6" fill="#E8F8F5" stroke="#1ABC9C" stroke-width="1.5"/>
+    <text x="640" y="198" text-anchor="middle" font-size="11" font-weight="700" fill="#0E6655">keycloak:26.0.6</text>
+    <text x="640" y="214" text-anchor="middle" font-size="9" fill="#1ABC9C">localhost:8180 · start-dev ·
+        KC_HTTP_PORT=8180
+    </text>
+
+    <!-- Quarkus binary -->
+    <rect x="554" y="236" width="172" height="46" rx="6" fill="#F4ECF7" stroke="#7D3C98" stroke-width="1.5"/>
+    <text x="640" y="254" text-anchor="middle" font-size="11" font-weight="700" fill="#512E5F">Quarkus (instrumented)
+    </text>
+    <text x="640" y="270" text-anchor="middle" font-size="9" fill="#7D3C98">localhost:8080 · steps 6-8 only</text>
+
+    <text x="640" y="298" text-anchor="middle" font-size="9" font-style="italic" fill="#90A4AE">Source images stay
+        cached
+    </text>
+    <text x="640" y="310" text-anchor="middle" font-size="9" font-style="italic" fill="#90A4AE">after cleanup;
+        containers purged.
+    </text>
+
+    <!-- Side: Files produced -->
+    <rect x="540" y="350" width="200" height="180" rx="10"
+          fill="none" stroke="#90A4AE" stroke-width="1" stroke-dasharray="6 4"/>
+    <text x="555" y="366" font-size="9" fill="#90A4AE">Files produced</text>
+
+    <rect x="554" y="376" width="172" height="40" rx="6" fill="#FDEBD0" stroke="#E67E22" stroke-width="1.5"/>
+    <text x="640" y="392" text-anchor="middle" font-size="10" font-weight="700" fill="#784212">
+        target/oppshan-files-*-runner
+    </text>
+    <text x="640" y="406" text-anchor="middle" font-size="9" fill="#A04000">instrumented (step 5)</text>
+
+    <rect x="554" y="424" width="172" height="40" rx="6" fill="#F4ECF7" stroke="#7D3C98" stroke-width="1.5"/>
+    <text x="640" y="440" text-anchor="middle" font-size="10" font-weight="700" fill="#512E5F">
+        target/pgo-run/default.iprof
+    </text>
+    <text x="640" y="454" text-anchor="middle" font-size="9" fill="#7D3C98">profile data (step 8)</text>
+
+    <rect x="554" y="472" width="172" height="40" rx="6" fill="#D5F5E3" stroke="#27AE60" stroke-width="1.5"/>
+    <text x="640" y="488" text-anchor="middle" font-size="10" font-weight="700" fill="#145A32">
+        target/oppshan-files-*-runner
+    </text>
+    <text x="640" y="502" text-anchor="middle" font-size="9" fill="#27AE60">optimized (step 9, overwrites)</text>
+
+    <text x="640" y="526" text-anchor="middle" font-size="9" font-style="italic" fill="#90A4AE">All under target/ —
+        gitignored.
+    </text>
+
+    <!-- Legend -->
+    <rect x="540" y="568" width="200" height="120" rx="10"
+          fill="none" stroke="#90A4AE" stroke-width="1" stroke-dasharray="6 4"/>
+    <text x="555" y="584" font-size="9" fill="#90A4AE">Legend</text>
+
+    <rect x="556" y="594" width="14" height="10" fill="#D6EAF8" stroke="#2980B9"/>
+    <text x="576" y="603" font-size="9" fill="#1A5276">Setup phase</text>
+
+    <rect x="556" y="610" width="14" height="10" fill="#FDEBD0" stroke="#E67E22"/>
+    <text x="576" y="619" font-size="9" fill="#784212">Build phase</text>
+
+    <rect x="556" y="626" width="14" height="10" fill="#F4ECF7" stroke="#7D3C98"/>
+    <text x="576" y="635" font-size="9" fill="#512E5F">Profile collection</text>
+
+    <rect x="556" y="642" width="14" height="10" fill="#ECEFF1" stroke="#546E7A"/>
+    <text x="576" y="651" font-size="9" fill="#263238">Cleanup (auto)</text>
+
+    <rect x="556" y="658" width="14" height="10" fill="#D5F5E3" stroke="#27AE60"/>
+    <text x="576" y="667" font-size="9" fill="#145A32">Output / Result</text>
+
+    <text x="556" y="681" font-size="9" font-style="italic" fill="#90A4AE">Total: ~30 min wall-clock</text>
+</svg>

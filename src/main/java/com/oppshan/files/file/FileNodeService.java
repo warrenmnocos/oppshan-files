@@ -85,21 +85,41 @@ public class FileNodeService {
     @Valid
     @NotNull
     @TransactionConfiguration(timeout = 3_600)
-    public DirectoryContentsView createRegularFileNode(@NotNull UUID userAccountUuid,
-                                                       @NotNull UUID parentUuid,
-                                                       @NotNull String filename,
-                                                       @NotNull String mimeType,
-                                                       @NotNull InputStream contentInputStream) {
-        final var name = filename.trim();
+    public DirectoryContentsView createRegularFileNode(@NotNull
+                                                       UUID userAccountUuid,
+
+                                                       @Valid
+                                                       @NotNull
+                                                       FileUploadRequest fileUploadRequest,
+
+                                                       @NotNull
+                                                       InputStream contentInputStream) {
+        final var parentUuid = fileUploadRequest.getParentFileNodeUuid();
+        final var name = fileUploadRequest.getContentFilename().trim();
         if (name.isEmpty()) {
             throw BusinessException.fileNameRequired();
         }
 
+        final var mimeType = fileUploadRequest.getContentType();
         final var parentFileNode = fileNodeRepository.findDirectoryFileNodeWithContents(userAccountUuid, parentUuid)
                 .map(fileNodeRepository::attachWithSession)
                 .orElseThrow(BusinessException::directoryNotFound);
         if (fileNodeRepository.isFilePresent(userAccountUuid, parentUuid, name, mimeType)) {
             throw BusinessException.fileNameNotUnique();
+        }
+
+        final var nullableContentLength = fileUploadRequest.getContentLength();
+        if (nullableContentLength.isPresent()) {
+            final var preStorageView = fileNodeRepository.getUserStorageView(userAccountUuid)
+                    .orElseThrow(BusinessException::userNotFound);
+            final var contentLength = nullableContentLength.getAsLong();
+            if (contentLength > preStorageView.maxFileUploadBytes()) {
+                throw BusinessException.fileSizeExceeded();
+            }
+
+            if (preStorageView.totalSizeBytes() + contentLength > preStorageView.maxStorageBytes()) {
+                throw BusinessException.fileQuotaExceeded();
+            }
         }
 
         final var countingInputStream = new CountingInputStream(contentInputStream);
@@ -165,6 +185,7 @@ public class FileNodeService {
         childFileNodes.remove(fileNode);
         fileNode.setName(name);
         childFileNodes.add(fileNode);
+
         fileNodeRepository.updateWithSession(fileNode);
         return toDirectoryContentsView(userAccountUuid, parentDirectoryFileNodeWithContents);
     }

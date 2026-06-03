@@ -3,7 +3,7 @@ package com.oppshan.files.file;
 import jakarta.enterprise.inject.spi.CDI;
 
 import javax.crypto.CipherInputStream;
-import java.io.BufferedInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Blob;
@@ -11,14 +11,6 @@ import java.sql.SQLException;
 import java.util.Objects;
 
 public class OutgoingBlob implements Blob {
-
-    // CipherInputStream's internal ibuffer is hardcoded to 512 bytes, so each
-    // .read() call returns at most ~512 bytes regardless of how much the caller
-    // asks for. The BufferedInputStream below accumulates those 512-byte gulps
-    // into 64 KB chunks before they reach transferTo()'s servlet-output write
-    // loop, collapsing ~160,000 small writes per 80 MB download into ~1,250
-    // large writes.
-    private static final int STREAM_BUFFER_BYTES = 64 * 1024;
 
     private final Blob delegate;
 
@@ -31,11 +23,22 @@ public class OutgoingBlob implements Blob {
 
     @Override
     public InputStream getBinaryStream() throws SQLException {
+        final var raw = delegate.getBinaryStream();
+        final var ivLength = fileContentCipherService.getIvLength();
+        final byte[] iv;
         try {
-            final var raw = delegate.getBinaryStream();
-            final var iv = raw.readNBytes(fileContentCipherService.getIvLength());
+            iv = raw.readNBytes(ivLength);
+        } catch (IOException ex) {
+            throw new SQLException("Failed to read IV from blob", ex);
+        }
+
+        if (iv.length < ivLength) {
+            throw new SQLException("Truncated blob: expected " + ivLength + "-byte IV, read " + iv.length);
+        }
+
+        try {
             final var cipher = fileContentCipherService.getDecryptCipher(iv);
-            return new BufferedInputStream(new CipherInputStream(raw, cipher), STREAM_BUFFER_BYTES);
+            return new CipherInputStream(raw, cipher);
         } catch (Exception ex) {
             throw new SQLException("Decryption failed", ex);
         }

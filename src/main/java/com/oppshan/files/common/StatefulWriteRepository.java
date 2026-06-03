@@ -29,11 +29,19 @@ public interface StatefulWriteRepository<T> {
     }
 
     default <S extends T> S saveWithSession(@Nonnull S entity) {
-        try {
-            return updateWithSession(entity);
-        } catch (Exception ex) {
-            return insertWithSession(entity);
+        requireNonNull(entity, "Null entity");
+        final var entityManager = CDI.current().select(EntityManager.class).get();
+        if (entityManager.contains(entity)) {
+            return entity;
         }
+
+        if (entity instanceof AuditableEntity<?> auditable
+            && auditable.getUuid() != null
+            && entityManager.find(entity.getClass(), auditable.getUuid()) != null) {
+            return updateWithSession(entity);
+        }
+
+        return insertWithSession(entity);
     }
 
     default <S extends T> void deleteWithSession(@Nonnull S entity) {

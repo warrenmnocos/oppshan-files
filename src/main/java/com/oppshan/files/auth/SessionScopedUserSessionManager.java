@@ -7,9 +7,8 @@ import io.smallrye.common.annotation.Identifier;
 import jakarta.annotation.Priority;
 import jakarta.enterprise.context.SessionScoped;
 import jakarta.enterprise.inject.Alternative;
-import jakarta.enterprise.inject.spi.CDI;
 import jakarta.inject.Inject;
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 import static jakarta.interceptor.Interceptor.Priority.APPLICATION;
 
@@ -20,12 +19,17 @@ public class SessionScopedUserSessionManager implements UserSessionManager {
 
     private final UserSessionManager delegate;
 
+    private final HttpSession httpSession;
+
     private UserAccountView sessionUserAccountView;
 
     @Inject
     public SessionScopedUserSessionManager(@Identifier("oidcUserSessionManager")
-                                           UserSessionManager delegate) {
+                                               UserSessionManager delegate,
+
+                                           HttpSession httpSession) {
         this.delegate = delegate;
+        this.httpSession = httpSession;
         sessionUserAccountView = UserAccountView.anonymous();
     }
 
@@ -44,7 +48,7 @@ public class SessionScopedUserSessionManager implements UserSessionManager {
     @Override
     @Lock(Type.READ)
     public boolean isSignedOut() {
-        return sessionUserAccountView.isAnonymous() || delegate.isSignedOut();
+        return delegate.isSignedOut();
     }
 
     @Override
@@ -54,10 +58,6 @@ public class SessionScopedUserSessionManager implements UserSessionManager {
         sessionUserAccountView = UserAccountView.anonymous();
 
         try {
-            final var httpSession = CDI.current()
-                    .select(HttpServletRequest.class)
-                    .get()
-                    .getSession(false);
             if (httpSession != null) {
                 httpSession.invalidate();
             }

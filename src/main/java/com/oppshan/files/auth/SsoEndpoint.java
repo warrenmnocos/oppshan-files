@@ -2,6 +2,7 @@ package com.oppshan.files.auth;
 
 import com.oppshan.files.common.ApplicationUriResolver;
 import com.oppshan.files.exception.BusinessException;
+import com.oppshan.files.exception.MessageCode;
 import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -41,11 +42,14 @@ public class SsoEndpoint {
         try {
             userSessionManager.getSessionUserAccount();
             return Response.seeOther(ApplicationUriResolver.HOME.getUri()).build();
-        } catch (BusinessException ex) {
+        } catch (Exception ex) {
             userSessionManager.signOut();
+            final var messageCode = ex instanceof BusinessException businessException
+                    ? businessException.getErrorCode().getValue()
+                    : MessageCode.SIGN_IN_FAILED.getValue();
             return Response.seeOther(
                             UriBuilder.fromUri(ApplicationUriResolver.SSO_SIGN_IN.getUri())
-                                    .queryParam("message", ex.getErrorCode().getValue())
+                                    .queryParam("message", messageCode)
                                     .build()
                     )
                     .build();

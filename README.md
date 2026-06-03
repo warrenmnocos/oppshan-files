@@ -355,7 +355,7 @@ The stack at a glance:
 
 | Layer              | Technology                                                              | Notable capability used                                                                                                               |
 |--------------------|-------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| Backend framework  | **Quarkus 3.35.1** on **Java 25** (Oracle GraalVM)                      | Every JAX-RS handler runs on a **virtual thread** via custom `VirtualThreadServletExtension`                                          |
+| Backend framework  | **Quarkus 3.36.0** on **Java 25** (Oracle GraalVM)                      | Every JAX-RS handler runs on a **virtual thread** via custom `VirtualThreadServletExtension`                                          |
 | Persistence        | **Hibernate ORM** + **Jakarta Data** repositories                       | Custom **Hibernate `UserType`** for transparent AES/CTR encryption; **recursive-CTE `@NamedNativeQuery`** for tree walks              |
 | Cryptography       | **Java Cryptography Architecture (JCA/JCE)**                            | **AES/CTR/NoPadding** + per-file 16-byte IV from `SecureRandom`; key via **PBKDF2WithHmacSHA256** (1M iterations)                     |
 | Database           | **PostgreSQL 18** + **Flyway**                                          | Large Objects for file content; `BEFORE DELETE` trigger calling `lo_unlink`; UUID v7 primary keys                                     |
@@ -373,7 +373,7 @@ The stack at a glance:
 | Edge & TLS         | **Caddy** + **Let's Encrypt** + **AWS Route 53**                        | **Route 53** holds the `A` record and `CAA` lock; wildcard `*.oppshan.com` cert acquired via DNS-01; **Caddy** terminates TLS, no ALB |
 | Operations         | **AWS SSM Session Manager** + **SSM Run Command**                       | Replaces SSH; deploys without port 22 ever being exposed                                                                              |
 
-The backend runs on **Quarkus 3.35.1** with **Java 25** (Oracle GraalVM). **JAX-RS** endpoints run on the **Undertow**
+The backend runs on **Quarkus 3.36.0** with **Java 25** (Oracle GraalVM). **JAX-RS** endpoints run on the **Undertow**
 servlet container, but I swapped out the worker pool at deployment time with `VirtualThreadServletExtension` so
 every request handler runs on a **virtual thread**. Blocking **JDBC** and `InputStream` reads no longer pin
 a platform thread. **Hibernate ORM** validates the **Flyway**-managed schema at startup; breadcrumb walks

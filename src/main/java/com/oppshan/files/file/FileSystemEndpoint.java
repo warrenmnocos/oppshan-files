@@ -129,9 +129,7 @@ public class FileSystemEndpoint {
                                InputStream contentInputStream) {
         final var directoryContentsView = fileNodeService.createRegularFileNode(
                 userSessionManager.getSessionUserAccount().uuid(),
-                request.getParentFileNodeUuid(),
-                request.getContentFilename(),
-                request.getContentType(),
+                request,
                 contentInputStream
         );
         userSessionManager.refreshSessionUserAccount();

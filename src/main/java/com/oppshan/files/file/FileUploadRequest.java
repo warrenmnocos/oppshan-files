@@ -12,6 +12,7 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.OptionalLong;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -36,16 +37,43 @@ public class FileUploadRequest implements Serializable {
     @HeaderParam("Content-Disposition")
     private String contentDisposition;
 
+    @HeaderParam("Content-Length")
+    private Long contentLength;
+
     public UUID getParentFileNodeUuid() {
         return parentFileNodeUuid;
+    }
+
+    public FileUploadRequest setParentFileNodeUuid(UUID parentFileNodeUuid) {
+        this.parentFileNodeUuid = parentFileNodeUuid;
+        return this;
     }
 
     public String getContentType() {
         return contentType;
     }
 
+    public FileUploadRequest setContentType(String contentType) {
+        this.contentType = contentType;
+        return this;
+    }
+
     public String getContentDisposition() {
         return contentDisposition;
+    }
+
+    public FileUploadRequest setContentDisposition(String contentDisposition) {
+        this.contentDisposition = contentDisposition;
+        return this;
+    }
+
+    public OptionalLong getContentLength() {
+        return contentLength == null ? OptionalLong.empty() : OptionalLong.of(contentLength);
+    }
+
+    public FileUploadRequest setContentLength(Long contentLength) {
+        this.contentLength = contentLength;
+        return this;
     }
 
     public String getContentFilename() {
@@ -66,6 +94,7 @@ public class FileUploadRequest implements Serializable {
         return MoreObjects.toStringHelper(this)
                 .add("contentType", contentType)
                 .add("contentDisposition", contentDisposition)
+                .add("contentLength", contentLength)
                 .toString();
     }
 }
