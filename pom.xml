@@ -416,7 +416,7 @@
 
                 Lifecycle layout:
                   prepare-package        docker up + keycloak bootstrap + build NORMAL
-                  package                save NORMAL + test NORMAL + reset DB + build INSTRUMENTED
+                  package                save NORMAL + warmup (60s) + reset DB + test NORMAL + reset DB + build INSTRUMENTED
                   pre-integration-test   save INSTRUMENTED + test INSTRUMENTED + reset DB + build OPTIMIZED
                   integration-test       save OPTIMIZED + test OPTIMIZED + compare + select winner
                   post-integration-test  docker down
@@ -484,6 +484,55 @@
                                     <arguments>
                                         <argument>-c</argument>
                                         <argument>mkdir -p ${project.build.directory}/runners &amp;&amp; mv ${project.build.directory}/oppshan-files-*-runner ${project.build.directory}/runners/normal-runner</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <!--
+                                Warm the shared Postgres + Keycloak containers before the FIRST
+                                measured load test. The normal binary is tested first, so without
+                                this it would run against a cold PG page cache / autovacuum and
+                                cold Keycloak token endpoints, while the later instrumented and
+                                optimized tests run against infra already warmed by the normal
+                                run. A 60s warmup load (LOOP_SECONDS=60) levels that asymmetry so
+                                all three binaries are measured against warm infra. The warmup's
+                                metrics file is throwaway (overwritten by test-normal below); the
+                                instrumented-only iprof copy is label-gated, so re-running the
+                                'normal' label here is safe.
+                            -->
+                            <execution>
+                                <id>warmup-normal</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>bash</executable>
+                                    <environmentVariables>
+                                        <LOOP_SECONDS>60</LOOP_SECONDS>
+                                    </environmentVariables>
+                                    <arguments>
+                                        <argument>${project.basedir}/scripts/graalvm-pgo/pgo-test-binary.sh</argument>
+                                        <argument>normal</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <!--
+                                The warmup populates app tables, so reset to empty before the
+                                measured run. PG page cache and autovacuum state stay warm across
+                                this truncate (container stays up), which is exactly the point:
+                                the measured normal test now starts from the same warm-infra,
+                                empty-app state that instrumented and optimized inherit.
+                            -->
+                            <execution>
+                                <id>reset-db-after-warmup</id>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>bash</executable>
+                                    <arguments>
+                                        <argument>${project.basedir}/scripts/graalvm-pgo/pgo-reset-db.sh</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
@@ -714,6 +763,30 @@
                                     <arguments>
                                         <argument>-File</argument>
                                         <argument>${project.basedir}/scripts/graalvm-pgo/keycloak-bootstrap.ps1</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>warmup-normal</id>
+                                <configuration>
+                                    <executable>pwsh</executable>
+                                    <environmentVariables>
+                                        <LOOP_SECONDS>60</LOOP_SECONDS>
+                                    </environmentVariables>
+                                    <arguments>
+                                        <argument>-File</argument>
+                                        <argument>${project.basedir}/scripts/graalvm-pgo/pgo-test-binary.ps1</argument>
+                                        <argument>normal</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>reset-db-after-warmup</id>
+                                <configuration>
+                                    <executable>pwsh</executable>
+                                    <arguments>
+                                        <argument>-File</argument>
+                                        <argument>${project.basedir}/scripts/graalvm-pgo/pgo-reset-db.ps1</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
