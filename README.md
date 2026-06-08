@@ -112,7 +112,7 @@ via PBKDF2.
 
 I tried to go deeper than the surface API wherever I could. The Quarkus 3 backend runs every request on a virtual
 thread (via a custom Undertow extension), encrypts file content transparently through a Hibernate `UserType`, and
-walks the directory tree with recursive CTE named native queries instead of row-by-row fetching. The Angular 21
+walks the directory tree with recursive CTE named native queries instead of row-by-row fetching. The Angular 22
 frontend is signals-first and uses a custom event bus to keep mutations and reads on separate paths (CQRS), with
 two-way data binding wired by hand where it's actually needed. Pushing to `main` triggers a fully automated deploy:
 GraalVM compiles a native ARM binary, uploads it to S3, and rolls it out to EC2 via SSM. No SSH, no long-lived AWS keys,
@@ -355,13 +355,13 @@ The stack at a glance:
 
 | Layer              | Technology                                                              | Notable capability used                                                                                                               |
 |--------------------|-------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------|
-| Backend framework  | **Quarkus 3.36.0** on **Java 25** (Oracle GraalVM)                      | Every JAX-RS handler runs on a **virtual thread** via custom `VirtualThreadServletExtension`                                          |
+| Backend framework  | **Quarkus 3.36.1** on **Java 25** (Oracle GraalVM)                      | Every JAX-RS handler runs on a **virtual thread** via custom `VirtualThreadServletExtension`                                          |
 | Persistence        | **Hibernate ORM** + **Jakarta Data** repositories                       | Custom **Hibernate `UserType`** for transparent AES/CTR encryption; **recursive-CTE `@NamedNativeQuery`** for tree walks              |
 | Cryptography       | **Java Cryptography Architecture (JCA/JCE)**                            | **AES/CTR/NoPadding** + per-file 16-byte IV from `SecureRandom`; key via **PBKDF2WithHmacSHA256** (1M iterations)                     |
 | Database           | **PostgreSQL 18** + **Flyway**                                          | Large Objects for file content; `BEFORE DELETE` trigger calling `lo_unlink`; UUID v7 primary keys                                     |
 | Authentication     | **Quarkus OIDC** + **Google OAuth 2.0**                                 | HTTP-only cookies, encrypted token state, `@SessionScoped` user cache with `@Lock` guards                                             |
 | Design & UX        | **Figma Make** prototype + per-user-story wireframe mockups             | Interactive click-through prototype mirrors 1:1 the screens the app implements; one wireframe per acceptance criterion                |
-| Frontend framework | **Angular 21**                                                          | Signals-first state, standalone components, `@if`/`@for` control flow, **hand-wired two-way data binding**                            |
+| Frontend framework | **Angular 22**                                                          | Signals-first state, standalone components, `@if`/`@for` control flow, **hand-wired two-way data binding**                            |
 | Reactive plumbing  | **RxJS**                                                                | `Subject`-backed event bus exposing typed `Observable` channels for the CQRS event/listener pattern                                   |
 | Build              | **Maven** + **frontend-maven-plugin**                                   | One `./mvnw package` compiles the Angular bundle and packages it with the backend into a single artifact                              |
 | Production binary  | **Oracle GraalVM 25** native image                                      | ARM64-tuned with `-march=armv8-a+aes+lse` and G1 GC; sub-100 ms startup                                                               |
@@ -373,7 +373,7 @@ The stack at a glance:
 | Edge & TLS         | **Caddy** + **Let's Encrypt** + **AWS Route 53**                        | **Route 53** holds the `A` record and `CAA` lock; wildcard `*.oppshan.com` cert acquired via DNS-01; **Caddy** terminates TLS, no ALB |
 | Operations         | **AWS SSM Session Manager** + **SSM Run Command**                       | Replaces SSH; deploys without port 22 ever being exposed                                                                              |
 
-The backend runs on **Quarkus 3.36.0** with **Java 25** (Oracle GraalVM). **JAX-RS** endpoints run on the **Undertow**
+The backend runs on **Quarkus 3.36.1** with **Java 25** (Oracle GraalVM). **JAX-RS** endpoints run on the **Undertow**
 servlet container, but I swapped out the worker pool at deployment time with `VirtualThreadServletExtension` so
 every request handler runs on a **virtual thread**. Blocking **JDBC** and `InputStream` reads no longer pin
 a platform thread. **Hibernate ORM** validates the **Flyway**-managed schema at startup; breadcrumb walks
@@ -382,7 +382,7 @@ and directory totals use `@NamedNativeQuery` with recursive **CTE**s rather than
 service and endpoint layers never see ciphertext. Google sign-in goes through the Quarkus **OpenID Connect** extension,
 and Quarkus Dev Services spins up ephemeral **PostgreSQL** and Keycloak containers for the test profile.
 
-The frontend is **Angular 21**, standalone-components only, signals-first. State lives in `signal()` and
+The frontend is **Angular 22**, standalone-components only, signals-first. State lives in `signal()` and
 `computed()`; component boundaries use `input()` and `output()`. **Two-way data binding** is wired explicitly via
 `[ngModel]` / `(ngModelChange)` against a writable signal. I avoided `model()` on purpose, since the input/output
 pair it generates costs you whether or not the parent ever two-way binds. Reactive lists, dialog visibility, and
@@ -414,7 +414,7 @@ The component diagram below shows the internal layers of the application.
 
 ![Component architecture](docs/diagrams/component-architecture.svg)
 
-The **frontend** is an Angular 21 SPA structured around a **central `MessageBusService` event bus**. User actions
+The **frontend** is an Angular 22 SPA structured around a **central `MessageBusService` event bus**. User actions
 fire `*Initiated` events; dialogs escalate them to `*Confirmed` commands; dedicated **single-responsibility
 listeners** receive those commands, call the relevant service, and emit `*Succeeded` or `*Failed` outcomes.
 `AuthService` and `FileService` make the HTTP calls; `NotificationService` drives the `NotificationCenter`
@@ -1278,7 +1278,7 @@ GitHub mints a short-lived JWT, AWS STS exchanges it for temporary credentials b
 - **Java 25** (Oracle GraalVM 25 required for production native builds because `--gc=G1` is Oracle-only;
   Edition is fine for `quarkus:dev` JVM mode)
 - **Maven 3.9+** (the included `./mvnw` wrapper works without a global install)
-- **Node.js 22+** and **Yarn** (installed automatically by the `frontend-maven-plugin` during the Maven build)
+- **Node.js 26+** and **Yarn** (installed automatically by the `frontend-maven-plugin` during the Maven build)
 - **Docker** running locally, needed for Quarkus Dev Services (Testcontainers PostgreSQL and Keycloak)
 - A **Google Cloud OAuth 2.0 client** with `http://localhost:8080/sso/sign-in/oidc/callback/google` added as an
   authorized redirect URI

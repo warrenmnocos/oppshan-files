@@ -76,7 +76,7 @@ class SsoEndpointKeycloakTest {
     private static String sessionCookieValue(WebClient webClient) {
         return webClient.getCookieManager().getCookies().stream()
                 .filter(cookie -> cookie.getName().startsWith("q_session"))
-                .map(org.htmlunit.util.Cookie::getValue)
+                .map(org.htmlunit.http.Cookie::getValue)
                 .findFirst()
                 .orElse("");
     }
